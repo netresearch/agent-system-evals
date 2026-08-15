@@ -47,9 +47,28 @@ except ImportError:  # pragma: no cover - exercised only outside the verifier
 # against recorded fixtures outside a trial — which is how the verifier is
 # proved to discriminate at all, given that an open case has no oracle
 # (ADR 0003). They are read once at import; tests reassign the constants.
-TRAJECTORY_PATH = os.environ.get("NREVAL_TRAJECTORY", "/logs/trajectory.json")
+TRAJECTORY_PATH = os.environ.get("NREVAL_TRAJECTORY", "")
 ARTIFACTS_DIR = os.environ.get("NREVAL_ARTIFACTS", "/logs/artifacts")
 WORKSPACE = os.environ.get("NREVAL_WORKSPACE", "/app")
+
+# Where the trajectory may be, in order of preference.
+#
+# A separate verifier is not given the agent's log directory: it sees /tests,
+# its own /logs/verifier, and whatever was collected as an artifact. So the
+# trajectory arrives only because the case declares /logs/agent in
+# `artifacts`, and it arrives under the artifact tree rather than at its
+# original path. RewardKit's own default (/logs/trajectory.json) is kept last
+# as a fallback rather than relied upon.
+#
+# Searching a list rather than asserting one path is deliberate: the exact
+# artifact layout is Harbor's to change, and a hard-coded path would fail as a
+# missing trajectory — which reads as a broken run rather than as a moved file.
+TRAJECTORY_CANDIDATES = (
+    "/logs/artifacts/logs/agent/trajectory.json",
+    "/logs/artifacts/agent/trajectory.json",
+    "/logs/agent/trajectory.json",
+    "/logs/trajectory.json",
+)
 
 
 class MissingEvidence(RuntimeError):
@@ -65,11 +84,27 @@ class MissingEvidence(RuntimeError):
 # --------------------------------------------------------------------------
 
 
+def resolve_trajectory_path() -> Path:
+    """The first trajectory that exists, explicit setting winning.
+
+    Resolved at call time, not bound as a default argument: a default is
+    evaluated once at import, so reassigning TRAJECTORY_PATH afterwards would
+    silently have no effect.
+    """
+    if TRAJECTORY_PATH:
+        return Path(TRAJECTORY_PATH)
+    for candidate in TRAJECTORY_CANDIDATES:
+        if Path(candidate).exists():
+            return Path(candidate)
+    raise MissingEvidence(
+        "no trajectory found at any of: " + ", ".join(TRAJECTORY_CANDIDATES) + ". "
+        "A separate verifier only receives the trajectory if the case declares "
+        "/logs/agent in its `artifacts`."
+    )
+
+
 def load_trajectory(path: str | Path | None = None) -> dict[str, Any]:
-    # Resolved at call time, not bound as a default argument: a default is
-    # evaluated once at import, so reassigning TRAJECTORY_PATH afterwards would
-    # silently have no effect.
-    p = Path(path if path is not None else TRAJECTORY_PATH)
+    p = Path(path) if path is not None else resolve_trajectory_path()
     if not p.exists():
         raise MissingEvidence(f"no trajectory at {p}")
     try:

@@ -80,6 +80,31 @@ def main() -> int:
                 f"controls, and Harbor cannot regrade it (ADR 0004)"
             )
 
+        # `artifacts` is a top-level key. Written after any table header it
+        # becomes a member of that table, parses to an empty list without a
+        # word, and the separate verifier then receives nothing but the
+        # convention default — so the trajectory is unreachable and every
+        # judge criterion grades behaviour it cannot see. Caught here because
+        # the run itself does not complain.
+        if not config.artifacts:
+            problems.append(
+                f"{label}: no artifacts declared. If task.toml appears to "
+                f"declare them, check that `artifacts = [...]` sits above the "
+                f"first [table] header — TOML assigns it to the preceding "
+                f"table otherwise."
+            )
+        else:
+            declared = {
+                entry if isinstance(entry, str) else getattr(entry, "source", "")
+                for entry in config.artifacts
+            }
+            if not any(d.startswith("/logs/agent") for d in declared):
+                problems.append(
+                    f"{label}: /logs/agent is not collected, so the separate "
+                    f"verifier never receives the agent's trajectory "
+                    f"(docs/reproducibility.md)"
+                )
+
         metadata = raw.get("metadata", {})
         for field in REQUIRED_METADATA:
             if not metadata.get(field):

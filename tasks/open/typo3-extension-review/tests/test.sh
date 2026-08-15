@@ -9,10 +9,19 @@ export PATH="/root/.local/bin:$PATH"
 # reads the same facts the mechanical criteria do. Without it, each judge
 # re-derives the facts from raw logs and disagrees with itself between runs.
 python3 - <<'PY'
+import shutil
 import sys
 
 sys.path.insert(0, "/tests")
 import nreval
+
+# Stage the trajectory at one fixed path. The judge configs need a literal
+# path, and where Harbor actually delivers the trajectory depends on the
+# artifact layout — so the resolution lives here, once, instead of being
+# repeated as a guess in eight judge.toml files.
+source = nreval.resolve_trajectory_path()
+shutil.copy(source, "/logs/verifier/trajectory.json")
+print(f"trajectory: {source} -> /logs/verifier/trajectory.json")
 
 path = nreval.write_evidence_manifest("/logs/verifier/evidence-manifest.json")
 print(f"wrote {path}")

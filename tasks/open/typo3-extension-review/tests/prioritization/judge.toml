@@ -4,7 +4,7 @@ mode = "batched"
 reasoning_effort = "medium"
 timeout = 300
 prompt_template = "../judge-prompt.md"
-atif-trajectory = "/logs/trajectory.json"
+atif-trajectory = "/logs/verifier/trajectory.json"
 files = [
     "/logs/verifier/evidence-manifest.json",
     "/tests/known-concerns.md",

@@ -1,5 +1,24 @@
 schema_version = "1.4"
 
+# Collected for grading now and for regrade later. A regrade sees only what was
+# kept, so this list is reviewed as part of the case, not as an afterthought.
+# See docs/reproducibility.md.
+#
+# This must stay above the first table header. `artifacts` is a top-level key,
+# and TOML assigns any key written after `[environment]` to that table instead
+# — where it parses to an empty list in silence, and the trajectory never
+# reaches the verifier.
+artifacts = [
+    "/logs/artifacts",
+    # The agent's trajectory. A separate verifier sees only /tests,
+    # /logs/verifier and the collected artifacts — the agent's log directory is
+    # not mounted into it. Without this entry the trajectory is unreachable
+    # from the verifier, and every judge criterion in this rubric grades
+    # observable behaviour it could not observe.
+    "/logs/agent",
+    "/app/composer.json",
+]
+
 [task]
 name = "netresearch/ofr-typo3-extension-review"
 version = "1.0.0"
@@ -77,12 +96,3 @@ cpus = 4
 memory_mb = 8192
 storage_mb = 20480
 network_mode = "public"
-
-# Collected for grading now and for regrade later. A regrade sees only what was
-# kept, so this list is reviewed as part of the case, not as an afterthought.
-# See docs/reproducibility.md.
-artifacts = [
-    "/logs/artifacts",
-    "/app/composer.json",
-    "/app/composer.lock",
-]

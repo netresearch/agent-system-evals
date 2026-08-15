@@ -21,6 +21,15 @@ Harbor's job lock already records resolved skill commits, task digests and the
 verifier environment mode. `scripts/snapshot` reads that lock rather than the
 fleet manifest, because the manifest states intent and the lock states fact.
 
+That distinction is not a nicety here. A skill **cannot** be requested by
+commit SHA: Harbor resolves a `--skill` ref with `git ls-remote <url> <ref>`,
+and ls-remote does not answer for a bare commit, so the run fails with "No
+matching ref". Fleets therefore pin tags. A tag can be moved, and a branch in a
+candidate fleet certainly will be, so the only trustworthy statement about
+which code ran is the resolved commit in the lock. `scripts/run-evaluation`
+rejects a SHA-pinned fleet with this explanation rather than letting the run
+fail obscurely.
+
 ## Snapshot identifier
 
 Each recorded evaluation gets an identifier of the form

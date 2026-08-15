@@ -153,6 +153,37 @@ def test_missing_trajectory_raises(monkeypatch):
         nreval.load_trajectory()
 
 
+def test_trajectory_is_searched_across_candidate_paths(tmp_path, monkeypatch):
+    """The verifier's trajectory location is not fixed.
+
+    A separate verifier receives the trajectory only as a collected artifact,
+    under the artifact tree rather than at its original path. Searching a list
+    keeps a layout change from presenting itself as a missing trajectory, which
+    would read as a broken run.
+    """
+    monkeypatch.setattr(nreval, "TRAJECTORY_PATH", "")
+    present = tmp_path / "second" / "trajectory.json"
+    present.parent.mkdir(parents=True)
+    present.write_text('{"schema_version": "ATIF-v1.7", "steps": []}')
+
+    monkeypatch.setattr(
+        nreval,
+        "TRAJECTORY_CANDIDATES",
+        (str(tmp_path / "first" / "trajectory.json"), str(present)),
+    )
+    assert nreval.resolve_trajectory_path() == present
+    assert nreval.load_trajectory()["schema_version"] == "ATIF-v1.7"
+
+
+def test_no_candidate_raises_with_the_reason(tmp_path, monkeypatch):
+    monkeypatch.setattr(nreval, "TRAJECTORY_PATH", "")
+    monkeypatch.setattr(
+        nreval, "TRAJECTORY_CANDIDATES", (str(tmp_path / "nowhere.json"),)
+    )
+    with pytest.raises(nreval.MissingEvidence, match="declares /logs/agent"):
+        nreval.resolve_trajectory_path()
+
+
 def test_corrupt_trajectory_raises(tmp_path, monkeypatch):
     broken = tmp_path / "trajectory.json"
     broken.write_text("{not json")
