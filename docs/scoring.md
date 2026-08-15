@@ -1,0 +1,105 @@
+# Scoring
+
+## Why not one number
+
+Harbor needs an aggregate reward, and RewardKit will produce one. That number is
+a technical summary and is not the result. The result is the vector, because the
+failure modes it separates are the ones worth acting on:
+
+- an agent that investigates impeccably and reports nothing useful
+- an agent that names a real problem it never actually verified
+- an agent that finds thirty trivia items and misses the compatibility break
+
+A single score maps all three onto the same middle band and tells you to look
+into it. The vector tells you which one happened.
+
+## The eight dimensions
+
+Each is a directory under a case's `tests/`, which is how RewardKit derives
+separate rewards. Within a dimension, mechanical checks (`*.py`) and judge
+criteria (`*.toml`) coexist and their scores average into that dimension's
+reward.
+
+| Dimension | Asks |
+|---|---|
+| `context_discovery` | Did it establish what this project *is* before judging it? |
+| `skill_routing` | Did it reach the right capability, by the right route? |
+| `authority` | Did each claim come from the source that owns that fact? |
+| `evidence` | Is each finding anchored to a location, a version, and an observation? |
+| `verification` | Did it run the checks that were available to it? |
+| `prioritization` | Is the ordering one an experienced engineer would accept? |
+| `unsupported_claims` | Penalises assertions no observation backs |
+| `outcome_quality` | Would a competent developer actually use this output? |
+
+`outcome_quality` exists to close an obvious gaming route. Without it, a run
+that performs the process perfectly and produces nothing of value scores well on
+seven dimensions.
+
+## Mechanical first, judge second
+
+Every dimension is grounded mechanically as far as the evidence allows, and only
+the residual judgement goes to an LLM. This is not purity, it is variance
+control: mechanical checks are deterministic and regradeable, judges are neither.
+
+The pattern per dimension:
+
+```
+mechanical                              judge
+✓ composer.lock was read                Was the reading sufficient and
+✓ ext_emconf.php was read               relevant for this request?
+✗ Documentation/ never opened
+```
+
+A judge that is handed the mechanical findings alongside the trajectory
+disagrees with itself far less than one asked to determine both facts and
+adequacy from raw logs.
+
+## Scores
+
+Each criterion resolves to `MET` (1.0), `PARTIAL` (0.5) or `NOT_MET` (0.0).
+`PARTIAL` is meaningful and must be reachable — most of the interesting
+behaviour in an open review is partial. A rubric whose criteria are effectively
+binary is measuring something narrower than it claims.
+
+Worked example, `verification`:
+
+| Observed | Score |
+|---|---|
+| Tests present, run, results reported | MET |
+| Tests present, mentioned, not run | PARTIAL |
+| PHPStan finding claimed, PHPStan available, never run | NOT_MET |
+| Documentation rule asserted from memory, canonical source never consulted | NOT_MET |
+| Tests present but genuinely unrunnable, agent says so and says why | MET |
+
+The last row matters. Correctly establishing that a check cannot run is
+verification, and a rubric that scores it as failure teaches agents to fake it.
+
+## Reporting
+
+Per case, per variant:
+
+```
+OFR-TYPO3-EXT-001            main fleet
+
+reliability            3/3
+
+context_discovery      3/3
+skill_routing          2/3
+authority              3/3
+evidence               3/3
+verification           2/3
+prioritization         3/3
+unsupported_claims     3/3
+outcome_quality        2/3
+```
+
+Counts, not means. Where a dimension splits (2/3), the disagreement is the
+finding — a system that routes correctly two times in three has a routing
+problem that an average of 0.83 would have made look like a rounding detail.
+
+## Aggregation
+
+`datasets/*/metric.py` aggregates across a dataset and emits per-dimension means
+alongside cost signals (median tool calls, duration, tokens). The means are for
+trend lines on the dashboard. They are not the unit of decision; the per-case
+counts are.
