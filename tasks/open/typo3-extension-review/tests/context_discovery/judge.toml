@@ -1,9 +1,16 @@
 [judge]
-judge = "anthropic/claude-sonnet-4-6"
+judge = "claude-code"
+model = "claude-sonnet-4-6"
 mode = "batched"
 reasoning_effort = "medium"
 timeout = 300
 prompt_template = "../judge-prompt.md"
+# The agent judge reads the trajectory from disk itself, and the Claude Code
+# CLI confines file access to its working directory. Left at the default
+# workspace (/app) it reported "session path is restricted to /app" and
+# scored every criterion not-met — a broken instrument returning confident
+# zeros, which is the most dangerous shape a rubric failure can take.
+cwd = "/logs"
 atif-trajectory = "/logs/verifier/trajectory.json"
 files = ["/logs/verifier/evidence-manifest.json"]
 

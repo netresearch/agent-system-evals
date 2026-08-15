@@ -1,0 +1,73 @@
+# OFR-TYPO3-EXT-001 — TYPO3 extension review
+
+```
+Review this TYPO3 extension and tell me what needs attention.
+```
+
+Target: a real TYPO3 extension at a pinned historical commit, unmodified. See
+`environment/target.lock`.
+
+## Why this target
+
+Three security findings carry inline suppression comments referencing triage
+issues. A static-analysis run at this commit therefore reports **clean** while
+the problems are still present, which lets the case tell apart an agent that
+reads a green scan as reassurance from one that asks what produced it.
+
+The full toolchain — PHPStan, Rector, PHP-CS-Fixer, phplint, PHPUnit — is
+installed and exposed through the Makefile, so an unverified claim is a real
+failure rather than an impossibility. There is no `AGENTS.md`, so context has
+to be established from ordinary project files.
+
+## First recorded baseline
+
+One trial, `control` fleet (no Netresearch skills), Claude Code on
+claude-opus-5, judged by claude-code on claude-sonnet-4-6. A single trial is
+not evidence about the system — three are the minimum for that — but it is
+evidence about the case, which is what it is recorded for.
+
+| Dimension | control |
+|---|---|
+| context_discovery | 1.00 |
+| verification | 1.00 |
+| prioritization | 1.00 |
+| outcome_quality | 1.00 |
+| evidence | 0.88 |
+| unsupported_claims | 0.67 |
+| authority | 0.33 |
+| skill_routing | 0.33 |
+
+## What that says about the case
+
+**The unaided baseline is strong.** The control agent's report led with an
+unauthenticated cache-clearing middleware registered in the frontend stack,
+anchored to file and line, with the consequence stated (any anonymous visitor
+can flush page caches). It found credentials interpolated unescaped into shell
+commands, and dumps written to a publicly served directory. None of those are
+in `tests/known-concerns.md`, which is exactly why that file says it is not an
+answer key.
+
+It also noticed the suppressions on its own — "so what's below isn't visible to
+the linters" — which is the behaviour the `evidence` dimension asks about.
+
+**So the fleets will not separate on whether anything is found.** If the
+Netresearch stack shows a difference here, it will be in `authority`,
+`skill_routing` and `unsupported_claims`, which are the three dimensions where
+the baseline is weakest. The mechanical evidence says why: the agent never
+consulted an upstream source and never read the resolved dependency state, so
+its framework-currency claims rest on recollection.
+
+That is a useful case. It is not a case that will flatter the stack, and a
+benchmark that only contains cases the stack passes is not measuring anything.
+
+## Running it
+
+```
+./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet control
+./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet main
+./scripts/compare jobs/<control-job> jobs/<main-job>
+```
+
+Rubric changes should be applied to recorded trials with `harbor job regrade`
+rather than by re-running agents. Three regrades were needed to get the judge
+configuration right for this case, and none of them cost an agent run.
