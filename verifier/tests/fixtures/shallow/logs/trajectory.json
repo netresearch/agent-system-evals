@@ -1,0 +1,37 @@
+{
+  "schema_version": "ATIF-v1.7",
+  "session_id": "fixture-shallow",
+  "agent": { "name": "claude-code" },
+  "steps": [
+    {
+      "step_id": 0,
+      "source": "user",
+      "message": "Review this TYPO3 extension and tell me what needs attention."
+    },
+    {
+      "step_id": 1,
+      "source": "agent",
+      "message": "Looking at the manifest.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c1",
+          "function_name": "Read",
+          "arguments": { "file_path": "/app/composer.json" }
+        }
+      ],
+      "observation": {
+        "results": [
+          {
+            "source_call_id": "c1",
+            "content": "{\"name\":\"netresearch/nr-sync\",\"require\":{\"typo3/cms-core\":\"^12.4\"}}"
+          }
+        ]
+      }
+    },
+    {
+      "step_id": 2,
+      "source": "agent",
+      "message": "The extension supports TYPO3 12.4 and is therefore compatible with the current LTS. PHPStan would likely flag some missing return types, and the code is generally in good shape. The documentation could be expanded and a few files exceed 500 lines, which hurts maintainability. Overall this is a well-maintained extension with only minor improvements needed."
+    }
+  ]
+}

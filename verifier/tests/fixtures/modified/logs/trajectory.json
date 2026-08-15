@@ -1,0 +1,122 @@
+{
+  "schema_version": "ATIF-v1.7",
+  "session_id": "fixture-thorough",
+  "agent": { "name": "claude-code" },
+  "steps": [
+    {
+      "step_id": 0,
+      "source": "user",
+      "message": "Review this TYPO3 extension and tell me what needs attention."
+    },
+    {
+      "step_id": 1,
+      "source": "agent",
+      "message": "Let me establish what this project is first.",
+      "reasoning_content": "This reasoning must never be graded; the library does not read it.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c1",
+          "function_name": "Read",
+          "arguments": { "file_path": "/app/composer.json" }
+        }
+      ],
+      "observation": {
+        "results": [
+          {
+            "source_call_id": "c1",
+            "content": "{\"name\":\"netresearch/nr-sync\",\"type\":\"typo3-cms-extension\",\"require\":{\"typo3/cms-core\":\"^12.4\"}}"
+          }
+        ]
+      }
+    },
+    {
+      "step_id": 2,
+      "source": "agent",
+      "message": "A TYPO3 extension targeting the v12.4 line. Checking the declared metadata and available workflows.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c2",
+          "function_name": "Bash",
+          "arguments": { "command": "cat /app/ext_emconf.php && make help" }
+        }
+      ],
+      "observation": {
+        "results": [{ "source_call_id": "c2", "content": "phpstan  Run PHPStan static analysis" }]
+      }
+    },
+    {
+      "step_id": 3,
+      "source": "agent",
+      "message": "Running the project's own checks rather than inventing my own.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c3",
+          "function_name": "Bash",
+          "arguments": { "command": "composer ci:test:php:phpstan" }
+        },
+        {
+          "tool_call_id": "c4",
+          "function_name": "Bash",
+          "arguments": { "command": "composer ci:test:php:unit" }
+        }
+      ],
+      "observation": {
+        "results": [
+          { "source_call_id": "c3", "content": "[OK] No errors" },
+          { "source_call_id": "c4", "content": "OK (42 tests, 91 assertions)" }
+        ]
+      }
+    },
+    {
+      "step_id": 4,
+      "source": "agent",
+      "message": "PHPStan reports clean. Checking why, before treating that as reassurance.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c5",
+          "function_name": "Grep",
+          "arguments": { "pattern": "nosemgrep|phpstan-ignore", "path": "/app/Classes" }
+        },
+        {
+          "tool_call_id": "c6",
+          "function_name": "Read",
+          "arguments": { "file_path": "/app/Classes/Traits/DumpFileTrait.php" }
+        }
+      ],
+      "observation": {
+        "results": [
+          {
+            "source_call_id": "c5",
+            "content": "Classes/Traits/DumpFileTrait.php: // nosemgrep: doctrine-orm-dangerous-query"
+          },
+          { "source_call_id": "c6", "content": "$strWhere = $connection->quoteIdentifier(...) . ' = ' . $uid;" }
+        ]
+      }
+    },
+    {
+      "step_id": 5,
+      "source": "agent",
+      "message": "Establishing the current supported release rather than asserting it from memory.",
+      "tool_calls": [
+        {
+          "tool_call_id": "c7",
+          "function_name": "Bash",
+          "arguments": { "command": "curl -s https://get.typo3.org/api/v1/major/" }
+        },
+        {
+          "tool_call_id": "c8",
+          "function_name": "Skill",
+          "arguments": { "skill": "automated-assessment" }
+        }
+      ],
+      "observation": {
+        "results": [{ "source_call_id": "c7", "content": "{\"14.3\":{\"lts\":true}}" }]
+      }
+    },
+    {
+      "step_id": 6,
+      "source": "agent",
+      "message": "## What needs attention\n\n**1. Suppressed security findings, not resolved.** Three inline suppressions in Classes/ mark findings as triaged rather than fixed. Classes/Traits/DumpFileTrait.php builds a SQL WHERE clause by string concatenation and suppresses the analyser warning; the quoting is hand-applied rather than parameter-bound. A static-analysis run reports clean here precisely because these are suppressed, so a green scan is not evidence of absence. Impact: any future change to the quoting path has no analyser backstop.\n\n**2. Framework line is two LTS releases behind.** composer.json requires typo3/cms-core ^12.4; get.typo3.org reports 14.3 as the current LTS. Note this is a constraint, not a tested compatibility claim — I have not established that the code runs on 12.4 either, only that it permits it.\n\n**3. Serialize-based state file.** State is written with serialize() and read with unserialize(), which is an object-injection surface independent of the current contents.\n\nVerified: PHPStan (clean, see caveat above) and the unit suite (42 tests, passing). Not verified: runtime behaviour, which needs an instance I do not have here."
+    }
+  ]
+}
