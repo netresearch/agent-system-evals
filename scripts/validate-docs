@@ -1,0 +1,73 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Fail if the documentation names a script or document that does not exist.
+
+Written after README.md shipped a `./scripts/bootstrap` that had never been
+created. Nothing catches that: the reader runs it, gets "No such file or
+directory", and now distrusts the rest of the page. The same applies to a
+cross-reference to a doc that was renamed.
+
+Checks two things across every tracked Markdown file:
+
+- every `./scripts/<name>` mentioned exists and is executable
+- every relative Markdown link resolves to a file that exists
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+SCRIPT_REFERENCE = re.compile(r"\./scripts/([a-z0-9][a-z0-9-]*)")
+MARKDOWN_LINK = re.compile(r"\[[^\]]*\]\(([^)#]+?)(?:#[^)]*)?\)")
+
+
+def markdown_files() -> list[Path]:
+    return [
+        path
+        for path in sorted(ROOT.rglob("*.md"))
+        if not any(part in {"jobs", "reports", ".git", "node_modules"}
+                   for part in path.relative_to(ROOT).parts)
+    ]
+
+
+def main() -> int:
+    problems: list[str] = []
+    checked = 0
+
+    for path in markdown_files():
+        checked += 1
+        text = path.read_text()
+        label = path.relative_to(ROOT)
+
+        for name in sorted(set(SCRIPT_REFERENCE.findall(text))):
+            script = ROOT / "scripts" / name
+            if not script.exists():
+                problems.append(f"{label}: names ./scripts/{name}, which does not exist")
+            elif not script.stat().st_mode & 0o111:
+                problems.append(f"{label}: ./scripts/{name} is not executable")
+
+        for target in sorted(set(MARKDOWN_LINK.findall(text))):
+            if target.startswith(("http://", "https://", "mailto:")):
+                continue
+            resolved = (path.parent / target).resolve()
+            if not resolved.exists():
+                problems.append(f"{label}: link to {target} does not resolve")
+
+    if problems:
+        print(f"{len(problems)} problem(s) across {checked} file(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+
+    print(f"documentation references resolve ({checked} files)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

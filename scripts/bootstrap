@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Install the toolchain at the versions in versions.lock.
+#
+# The versions are pinned because a result names them: Harbor decides what a
+# trial does and RewardKit decides what a score means, so an unpinned upgrade
+# changes recorded results without changing a single file in this repository.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+LOCK="$ROOT/versions.lock"
+
+test -f "$LOCK" || { echo "missing $LOCK" >&2; exit 1; }
+
+value() {
+    # Deliberately anchored to the whole key: a substring match would read
+    # `harbor-rewardkit` as `harbor`.
+    sed -n "s/^$1=//p" "$LOCK" | head -1
+}
+
+harbor_version="$(value harbor)"
+rewardkit_version="$(value harbor-rewardkit)"
+
+test -n "$harbor_version" || { echo "no harbor version in $LOCK" >&2; exit 1; }
+test -n "$rewardkit_version" || { echo "no harbor-rewardkit version in $LOCK" >&2; exit 1; }
+
+command -v uv >/dev/null 2>&1 || {
+    echo "uv is not installed: https://docs.astral.sh/uv/" >&2
+    exit 1
+}
+
+docker info >/dev/null 2>&1 || {
+    echo "Docker is not running. Every case builds and runs containers." >&2
+    exit 1
+}
+
+echo "installing harbor==$harbor_version"
+uv tool install --force "harbor==$harbor_version" >/dev/null
+
+echo "installing harbor-rewardkit==$rewardkit_version.*"
+uv tool install --force "harbor-rewardkit==$rewardkit_version.*" >/dev/null
+
+installed="$(harbor --version 2>&1 | tail -1)"
+if [ "$installed" != "$harbor_version" ]; then
+    echo "harbor reports $installed, expected $harbor_version" >&2
+    exit 1
+fi
+
+echo
+echo "harbor      $installed"
+echo "rewardkit   $(rewardkit --help >/dev/null 2>&1 && echo ok || echo FAILED)"
+echo
+echo "Next: ./scripts/validate-tasks && ./scripts/verifier-selftest"

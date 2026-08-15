@@ -26,6 +26,11 @@ jobs:
       - name: Verifier library is in sync across cases
         run: ./scripts/sync-verifier-lib --check
 
+      # README shipped a ./scripts/bootstrap that had never been written.
+      # Nothing catches that except the reader, who then distrusts the page.
+      - name: Documentation names only things that exist
+        run: ./scripts/validate-docs
+
       - name: Verifier self-test
         run: uv run --with pytest python -m pytest verifier/tests -q
 
