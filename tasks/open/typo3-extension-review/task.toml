@@ -64,7 +64,17 @@ timeout_sec = 1800.0
 environment_mode = "separate"
 
 [verifier.env]
+# Two credential paths, both declared because TOML cannot choose between them.
+# scripts/run-evaluation requires one and passes the other as an empty string,
+# which both RewardKit and the Claude Code CLI read as absent.
+#
+# The subscription path is the cheaper one and works for the judge as well as
+# the agent: LiteLLM recognises an sk-ant-oat token and sends it as a bearer
+# token, so a Pro/Max/Team subscription covers the whole trial. An API key set
+# alongside it wins unless REWARDKIT_FORCE_OAUTH says otherwise.
 ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+REWARDKIT_FORCE_OAUTH = "${REWARDKIT_FORCE_OAUTH}"
 REWARDKIT_JUDGE = "${REWARDKIT_JUDGE}"
 
 [verifier.environment]

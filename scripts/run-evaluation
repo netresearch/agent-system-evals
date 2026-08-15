@@ -106,10 +106,18 @@ def main() -> int:
     case_dir = find_case(args.case_id)
     skills = load_fleet(args.fleet)
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    # Either credential works, for the agent and for the judge alike. The
+    # subscription token is the cheaper path: LiteLLM sends an sk-ant-oat token
+    # as a bearer token, so RewardKit judges on the subscription too rather
+    # than billing an API key.
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    oauth_token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN", "")
+    if not api_key and not oauth_token:
         sys.exit(
-            "ANTHROPIC_API_KEY is not set. The agent needs it to run and the "
-            "verifier needs it to judge."
+            "No credential. Set CLAUDE_CODE_OAUTH_TOKEN (from `claude "
+            "setup-token`, covered by a Claude subscription) or "
+            "ANTHROPIC_API_KEY (billed per token). Both the agent and the "
+            "verifier's judge use whichever is present."
         )
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
@@ -147,18 +155,33 @@ def main() -> int:
     for skill in skills:
         command += ["--skill", skill]
 
+    using_subscription = bool(oauth_token) and not api_key
+
     print(f"case    {args.case_id}  ({case_dir.relative_to(ROOT)})")
     print(f"fleet   {args.fleet}  ({len(skills)} skill(s))")
     print(f"agent   {args.agent} / {args.model}")
     print(f"judge   {args.judge}")
     print(f"trials  {args.trials}")
+    print(f"auth    {'subscription (OAuth)' if using_subscription else 'API key'}")
     print()
 
     if args.dry_run:
         print(" ".join(command))
         return 0
 
-    env = dict(os.environ, REWARDKIT_JUDGE=args.judge)
+    # Harbor refuses to start when a variable named in [verifier.env] is unset,
+    # and TOML cannot declare one credential or the other conditionally. So the
+    # unused one is passed as an empty string, which both RewardKit and the
+    # Claude Code CLI treat as absent.
+    env = dict(
+        os.environ,
+        REWARDKIT_JUDGE=args.judge,
+        ANTHROPIC_API_KEY=api_key,
+        CLAUDE_CODE_OAUTH_TOKEN=oauth_token,
+        # Only meaningful when both are set; harmless otherwise.
+        REWARDKIT_FORCE_OAUTH="1" if using_subscription else "",
+        CLAUDE_FORCE_OAUTH="1" if using_subscription else "",
+    )
     result = subprocess.run(command, env=env)
 
     job_dir = Path(args.jobs_dir) / job_name

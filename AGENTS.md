@@ -36,8 +36,18 @@ the cases and the rubric.
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
 | `uv run --with pytest python -m pytest verifier/tests -q` | Verifier unit tests |
 
-`ANTHROPIC_API_KEY` is required by `run-smoke` and `run-evaluation`: the agent
-needs it to run and the verifier needs it to judge.
+`run-smoke` and `run-evaluation` need one credential, used by both the agent
+and the verifier's judge:
+
+- `CLAUDE_CODE_OAUTH_TOKEN` — from `claude setup-token`, covered by a Claude
+  subscription. LiteLLM sends an `sk-ant-oat` token as a bearer token, so
+  RewardKit judges on the subscription too rather than billing separately.
+- `ANTHROPIC_API_KEY` — billed per token. Wins if both are set, unless
+  `REWARDKIT_FORCE_OAUTH` / `CLAUDE_FORCE_OAUTH` say otherwise.
+
+The agent is installed under the environment baseline (`public`) and only then
+restricted to `[agent] allowed_hosts` for the run itself, so the install
+reaches npm and the run cannot reach the target's forge.
 
 ## Rules that are not obvious from the code
 
