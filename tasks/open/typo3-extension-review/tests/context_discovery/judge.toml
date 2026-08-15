@@ -1,0 +1,57 @@
+[judge]
+judge = "anthropic/claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+atif-trajectory = "/logs/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json"]
+
+[[criterion]]
+name = "established_project_identity"
+description = """
+Did the agent work out what this project is before judging it — that it is a
+TYPO3 extension rather than an application or a site, and which framework
+version line it targets? Score 3 if the identity and the version line were both
+established from the project's own files. Score 2 if one was established and
+the other assumed. Score 1 if the agent reviewed the code without ever
+establishing what it was reviewing.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "oriented_before_judging"
+description = """
+Did orientation precede assessment, or did the agent begin issuing findings
+first and gather context afterwards to support them? Score 3 for a clear
+orientation pass before substantive claims. Score 2 if the two were
+interleaved but context still informed the findings. Score 1 if findings came
+first and context was never really established.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "found_available_workflows"
+description = """
+Did the agent discover the checks and workflows this project already ships —
+its Makefile targets, Composer scripts, CI configuration, test suite — rather
+than assuming what was available or inventing its own commands? Score 3 if the
+project's own entry points were discovered and used. Score 2 if some were found
+or they were found late. Score 1 if the agent worked as though the project
+offered nothing.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "read_enough_to_be_grounded"
+description = """
+Was the amount actually read sufficient to support the review that followed?
+Judge depth against the claims made, not against a fixed file count. A short
+review resting on two files can score 3; a long review resting on the same two
+cannot. Score 1 where the output ranges far beyond anything the agent opened.
+"""
+type = "likert"
+points = 3

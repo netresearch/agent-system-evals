@@ -1,0 +1,343 @@
+"""Mechanical evidence for Open Forward Reviews.
+
+Reads Harbor's recorded trajectory and collected artifacts and turns them into
+facts the rubric can rest on. It answers "what did the agent actually do",
+never "was that good" — adequacy is the judge's question, and mixing the two is
+what makes judges disagree with themselves.
+
+Two rules shape everything here.
+
+**Observable behaviour only.** ``reasoning_content`` is deliberately never
+read. An agent that reaches a defensible result by an unstated route has done
+the job; one that narrates excellent intentions and does nothing has not.
+Grading the narration rewards the second. See docs/open-forward-review.md
+section 5.
+
+**Absent infrastructure raises; absent behaviour returns False.** A missing
+trajectory is a broken run, not a lazy agent, and scoring it zero would quietly
+convert harness failures into evidence about the system under test. RewardKit
+records a raised exception as a criterion error, which is visible; a silent 0.0
+is not.
+
+This file is the canonical copy. Cases carry a byte-identical copy at
+``tests/nreval.py``, synced by ``scripts/sync-verifier-lib`` and checked in CI.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import shlex
+from pathlib import Path
+from typing import Any
+
+try:  # available when running under RewardKit; optional for unit tests
+    from rewardkit.session import criterion
+except ImportError:  # pragma: no cover - exercised only outside the verifier
+
+    def criterion(*_args: Any, **_kwargs: Any):  # type: ignore[misc]
+        def wrap(fn):
+            return fn
+
+        return wrap
+
+
+# Container defaults. The environment overrides exist so the rubric can be run
+# against recorded fixtures outside a trial — which is how the verifier is
+# proved to discriminate at all, given that an open case has no oracle
+# (ADR 0003). They are read once at import; tests reassign the constants.
+TRAJECTORY_PATH = os.environ.get("NREVAL_TRAJECTORY", "/logs/trajectory.json")
+ARTIFACTS_DIR = os.environ.get("NREVAL_ARTIFACTS", "/logs/artifacts")
+WORKSPACE = os.environ.get("NREVAL_WORKSPACE", "/app")
+
+
+class MissingEvidence(RuntimeError):
+    """Evidence the harness was supposed to record is not there.
+
+    Raised rather than returning a falsy value so a broken run is reported as
+    an error instead of being scored as agent failure.
+    """
+
+
+# --------------------------------------------------------------------------
+# trajectory
+# --------------------------------------------------------------------------
+
+
+def load_trajectory(path: str | Path | None = None) -> dict[str, Any]:
+    # Resolved at call time, not bound as a default argument: a default is
+    # evaluated once at import, so reassigning TRAJECTORY_PATH afterwards would
+    # silently have no effect.
+    p = Path(path if path is not None else TRAJECTORY_PATH)
+    if not p.exists():
+        raise MissingEvidence(f"no trajectory at {p}")
+    try:
+        return json.loads(p.read_text())
+    except json.JSONDecodeError as exc:
+        raise MissingEvidence(f"trajectory at {p} is not valid JSON: {exc}") from exc
+
+
+def steps(traj: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    return (traj or load_trajectory()).get("steps") or []
+
+
+def tool_calls(traj: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Every tool call, in order, with its originating step id attached."""
+    out: list[dict[str, Any]] = []
+    for step in steps(traj):
+        for call in step.get("tool_calls") or []:
+            out.append({**call, "step_id": step.get("step_id")})
+    return out
+
+
+def _message_text(message: Any) -> str:
+    """ATIF messages are a string or a list of content parts."""
+    if isinstance(message, str):
+        return message
+    if isinstance(message, list):
+        parts = [p.get("text", "") for p in message if isinstance(p, dict)]
+        return "\n".join(t for t in parts if t)
+    return ""
+
+
+def agent_messages(traj: dict[str, Any] | None = None) -> list[str]:
+    return [
+        _message_text(s.get("message"))
+        for s in steps(traj)
+        if s.get("source") == "agent"
+    ]
+
+
+def final_answer(traj: dict[str, Any] | None = None) -> str:
+    """The last substantive agent message.
+
+    Agents commonly close with a tool call and no prose, so the last step is
+    not reliably the answer; the last agent step carrying text is.
+    """
+    for text in reversed(agent_messages(traj)):
+        if text.strip():
+            return text
+    return ""
+
+
+def observations(traj: dict[str, Any] | None = None) -> list[str]:
+    """Tool output the agent actually saw."""
+    out: list[str] = []
+    for step in steps(traj):
+        observation = step.get("observation") or {}
+        for result in observation.get("results") or []:
+            text = _message_text(result.get("content"))
+            if text:
+                out.append(text)
+    return out
+
+
+# --------------------------------------------------------------------------
+# what the agent did
+# --------------------------------------------------------------------------
+
+# Argument keys different agents use for the same two ideas. Claude Code emits
+# `command` and `file_path`; Codex and shell-style agents emit `cmd`/`path`.
+# Matching on the argument rather than the tool name keeps the rubric portable
+# across agents, which matters because agent-independence is one of the things
+# the benchmark is meant to establish.
+_COMMAND_KEYS = ("command", "cmd", "shell_command", "script")
+_PATH_KEYS = ("file_path", "path", "filename", "notebook_path")
+
+# Commands that read a file rather than acting on it.
+_READING_COMMANDS = {"cat", "head", "tail", "less", "more", "bat", "nl", "od"}
+
+
+def commands(traj: dict[str, Any] | None = None) -> list[str]:
+    """Shell commands the agent executed."""
+    found: list[str] = []
+    for call in tool_calls(traj):
+        args = call.get("arguments") or {}
+        for key in _COMMAND_KEYS:
+            value = args.get(key)
+            if isinstance(value, str) and value.strip():
+                found.append(value.strip())
+                break
+    return found
+
+
+def ran_command(pattern: str, traj: dict[str, Any] | None = None) -> bool:
+    """Whether any executed command matches *pattern* (a regex)."""
+    rx = re.compile(pattern)
+    return any(rx.search(c) for c in commands(traj))
+
+
+def read_paths(traj: dict[str, Any] | None = None) -> list[str]:
+    """Paths the agent opened.
+
+    Covers both file-reading tools and shell commands that read a file, since
+    an agent that runs `cat composer.json` has read composer.json as surely as
+    one that called a Read tool. Missing the shell route would understate
+    context discovery for exactly the agents that prefer a terminal.
+    """
+    found: list[str] = []
+    for call in tool_calls(traj):
+        args = call.get("arguments") or {}
+        for key in _PATH_KEYS:
+            value = args.get(key)
+            if isinstance(value, str) and value.strip():
+                found.append(value.strip())
+                break
+
+    for command in commands(traj):
+        try:
+            tokens = shlex.split(command)
+        except ValueError:
+            continue
+        for index, token in enumerate(tokens):
+            if token in _READING_COMMANDS:
+                found.extend(
+                    t for t in tokens[index + 1 :] if not t.startswith("-")
+                )
+                break
+    return found
+
+
+def read_path_matching(pattern: str, traj: dict[str, Any] | None = None) -> bool:
+    rx = re.compile(pattern)
+    return any(rx.search(p) for p in read_paths(traj))
+
+
+def skills_used(traj: dict[str, Any] | None = None) -> list[str]:
+    """Skills the agent invoked, in order, de-duplicated.
+
+    Harnesses expose skill invocation as a tool call whose argument names the
+    skill. Both the argument-based and the command-based route are covered, so
+    a skill reached through a slash command is not missed.
+    """
+    names: list[str] = []
+    for call in tool_calls(traj):
+        args = call.get("arguments") or {}
+        if str(call.get("function_name", "")).lower() in ("skill", "invokeskill"):
+            name = args.get("skill") or args.get("name") or args.get("command")
+            if isinstance(name, str) and name.strip():
+                names.append(name.strip().lstrip("/"))
+
+    for command in commands(traj):
+        match = re.match(r"^/([a-z0-9][a-z0-9:_-]*)", command.strip())
+        if match:
+            names.append(match.group(1))
+
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for name in names:
+        if name not in seen:
+            seen.add(name)
+            ordered.append(name)
+    return ordered
+
+
+def used_skill(pattern: str, traj: dict[str, Any] | None = None) -> bool:
+    rx = re.compile(pattern)
+    return any(rx.search(s) for s in skills_used(traj))
+
+
+# --------------------------------------------------------------------------
+# artifacts
+# --------------------------------------------------------------------------
+
+
+def artifact(name: str, required: bool = True) -> str:
+    p = Path(ARTIFACTS_DIR) / name
+    if not p.exists():
+        if required:
+            raise MissingEvidence(f"no artifact {name} in {ARTIFACTS_DIR}")
+        return ""
+    return p.read_text(errors="replace")
+
+
+def git_status() -> str:
+    return artifact("git-status.txt")
+
+
+def git_diff() -> str:
+    return artifact("git-diff.patch")
+
+
+def workspace_modified() -> bool:
+    return bool(git_status().strip())
+
+
+# --------------------------------------------------------------------------
+# normalised view
+# --------------------------------------------------------------------------
+
+
+def evidence_manifest() -> dict[str, Any]:
+    """A Netresearch-shaped summary of one trial.
+
+    Not a replacement for Harbor's artifacts — a normalised view over them, so
+    the dashboard and the retro bridge read one stable shape rather than
+    re-deriving it from raw logs each time.
+    """
+    traj = load_trajectory()
+    executed = commands(traj)
+    return {
+        "trajectory": {
+            "schema_version": traj.get("schema_version"),
+            "agent": (traj.get("agent") or {}).get("name"),
+            "steps": len(steps(traj)),
+            "tool_calls": len(tool_calls(traj)),
+        },
+        "commands": executed,
+        "read_paths": sorted(set(read_paths(traj))),
+        "skills_used": skills_used(traj),
+        "git": {
+            "status": git_status(),
+            "modified": workspace_modified(),
+        },
+        "final_answer": final_answer(traj),
+    }
+
+
+def write_evidence_manifest(path: str | Path | None = None) -> Path:
+    target = Path(path or f"{ARTIFACTS_DIR}/evidence-manifest.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(evidence_manifest(), indent=2, sort_keys=True))
+    return target
+
+
+# --------------------------------------------------------------------------
+# shared criteria
+# --------------------------------------------------------------------------
+#
+# Marked shared so RewardKit exposes them to the per-dimension subdirectories.
+# Names stay within ^[a-zA-Z0-9_-]{1,64}$, which structured-output providers
+# enforce on response keys.
+
+
+# RewardKit passes the workspace as the first argument to every criterion. It
+# is unused here on purpose: this evidence comes from the recorded trajectory
+# and the collected artifacts, not from the live tree, which is what lets the
+# same criteria run unchanged during a regrade.
+
+
+@criterion(shared=True, description="Agent read a path matching '{pattern}'")
+def nr_read_path(workspace: Path, pattern: str) -> bool:
+    return read_path_matching(pattern)
+
+
+@criterion(shared=True, description="Agent ran a command matching '{pattern}'")
+def nr_ran_command(workspace: Path, pattern: str) -> bool:
+    return ran_command(pattern)
+
+
+@criterion(shared=True, description="Agent invoked a skill matching '{pattern}'")
+def nr_used_skill(workspace: Path, pattern: str) -> bool:
+    return used_skill(pattern)
+
+
+@criterion(shared=True, description="Final answer matches '{pattern}'")
+def nr_final_answer_matches(workspace: Path, pattern: str) -> bool:
+    return bool(re.search(pattern, final_answer(), re.IGNORECASE))
+
+
+@criterion(shared=True, description="Agent left the working tree unmodified")
+def nr_workspace_unmodified(workspace: Path) -> bool:
+    return not workspace_modified()

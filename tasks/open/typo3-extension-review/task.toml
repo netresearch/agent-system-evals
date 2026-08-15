@@ -1,0 +1,88 @@
+schema_version = "1.4"
+
+[task]
+name = "netresearch/ofr-typo3-extension-review"
+version = "1.0.0"
+description = "Open forward review of a real TYPO3 extension at a pinned historical commit"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-EXT-001"
+category = "open-forward-review"
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-sync.git"
+target_package = "netresearch/nr-sync"
+target_sha = "bac18b776ba459e9d90c1e09e1a38fa4507c3734"
+# Repository-level only. This case makes no claim about runtime behaviour;
+# see docs/adr/0006-runtime-fidelity.md.
+runtime = false
+source_learning_id = "retro-20260815-assessment-routing"
+
+[agent]
+timeout_sec = 3600.0
+
+# The agent may consult canonical upstream sources — the authority dimension
+# is meaningless without that — but must not reach the target's own forge.
+# Ground truth for this case lives in the target's future commits, and a public
+# network mode would turn an open review into a lookup.
+# See docs/open-forward-review.md section 3.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+[verifier]
+timeout_sec = 1800.0
+environment_mode = "separate"
+
+[verifier.env]
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+REWARDKIT_JUDGE = "${REWARDKIT_JUDGE}"
+
+[verifier.environment]
+# No docker_image: the verifier image is built from tests/Dockerfile, with
+# tests/ as its build context. That is how the rubric reaches the container at
+# all — see the comment in tests/Dockerfile.
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# Snapshot the agent environment's final state into files the separate verifier
+# can read. Without these the verifier sees no git evidence at all, because it
+# runs in a fresh container.
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app rev-parse HEAD > /logs/artifacts/git-head.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "ls -la /app > /logs/artifacts/workspace-listing.txt 2>&1 || true"
+
+[environment]
+build_timeout_sec = 1800.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 20480
+network_mode = "public"
+
+# Collected for grading now and for regrade later. A regrade sees only what was
+# kept, so this list is reviewed as part of the case, not as an afterthought.
+# See docs/reproducibility.md.
+artifacts = [
+    "/logs/artifacts",
+    "/app/composer.json",
+    "/app/composer.lock",
+]

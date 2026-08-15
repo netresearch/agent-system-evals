@@ -1,0 +1,48 @@
+[judge]
+judge = "anthropic/claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+atif-trajectory = "/logs/trajectory.json"
+files = [
+    "/logs/verifier/evidence-manifest.json",
+    "/tests/known-concerns.md",
+]
+
+[[criterion]]
+name = "important_things_are_first"
+description = """
+Would an experienced engineer reading this output encounter the things that
+matter most, first? An agent that lists many small issues and buries or omits a
+significant one has failed this, however accurate the small issues are.
+
+Judge the ordering as presented, not the set of findings. A defensible ordering
+you personally would have arranged differently still scores 3.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "severity_is_discriminating"
+description = """
+Does the output distinguish between kinds of issue — something that breaks or
+exposes the system, something incorrect, something worth improving, something
+merely untidy — or is everything presented at one level?
+
+Score 1 both for no severity at all and for severity that does not discriminate,
+where nearly everything is labelled important.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "effort_and_decision_are_visible"
+description = """
+Does the output help the reader decide what to do next — what is worth doing
+now, what can wait, what is a judgement call for them rather than for the
+agent? A ranked list with no sense of cost or of what is actually the reader's
+decision is less useful than it looks.
+"""
+type = "likert"
+points = 3

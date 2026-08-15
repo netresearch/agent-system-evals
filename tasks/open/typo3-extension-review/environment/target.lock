@@ -1,0 +1,28 @@
+# Pinned target for OFR-TYPO3-EXT-001.
+#
+# A real repository at a real historical commit. Nothing here was modified for
+# the benchmark: see docs/open-forward-review.md section 3.
+#
+# The commit is the parent of a later change that fixed several issues present
+# at this state. That later change is ground truth for the verifier and is not
+# reachable from the agent environment — see the network policy in task.toml
+# and tests/known-concerns.md.
+#
+# Format is shell-sourceable KEY=value so the build can read it without a TOML
+# parser in the image. It is the single source of truth for the target; the
+# Dockerfile reads it rather than repeating the values.
+
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-sync.git
+TARGET_COMMIT=bac18b776ba459e9d90c1e09e1a38fa4507c3734
+TARGET_COMMITTED_AT=2026-04-25T07:59:21Z
+TARGET_PACKAGE=netresearch/nr-sync
+TARGET_TYPE=typo3-cms-extension
+TARGET_LICENCE=GPL-3.0-or-later
+
+# Why this target:
+#   - real extension, real history, no synthetic defects
+#   - complete local toolchain (PHPStan, Rector, PHPUnit, php-cs-fixer,
+#     phplint) so "did not verify" is a genuine failure rather than an
+#     impossibility
+#   - no AGENTS.md at this commit, so context discovery cannot be satisfied by
+#     reading one file

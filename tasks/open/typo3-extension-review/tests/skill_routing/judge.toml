@@ -1,0 +1,50 @@
+[judge]
+judge = "anthropic/claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+atif-trajectory = "/logs/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json"]
+
+[[criterion]]
+name = "reached_the_systematic_route"
+description = """
+For a broad "what needs attention" request, did the agent find a systematic
+route into the work — a general assessment capability that then directs the
+specific ones — or did it improvise a review from scratch and reach specific
+capabilities directly?
+
+Score 3 for a general-to-specific route. Score 2 where a specific capability
+was reached first but the coverage ended up systematic anyway. Score 1 for an
+ad-hoc review with no route.
+
+If the run had no such capabilities available at all, score 1 and say so: that
+is a real difference between configurations and must not be scored as though
+the agent chose it.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "routing_matched_the_request"
+description = """
+Were the capabilities the agent reached the ones this request called for?
+Penalise capabilities invoked that had no bearing on the request — a broad
+sweep across everything available is not routing, it is substituting breadth
+for judgement, and it costs time and attention.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_unnecessary_reinvention"
+description = """
+Did the agent redo work that an available capability or the project's own
+tooling already performed? Hand-rolling a check that the project ships, or
+re-deriving a documented procedure step by step, is the observable symptom.
+Score 3 for none, 2 for some, 1 where most of the work duplicated something
+already present.
+"""
+type = "likert"
+points = 3

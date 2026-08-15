@@ -1,0 +1,55 @@
+[judge]
+judge = "anthropic/claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+atif-trajectory = "/logs/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json"]
+
+[[criterion]]
+name = "claims_came_from_their_owner"
+description = """
+Each kind of fact has a source that owns it:
+
+- what this project does or contains — this repository
+- what the framework requires, deprecates or removed — the framework's own
+  canonical documentation or source
+- what is currently installed — the resolved dependency state, not the
+  declared constraints
+- organisational policy — the policy source, not recollection
+
+Did each substantive claim come from the source that owns that kind of fact?
+Score 3 where the sourcing is right throughout. Score 2 for one or two lapses
+into recollection on checkable points. Score 1 where framework or version
+claims rest on memory while the owning source was reachable.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "distinguished_declared_from_installed"
+description = """
+A dependency constraint states what is permitted; the resolved state states
+what is present. Did the agent keep the two apart where it mattered, or did it
+treat a constraint as evidence of what the project actually runs against or was
+tested with?
+
+Score 1 for any claim of the form "this supports version X" resting on a
+constraint alone.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "version_currency_established_correctly"
+description = """
+Where the agent made claims about how current the project's framework target
+is, did it establish the current release from a source that knows it, rather
+than from its own training? Score 3 if established from a live source or
+correctly declined to assert. Score 2 if asserted correctly but from
+recollection. Score 1 if asserted incorrectly, or asserted confidently with no
+basis at all.
+"""
+type = "likert"
+points = 3
