@@ -1,0 +1,107 @@
+# AGENTS.md
+
+Benchmark that measures whether an agent with the Netresearch stack can take an
+underspecified request and work out what the job is. Execution is
+[Harbor](https://harborframework.com); this repository holds the methodology,
+the cases and the rubric.
+
+## Layout
+
+| Path | Contents |
+|------|----------|
+| `docs/` | Methodology. `open-forward-review.md` is normative. |
+| `docs/adr/` | Decisions, numbered. Read 0003 and 0004 before changing a case. |
+| `tasks/open/` | Open Forward Review cases |
+| `tasks/contracts/` | Known-failure-mode checks (not yet populated) |
+| `verifier/common/nreval.py` | Canonical evidence library; copied into each case |
+| `verifier/tests/` | Verifier self-test and fixtures |
+| `fleets/` | Pinned skill fleets: `control`, `main`, `candidate` |
+| `datasets/` | Harbor dataset manifests and aggregation metrics |
+| `scripts/` | Everything runnable |
+| `jobs/`, `reports/` | Generated, gitignored |
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `./scripts/validate-tasks` | Harbor task validation, with the reason reported |
+| `./scripts/validate-rubric` | Rubric loads; repository rules hold. No judge calls. |
+| `./scripts/sync-verifier-lib [--check]` | Copy `nreval.py` into each case |
+| `./scripts/verifier-selftest` | Prove the rubric separates a thorough run from a no-op |
+| `./scripts/contamination-check --fleet main` | Fail if the fleet knows a case's answers |
+| `./scripts/refresh-target-lock <task-dir>` | Regenerate a target's pinned dependency set |
+| `./scripts/run-smoke <CASE-ID> --fleet <name>` | One trial. Pipeline check only, not evidence. |
+| `./scripts/run-evaluation <CASE-ID> --fleet <name>` | Three trials. Costs money. |
+| `./scripts/compare <job-a> <job-b>` | Per-dimension counts across two jobs |
+| `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
+| `uv run --with pytest python -m pytest verifier/tests -q` | Verifier unit tests |
+
+`ANTHROPIC_API_KEY` is required by `run-smoke` and `run-evaluation`: the agent
+needs it to run and the verifier needs it to judge.
+
+## Rules that are not obvious from the code
+
+**Never put a case's expected findings anywhere the agent can reach.** Not in
+the instruction, the environment, an injected skill, or a reachable URL. A
+leaked expectation cannot be un-learned by the skills that saw it, and the case
+is finished. `tests/known-concerns.md` is verifier-side; it ships in `tests/`,
+which only the verifier container receives.
+
+**The agent must not be able to reach the target's own forge.** Ground truth
+lives in the target's future commits. `[agent] network_mode = "allowlist"` with
+the forge excluded is what keeps an open review from being a lookup.
+
+**`[verifier] environment_mode = "separate"` is mandatory.** Not a preference:
+Harbor refuses to regrade anything else, so a shared verifier freezes the case
+against the rubric it first ran under.
+
+**Do not grade reasoning.** `nreval` never reads `reasoning_content`, on
+purpose. Judge prompts say the same. Stated intent is not evidence.
+
+**A criterion a no-op can satisfy is not measuring work.** `verifier-selftest`
+enforces this and has already caught one: crediting an unmodified working tree
+gave an idle agent a score for discovering nothing.
+
+**Report counts, not means.** `2/3`, never `0.67`. Three trials do not support
+two decimal places.
+
+**Only the fleet may differ in an A/B.** `scripts/compare` refuses runs that
+differ in case, agent, model, judge or trial count.
+
+## Harbor facts that cost time to find
+
+Measured against Harbor 0.21.0; all four contradict what the surrounding
+material suggested.
+
+- Task schema is **1.4**. `artifacts` is a **top-level** key, not part of
+  `[environment]`.
+- `-p` is a **dataset** path. Point it at the parent directory and select with
+  `-i <task-directory-name>` — the directory name, not `[task].name`.
+- An invalid `task.toml` is reported as *"0 tasks available in this dataset"*,
+  naming neither case nor field. `./scripts/validate-tasks` prints the real
+  error. `authors` wants tables (`[{ name = "..." }]`), not strings.
+- Skills cannot be pinned to a commit SHA. Harbor resolves refs with
+  `git ls-remote`, which returns nothing for a bare SHA. Pin a tag; the
+  resolved commit is recorded in the job lock.
+- RewardKit is a separate package. The documented invocation
+  (`uvx --with harbor-rewardkit@0.1 rewardkit`) fails; use
+  `uvx --from 'harbor-rewardkit==0.1.*' rewardkit`.
+- `harbor-framework/benchmark-template` is unmaintained. Scaffold with
+  `harbor init`.
+
+## Before opening a pull request
+
+```
+./scripts/validate-tasks
+./scripts/validate-rubric
+./scripts/sync-verifier-lib --check
+./scripts/verifier-selftest
+uv run --with pytest python -m pytest verifier/tests -q
+./scripts/contamination-check --fleet main
+```
+
+CI runs exactly these. No agent trial gates a pull request: one trial is not
+evidence, and paying for one that cannot decide anything teaches people to
+ignore the result.
+
+Sign off every commit (`git commit -s`).

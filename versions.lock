@@ -1,0 +1,7 @@
+# Pinned toolchain. Every recorded result names these versions; changing one
+# invalidates comparison with earlier runs unless the change is itself the
+# variable under study. See docs/reproducibility.md.
+
+harbor=0.21.0
+harbor-rewardkit=0.1
+task_schema_version=1.4
