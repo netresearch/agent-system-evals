@@ -1,0 +1,21 @@
+# Public Open Forward Review cases.
+#
+# Public means the targets and prompts are public. It does not mean the
+# expectations are: known-concerns files stay verifier-side (ADR 0005).
+#
+# The [[files]] digest is maintained by `harbor sync`; a stale digest means the
+# published dataset and this manifest disagree about what the metric computes.
+
+[dataset]
+name = "netresearch/open-forward-reviews"
+version = "0.1.0"
+description = "Open forward reviews of real repositories with a system-level rubric"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "agent-system", "typo3"]
+
+tasks = [
+    "netresearch/ofr-typo3-extension-review",
+]
+
+[[files]]
+path = "metric.py"

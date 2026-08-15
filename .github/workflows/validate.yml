@@ -1,0 +1,70 @@
+# Deterministic checks only. No agent runs, no judge calls.
+#
+# An agent trial costs money and takes an hour, and a single trial is not
+# evidence anyway (docs/open-forward-review.md section 7). Gating pull requests
+# on one would be expensive and would teach people to distrust the result. What
+# is gated here is everything that can be decided without spending anything.
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      # Third-party actions pinned to a full commit SHA. Netresearch-owned
+      # reusable workflows stay on @main so upstream fixes propagate.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+      - name: Verifier library is in sync across cases
+        run: ./scripts/sync-verifier-lib --check
+
+      - name: Verifier self-test
+        run: uv run --with pytest python -m pytest verifier/tests -q
+
+      - name: Rubric loads and follows repository rules
+        run: ./scripts/validate-rubric
+
+      - name: Verifier discriminates between recorded runs
+        run: ./scripts/verifier-selftest
+
+      # Uses Harbor's own validator. Harbor itself reports an invalid task as
+      # "0 tasks available in this dataset", which names neither the case nor
+      # the field; this surfaces the actual error.
+      - name: Cases are valid tasks and follow repository rules
+        run: ./scripts/validate-tasks
+
+      - name: Dataset metric runs
+        run: |
+          printf '%s\n' \
+            '{"context_discovery":1.0,"skill_routing":0.5,"authority":1.0,"evidence":1.0,"verification":0.5,"prioritization":1.0,"unsupported_claims":1.0,"outcome_quality":1.0}' \
+            'null' > /tmp/rewards.jsonl
+          uv run --python 3.12 datasets/open-forward-reviews/metric.py \
+            -i /tmp/rewards.jsonl -o /tmp/metric.json
+          cat /tmp/metric.json
+
+      - name: Shell scripts lint clean
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck scripts/sync-verifier-lib scripts/verifier-selftest \
+            scripts/run-smoke scripts/refresh-target-lock \
+            tasks/*/*/environment/prepare-target.sh tasks/*/*/tests/test.sh
+
+  contamination:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+
+      # Separate job: this one reaches the network to fetch each pinned skill,
+      # so it fails for reasons unrelated to the change under review. Keeping
+      # it apart makes that distinguishable at a glance.
+      - name: Fleet carries no case-specific knowledge
+        run: ./scripts/contamination-check --fleet main
