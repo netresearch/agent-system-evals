@@ -8,21 +8,27 @@ Nothing is marked from documentation alone.
 
 | # | Criterion | Status | Evidence |
 |---|---|---|---|
-| 1 | Target reproducible at a pinned SHA | verified | `environment/target.lock`, SHA verified against the GitHub API |
-| 2 | Fresh agent session per trial | pending | requires a recorded run |
-| 3 | Exact prompt delivered unmodified | pending | requires a recorded run |
-| 4 | Netresearch skills injectable | verified | `harbor run --skill` accepts repeatable git sources |
-| 5 | Resolved skill commits recorded | verified | job lock records resolved commit per skill |
-| 6 | Trajectory usable for grading | pending | requires a recorded run |
-| 7 | Tool calls observable | pending | requires a recorded run |
-| 8 | Final answer preserved | pending | requires a recorded run |
-| 9 | Workspace artifacts preserved | verified | `artifacts` and `[verifier] collect` in schema 1.4 |
-| 10 | Separate verifier works | verified | `[verifier] environment_mode = "separate"` accepted |
-| 11 | RewardKit expresses our rubric | verified | one reward per `tests/` subdirectory; judge TOML plus criterion Python |
-| 12 | Three trials independently executable | verified | `harbor run -k` |
-| 13 | Result viewer useful | pending | requires a recorded run |
-| 14 | Regrade works | pending | requires a recorded run to regrade |
-| 15 | CI execution feasible | pending | requires a recorded run |
+| 1 | Target reproducible at a pinned SHA | verified | image built; inside it `HEAD` equals the pinned commit, no remotes, clean tree, no `composer.lock`, no `AGENTS.md` |
+| 2 | Fresh agent session per trial | pending | needs a paid run |
+| 3 | Exact prompt delivered unmodified | pending | needs a paid run |
+| 4 | Netresearch skills injectable | verified | free `nop` run with two pinned skills completed |
+| 5 | Resolved skill commits recorded | verified | job lock carries `git_url`, a resolved git object and a content digest per skill; for an annotated tag the recorded id is the tag object, not the commit |
+| 6 | Trajectory usable for grading | pending | needs a paid run — the `nop` agent writes no trajectory |
+| 7 | Tool calls observable | pending | needs a paid run |
+| 8 | Final answer preserved | pending | needs a paid run |
+| 9 | Workspace artifacts preserved | verified | all four collect hooks ran; all three declared artifacts collected with status `ok` |
+| 10 | Separate verifier works | verified | verifier image built from `tests/`, container started, `test.sh` executed |
+| 11 | RewardKit expresses our rubric | verified | the real criteria scored recorded fixtures into per-dimension rewards |
+| 12 | Three trials independently executable | pending | `-k` accepted; only `k=1` has been run |
+| 13 | Result viewer useful | pending | needs a recorded run worth viewing |
+| 14 | Regrade works | pending | needs a recorded run to regrade |
+| 15 | CI execution feasible | verified | every gate in `.github/workflows/validate.yml` runs locally and is free |
+
+Seven of fifteen are verified without spending anything. The remaining eight
+all reduce to one thing: no agent has run yet. The `nop` agent proved the
+plumbing — environment, collection, separate verifier, rubric execution — and
+by construction cannot prove anything about a trajectory, because it produces
+none.
 
 ## Rule
 

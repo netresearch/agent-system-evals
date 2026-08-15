@@ -92,6 +92,17 @@ def main() -> int:
         "lock": str(lock_path.relative_to(job_dir)),
         "requested": requested,
         "resolved": {k: sorted(v) for k, v in sorted(found.items())},
+        "notes": {
+            # Measured: automated-assessment-skill@v2.14.0 recorded 294f3aa5,
+            # the annotated tag object; the commit is 2cda8f46. Quoting the
+            # value as a commit would be wrong, and comparing it against a
+            # commit from elsewhere would show a spurious difference.
+            "git_commit_id": (
+                "For an annotated tag this is the tag object SHA, not the "
+                "commit. Dereference before comparing with a commit. The "
+                "content digest is the stronger identity."
+            ),
+        },
     }
     print(json.dumps(out, indent=2))
 

@@ -26,9 +26,19 @@ commit SHA: Harbor resolves a `--skill` ref with `git ls-remote <url> <ref>`,
 and ls-remote does not answer for a bare commit, so the run fails with "No
 matching ref". Fleets therefore pin tags. A tag can be moved, and a branch in a
 candidate fleet certainly will be, so the only trustworthy statement about
-which code ran is the resolved commit in the lock. `scripts/run-evaluation`
-rejects a SHA-pinned fleet with this explanation rather than letting the run
-fail obscurely.
+which code ran is what the lock resolved. `scripts/run-evaluation` rejects a
+SHA-pinned fleet with this explanation rather than letting the run fail
+obscurely.
+
+One detail to quote correctly. For an **annotated** tag, the lock's
+`git_commit_id` is the *tag object* SHA, not the commit SHA. Measured:
+`automated-assessment-skill@v2.14.0` recorded `294f3aa5…`, which is the tag
+object; the commit it points at is `2cda8f46…`. Provenance is unharmed —
+a tag object is content-addressed, so moving the tag produces a different SHA
+and the lock still shows it — but the value must be reported as a resolved
+git object, not as a commit, and dereferenced before it is compared with a
+commit from anywhere else. The lock also records a content digest per skill,
+which is the stronger identity for "was this the same code".
 
 ## Snapshot identifier
 
