@@ -34,4 +34,11 @@ PY
 # form shown in Harbor's documentation (`uvx --with harbor-rewardkit@0.1
 # rewardkit`) makes uv look for a distribution called `rewardkit`, which does
 # not exist. Measured, not assumed.
-uvx --from 'harbor-rewardkit==0.1.*' rewardkit /tests
+#
+# Judge concurrency is capped at 2. Eight dimensions firing at once tripped an
+# Anthropic rate limit on the first real run, and RewardKit retries only on a
+# schema mismatch — a rate-limited judge raises, and one raised reward aborts
+# the whole run. Seven dimensions had already scored and were discarded with
+# it, leaving no reward.json at all. Slower here is the correct trade: the
+# alternative is losing an entire agent trial to one throttled call.
+uvx --from 'harbor-rewardkit==0.1.*' rewardkit /tests --max-concurrent-llm 2

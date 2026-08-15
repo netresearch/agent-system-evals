@@ -178,10 +178,27 @@ def main() -> int:
         REWARDKIT_JUDGE=args.judge,
         ANTHROPIC_API_KEY=api_key,
         CLAUDE_CODE_OAUTH_TOKEN=oauth_token,
-        # Only meaningful when both are set; harmless otherwise.
-        REWARDKIT_FORCE_OAUTH="1" if using_subscription else "",
-        CLAUDE_FORCE_OAUTH="1" if using_subscription else "",
     )
+
+    # Harbor scrubs every [verifier.env] value from captured output, so a short
+    # value corrupts the artifacts wholesale — a flag passed as "1" replaced
+    # every digit 1 in every collected file, including the evidence manifest,
+    # whose escaped em dash became `\u20[REDACTED]4` and stopped being JSON.
+    # Values are only knowable here, at run time, which is why the check lives
+    # here rather than in validate-tasks.
+    verifier_env = tomllib.loads((case_dir / "task.toml").read_text()).get(
+        "verifier", {}
+    ).get("env", {})
+    for name, template in verifier_env.items():
+        value = env.get(name.strip(), "")
+        if value and len(value) < 12:
+            sys.exit(
+                f"{name} is declared in [verifier.env] with a {len(value)}-character "
+                f"value. Harbor removes that string from every captured file, so a "
+                f"short value corrupts the artifacts. Pass flags through the "
+                f"process environment instead of declaring them here."
+            )
+
     result = subprocess.run(command, env=env)
 
     job_dir = Path(args.jobs_dir) / job_name

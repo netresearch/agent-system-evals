@@ -70,11 +70,22 @@ environment_mode = "separate"
 #
 # The subscription path is the cheaper one and works for the judge as well as
 # the agent: LiteLLM recognises an sk-ant-oat token and sends it as a bearer
-# token, so a Pro/Max/Team subscription covers the whole trial. An API key set
-# alongside it wins unless REWARDKIT_FORCE_OAUTH says otherwise.
+# token, so a Pro/Max/Team subscription covers the whole trial.
+#
+# Nothing short or low-entropy may be declared here. Harbor treats every value
+# in this table as a secret and removes that literal string from all captured
+# output. A flag passed as "1" therefore replaced every digit 1 in every
+# collected file: `python3.12` became `python3.[REDACTED]2`, and — fatally —
+# `"step_id": 1` in the recorded trajectory became `"step_id": [REDACTED]`.
+# That is not valid JSON, so the trajectory could no longer be parsed by the
+# judges or by a regrade, and a completed agent trial was lost as evidence.
+#
+# REWARDKIT_FORCE_OAUTH sat here for exactly one run and caused precisely that.
+# It is also unnecessary: run-evaluation passes one credential and blanks the
+# other, so there is nothing to disambiguate. scripts/run-evaluation now
+# refuses to start when a declared value is shorter than 12 characters.
 ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
 CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
-REWARDKIT_FORCE_OAUTH = "${REWARDKIT_FORCE_OAUTH}"
 REWARDKIT_JUDGE = "${REWARDKIT_JUDGE}"
 
 [verifier.environment]
