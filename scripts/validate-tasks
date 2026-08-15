@@ -1,0 +1,119 @@
+#!/usr/bin/env -S uv run --quiet --with harbor==0.21.0 --script
+# /// script
+# requires-python = ">=3.12,<3.14"
+# ///
+"""Validate every case with Harbor's own validator, and report the reason.
+
+Harbor decides whether a directory is a task with ``Task.is_valid_dir``,
+which swallows the validation error and returns a bare False. A run then fails
+with "There are 0 tasks available in this dataset", which says nothing about
+what is wrong. That cost an hour here: the actual fault was one field —
+``authors`` as a list of strings where Harbor wants a list of tables — and
+nothing in the failure pointed at it.
+
+So this re-runs the same validation and prints what Harbor would not.
+
+On top of Harbor's checks it enforces the repository's own rules, which Harbor
+has no reason to know: a separate verifier (ADR 0004), no solution in an open
+case (ADR 0003), and complete provenance metadata.
+"""
+
+from __future__ import annotations
+
+import sys
+import tomllib
+from pathlib import Path
+
+from harbor.models.task.config import TaskConfig
+from harbor.models.task.paths import TaskPaths
+from harbor.models.task.task import Task
+
+ROOT = Path(__file__).resolve().parents[1]
+
+REQUIRED_METADATA = (
+    "case_id",
+    "target_repository",
+    "target_sha",
+    "source_learning_id",
+)
+
+
+def main() -> int:
+    problems: list[str] = []
+    checked = 0
+
+    for config_path in sorted(ROOT.glob("tasks/*/*/task.toml")):
+        case_dir = config_path.parent
+        label = case_dir.relative_to(ROOT)
+        checked += 1
+        paths = TaskPaths(case_dir)
+
+        # Harbor's own validation, with the error surfaced instead of hidden.
+        try:
+            config = TaskConfig.model_validate_toml(config_path.read_text())
+        except Exception as exc:  # noqa: BLE001
+            problems.append(f"{label}: task.toml rejected by Harbor:\n      {exc}")
+            continue
+
+        try:
+            Task._validate_tests(config, paths)
+        except FileNotFoundError as exc:
+            problems.append(f"{label}: tests layout invalid: {exc}")
+
+        if not Task.is_valid_dir(case_dir):
+            problems.append(
+                f"{label}: Harbor rejects this directory even though the "
+                f"config parsed. Harbor would report it as '0 tasks available'."
+            )
+
+        # Repository rules.
+        raw = tomllib.loads(config_path.read_text())
+        if raw.get("schema_version") != "1.4":
+            problems.append(f"{label}: schema_version is not 1.4")
+
+        if config.verifier.environment_mode is None or (
+            config.verifier.environment_mode.value != "separate"
+        ):
+            problems.append(
+                f"{label}: verifier.environment_mode must be 'separate' — a "
+                f"shared verifier grades inside the environment the agent "
+                f"controls, and Harbor cannot regrade it (ADR 0004)"
+            )
+
+        metadata = raw.get("metadata", {})
+        for field in REQUIRED_METADATA:
+            if not metadata.get(field):
+                problems.append(f"{label}: metadata.{field} is missing")
+
+        sha = metadata.get("target_sha", "")
+        if sha and len(sha) != 40:
+            problems.append(
+                f"{label}: target_sha must be a full 40-character commit SHA, "
+                f"not a branch or a short form; an abbreviated pin can become "
+                f"ambiguous as the target repository grows"
+            )
+
+        if case_dir.parent.name == "open":
+            if (case_dir / "solution").exists():
+                problems.append(
+                    f"{label}: open cases ship no solution/ (ADR 0003)"
+                )
+            if not (case_dir / "tests" / "known-concerns.md").exists():
+                problems.append(
+                    f"{label}: no tests/known-concerns.md; a case with no "
+                    f"recorded human baseline cannot be graded for outcome "
+                    f"quality"
+                )
+
+    if problems:
+        print(f"{len(problems)} problem(s) in {checked} case(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+
+    print(f"{checked} case(s) valid")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

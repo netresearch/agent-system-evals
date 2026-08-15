@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Copy the canonical verifier library into every case's tests/ directory.
+#
+# RewardKit copies a case's tests/ into the verifier container and imports the
+# .py files it finds there, so shared code has to be physically present in each
+# case rather than imported from elsewhere in the repository. A regrade reads
+# the same directory, so the copy must be committed, not generated at run time.
+#
+# --check verifies the copies are current without writing, for CI.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SOURCE="$ROOT/verifier/common/nreval.py"
+CHECK=0
+[ "${1:-}" = "--check" ] && CHECK=1
+
+test -f "$SOURCE" || { echo "missing $SOURCE" >&2; exit 1; }
+
+status=0
+found=0
+while IFS= read -r tests_dir; do
+    found=$((found + 1))
+    dest="$tests_dir/nreval.py"
+    if [ "$CHECK" = "1" ]; then
+        if ! cmp -s "$SOURCE" "$dest"; then
+            echo "out of sync: $dest" >&2
+            status=1
+        fi
+    else
+        cp "$SOURCE" "$dest"
+        echo "synced $dest"
+    fi
+done < <(find "$ROOT/tasks" -type d -name tests)
+
+if [ "$found" = "0" ]; then
+    echo "no tests/ directories found under $ROOT/tasks" >&2
+    exit 1
+fi
+
+if [ "$CHECK" = "1" ] && [ "$status" = "0" ]; then
+    echo "verifier library in sync across $found case(s)"
+fi
+exit "$status"

@@ -1,0 +1,124 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Turn failed criteria into retro input.
+
+Nothing here patches a skill. An eval that edits the system it measures has
+stopped measuring it, and a rule written directly from a failing case is a rule
+about that case — which is contamination, not learning.
+
+What this produces is evidence for `/retro` to work from: the criterion, the
+judge's stated reason, the trial it came from, and the fleet in play. Retro
+then decides authority, enforceability and reach, and whatever it materialises
+has to survive the removal of the case's name.
+
+    scripts/export-retro jobs/<job-dir>
+    scripts/export-retro jobs/<job-dir> --threshold 0.75
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+DIMENSIONS = [
+    "context_discovery",
+    "skill_routing",
+    "authority",
+    "evidence",
+    "verification",
+    "prioritization",
+    "unsupported_claims",
+    "outcome_quality",
+]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("job_dir", type=Path)
+    parser.add_argument("--threshold", type=float, default=0.75)
+    args = parser.parse_args()
+
+    snapshot_path = args.job_dir / "nr-snapshot.json"
+    snapshot = json.loads(snapshot_path.read_text()) if snapshot_path.exists() else {}
+
+    findings = []
+    for details_path in sorted(args.job_dir.glob("**/reward-details.json")):
+        trial = details_path.parent.name
+        details = json.loads(details_path.read_text())
+
+        for dimension, entry in details.items():
+            if dimension not in DIMENSIONS:
+                continue
+
+            scores = entry.get("scores", entry) if isinstance(entry, dict) else []
+            if not isinstance(scores, list):
+                continue
+
+            for score in scores:
+                if not isinstance(score, dict):
+                    continue
+                value = score.get("value")
+                if value is None or value >= args.threshold:
+                    continue
+
+                findings.append(
+                    {
+                        "source": {
+                            "type": "open-forward-review",
+                            "case": snapshot.get("case_id", "unknown"),
+                            "job": args.job_dir.name,
+                            "trial": trial,
+                            "fleet": snapshot.get("fleet", "unknown"),
+                            "agent": snapshot.get("agent"),
+                            "model": snapshot.get("model"),
+                        },
+                        "finding": {
+                            "dimension": dimension,
+                            "criterion": score.get("name"),
+                            "value": value,
+                        },
+                        # The judge's own words. Kept verbatim: paraphrasing it
+                        # here would put a second interpretation between the
+                        # evidence and the retro that has to judge it.
+                        "observation": score.get("reasoning", ""),
+                        "error": score.get("error"),
+                        "candidate_scope": {
+                            # A single failing trial is a lead. Whether the
+                            # behaviour is systemic is decided by looking at
+                            # the other trials, which retro does — not here.
+                            "system_level": None,
+                            "note": (
+                                "Decide reach in retro. A rule that names this "
+                                "case or its target is contamination, not a "
+                                "learning (docs/contamination.md)."
+                            ),
+                        },
+                    }
+                )
+
+    if not findings:
+        print(f"no criterion below {args.threshold} in {args.job_dir}")
+        return 0
+
+    by_criterion: dict[str, int] = {}
+    for finding in findings:
+        key = f"{finding['finding']['dimension']}/{finding['finding']['criterion']}"
+        by_criterion[key] = by_criterion.get(key, 0) + 1
+
+    out = args.job_dir / "retro-evidence.json"
+    out.write_text(json.dumps(findings, indent=2))
+
+    print(f"{len(findings)} failed criterion instance(s) -> {out}\n")
+    print("repeated across trials (a single instance is noise):")
+    for key, count in sorted(by_criterion.items(), key=lambda kv: -kv[1]):
+        print(f"  {count}x  {key}")
+    print(f"\nNext: /retro {out}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

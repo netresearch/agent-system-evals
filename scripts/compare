@@ -1,0 +1,141 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Compare two recorded jobs, dimension by dimension.
+
+Reports counts, not means. "2/3" and "0.67" carry the same arithmetic and very
+different information: the first says the system did this twice out of three
+attempts, which is a fact about reliability; the second implies a precision
+three samples cannot support.
+
+Refuses to compare runs that differ in more than the fleet, because such a
+comparison has no single candidate cause and reporting it invites one to be
+invented.
+
+    scripts/compare jobs/<case>-main-<stamp> jobs/<case>-candidate-<stamp>
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+DIMENSIONS = [
+    "context_discovery",
+    "skill_routing",
+    "authority",
+    "evidence",
+    "verification",
+    "prioritization",
+    "unsupported_claims",
+    "outcome_quality",
+]
+
+# A dimension counts as met for a trial at or above this value. Three-point
+# criteria put PARTIAL at 0.5, so the threshold sits above it: a dimension
+# carried by partial credit alone has not been met.
+MET = 0.75
+
+
+def load_trials(job_dir: Path) -> list[dict[str, float]]:
+    """Every trial's per-dimension rewards."""
+    rewards = []
+    for path in sorted(job_dir.glob("**/reward.json")):
+        try:
+            rewards.append(json.loads(path.read_text()))
+        except json.JSONDecodeError:
+            print(f"warning: unreadable {path}", file=sys.stderr)
+    if not rewards:
+        sys.exit(f"no reward.json under {job_dir}")
+    return rewards
+
+
+def load_snapshot(job_dir: Path) -> dict:
+    path = job_dir / "nr-snapshot.json"
+    if not path.exists():
+        sys.exit(
+            f"{job_dir} has no nr-snapshot.json; without it the run's "
+            f"configuration is unknown and a comparison is not interpretable."
+        )
+    return json.loads(path.read_text())
+
+
+def check_comparable(a: dict, b: dict) -> None:
+    """Everything but the fleet must match (docs/open-forward-review.md §8)."""
+    differences = [
+        f"{field}: {a.get(field)!r} vs {b.get(field)!r}"
+        for field in ("case_id", "agent", "model", "judge", "trials")
+        if a.get(field) != b.get(field)
+    ]
+    if differences:
+        print("these runs are not comparable — more than the fleet differs:",
+              file=sys.stderr)
+        for difference in differences:
+            print(f"  - {difference}", file=sys.stderr)
+        print(
+            "\nA difference in results here would have several candidate "
+            "causes and could not be attributed to any of them.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
+def counts(trials: list[dict[str, float]], dimension: str) -> tuple[int, int]:
+    met = sum(1 for t in trials if t.get(dimension, 0.0) >= MET)
+    return met, len(trials)
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        sys.exit(__doc__)
+    dir_a, dir_b = Path(sys.argv[1]), Path(sys.argv[2])
+
+    snap_a, snap_b = load_snapshot(dir_a), load_snapshot(dir_b)
+    check_comparable(snap_a, snap_b)
+
+    trials_a, trials_b = load_trials(dir_a), load_trials(dir_b)
+
+    print(f"case   {snap_a['case_id']}")
+    print(f"agent  {snap_a['agent']} / {snap_a['model']}")
+    print(f"judge  {snap_a['judge']}")
+    print()
+    label_a, label_b = snap_a["fleet"], snap_b["fleet"]
+    width = max(len(d) for d in DIMENSIONS)
+    print(f"{'dimension'.ljust(width)}  {label_a:>10}  {label_b:>10}")
+
+    moved = []
+    for dimension in DIMENSIONS:
+        met_a, n_a = counts(trials_a, dimension)
+        met_b, n_b = counts(trials_b, dimension)
+        marker = ""
+        if met_a != met_b:
+            marker = "  <-- moved"
+            moved.append((dimension, met_a, n_a, met_b, n_b))
+        print(
+            f"{dimension.ljust(width)}  {f'{met_a}/{n_a}':>10}  "
+            f"{f'{met_b}/{n_b}':>10}{marker}"
+        )
+
+    print()
+    if not moved:
+        print("no dimension moved.")
+        print(
+            f"With {len(trials_a)} trials per side this does not establish "
+            f"that the change had no effect — only that none was observed at "
+            f"this sample size."
+        )
+    else:
+        for dimension, met_a, n_a, met_b, n_b in moved:
+            direction = "improved" if met_b > met_a else "regressed"
+            print(f"{dimension}: {direction}, {met_a}/{n_a} -> {met_b}/{n_b}")
+        print(
+            "\nA one-trial difference is within the noise of a stochastic "
+            "agent. Re-run before treating any of these as a finding."
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

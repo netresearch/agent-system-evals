@@ -1,0 +1,14 @@
+# No Netresearch skills. The agent gets the repository and the prompt.
+#
+# This is the baseline the whole exercise rests on. Without it, a good score
+# says the agent is capable; only the difference against this fleet says the
+# stack contributed anything.
+#
+# Expect low mechanical scores on skill_routing by construction — no skills are
+# available to route to. That is a real property of this configuration and the
+# judge is told to say so rather than to score it as a choice the agent made.
+
+name: control
+description: No Netresearch skills; measures what the agent does unaided
+
+skills: []

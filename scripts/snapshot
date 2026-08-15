@@ -1,0 +1,110 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Read the provenance of a recorded job out of Harbor's job lock.
+
+The fleet manifest states what was asked for. The lock states what was
+resolved: the actual commit per skill, the task digest, the verifier
+environment mode. Those differ whenever a tag moved, a branch advanced, or a
+cache served something older — which is exactly when a result becomes hard to
+interpret and exactly when nobody thinks to check.
+
+    scripts/snapshot jobs/OFR-TYPO3-EXT-001-main-20260815-200053
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+
+def find_lock(job_dir: Path) -> Path:
+    candidates = sorted(job_dir.glob("*lock*.json")) + sorted(
+        job_dir.glob("**/*lock*.json")
+    )
+    if not candidates:
+        sys.exit(
+            f"no job lock under {job_dir}. Without it the resolved skill "
+            f"commits are unknown and the run is not reproducible."
+        )
+    return candidates[0]
+
+
+def walk(node, key_names: set[str], found: dict[str, set[str]]) -> None:
+    """Collect values for keys of interest wherever they appear.
+
+    The lock's exact nesting is Harbor's to change between versions; hunting
+    for known key names survives that, and a schema change shows up as a
+    missing field rather than a crash.
+    """
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key in key_names and isinstance(value, (str, int)):
+                found.setdefault(key, set()).add(str(value))
+            walk(value, key_names, found)
+    elif isinstance(node, list):
+        for item in node:
+            walk(item, key_names, found)
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    job_dir = Path(sys.argv[1])
+    if not job_dir.is_dir():
+        sys.exit(f"not a directory: {job_dir}")
+
+    lock_path = find_lock(job_dir)
+    lock = json.loads(lock_path.read_text())
+
+    interesting = {
+        "git_url",
+        "git_commit_id",
+        "commit",
+        "resolved_commit",
+        "digest",
+        "content_digest",
+        "environment_mode",
+        "harbor_version",
+        "task_name",
+        "model",
+        "agent",
+    }
+    found: dict[str, set[str]] = {}
+    walk(lock, interesting, found)
+
+    snapshot_path = job_dir / "nr-snapshot.json"
+    requested = (
+        json.loads(snapshot_path.read_text()) if snapshot_path.exists() else {}
+    )
+
+    identifier_source = json.dumps(
+        {k: sorted(v) for k, v in sorted(found.items())}, sort_keys=True
+    )
+    digest = hashlib.sha256(identifier_source.encode()).hexdigest()[:6]
+    stamp = requested.get("recorded_at", "unknown").split("-")[0]
+
+    out = {
+        "snapshot_id": f"nr-eval-{stamp}-{digest}",
+        "lock": str(lock_path.relative_to(job_dir)),
+        "requested": requested,
+        "resolved": {k: sorted(v) for k, v in sorted(found.items())},
+    }
+    print(json.dumps(out, indent=2))
+
+    if "environment_mode" in found and found["environment_mode"] != {"separate"}:
+        print(
+            f"\nWARNING: verifier environment_mode resolved to "
+            f"{sorted(found['environment_mode'])}, not 'separate'. This job "
+            f"cannot be regraded (ADR 0004).",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

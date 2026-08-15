@@ -1,0 +1,188 @@
+#!/usr/bin/env -S uv run --quiet --with pyyaml --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Run one case against one fleet, with everything else held constant.
+
+The whole value of an A/B rests on nothing else moving between the two runs, so
+the fleet is the only thing this script takes from a manifest. Agent, model,
+judge, trial count and case are explicit arguments with recorded defaults, and
+they are written into the snapshot alongside the result.
+
+    scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet main
+    scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet candidate
+    scripts/compare <job-a> <job-b>
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tomllib
+from datetime import datetime, timezone
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Recorded defaults. Overridable, but a change to any of them means results are
+# not comparable with earlier ones — see docs/reproducibility.md.
+DEFAULT_AGENT = "claude-code"
+DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_JUDGE = "anthropic/claude-sonnet-4-6"
+DEFAULT_TRIALS = 3
+
+
+def find_case(case_id: str) -> Path:
+    """Locate a case by its identifier rather than its path.
+
+    Cases are addressed by identifier everywhere else — in retro exports, in
+    the dashboard, in conversation — so the directory layout stays free to
+    change without breaking every reference to a result.
+    """
+    matches = []
+    for config_path in ROOT.glob("tasks/*/*/task.toml"):
+        config = tomllib.loads(config_path.read_text())
+        if config.get("metadata", {}).get("case_id") == case_id:
+            matches.append(config_path.parent)
+
+    if not matches:
+        known = sorted(
+            tomllib.loads(p.read_text()).get("metadata", {}).get("case_id", "?")
+            for p in ROOT.glob("tasks/*/*/task.toml")
+        )
+        sys.exit(f"no case {case_id!r}; known cases: {', '.join(known)}")
+    if len(matches) > 1:
+        sys.exit(f"case id {case_id!r} is used by more than one task: {matches}")
+    return matches[0]
+
+
+def load_fleet(name: str) -> list[str]:
+    path = ROOT / "fleets" / f"{name}.yaml"
+    if not path.exists():
+        available = sorted(p.stem for p in (ROOT / "fleets").glob("*.yaml"))
+        sys.exit(f"no fleet {name!r}; available: {', '.join(available)}")
+
+    fleet = yaml.safe_load(path.read_text()) or {}
+    entries = []
+    for skill in fleet.get("skills") or []:
+        ref = skill.get("ref")
+        if not ref:
+            sys.exit(f"{path}: skill {skill.get('repo')} has no ref; pin it")
+        # A full commit SHA cannot be used: Harbor resolves the ref with
+        # `git ls-remote <url> <ref>`, which returns nothing for a bare SHA and
+        # fails with "No matching ref". Tags and branches work; the resolved
+        # SHA is recovered afterwards from the job lock.
+        if len(ref) == 40 and all(c in "0123456789abcdef" for c in ref.lower()):
+            sys.exit(
+                f"{path}: skill {skill['repo']} is pinned to a commit SHA. "
+                f"Harbor resolves refs via git ls-remote, which cannot answer "
+                f"for a bare SHA. Use a tag."
+            )
+        entries.append(f"{skill['repo']}@{ref}")
+    return entries
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("case_id")
+    parser.add_argument("--fleet", default="main")
+    parser.add_argument("--trials", type=int, default=DEFAULT_TRIALS)
+    parser.add_argument("--agent", default=DEFAULT_AGENT)
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--judge", default=DEFAULT_JUDGE)
+    parser.add_argument("--jobs-dir", default=str(ROOT / "jobs"))
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print the resolved command without running it",
+    )
+    args = parser.parse_args()
+
+    case_dir = find_case(args.case_id)
+    skills = load_fleet(args.fleet)
+
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        sys.exit(
+            "ANTHROPIC_API_KEY is not set. The agent needs it to run and the "
+            "verifier needs it to judge."
+        )
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    job_name = f"{args.case_id}-{args.fleet}-{stamp}"
+
+    # `-p` is a *dataset* path, not a task path: Harbor resolves it to
+    # datasets[].path and then looks for task directories inside it. Pointed
+    # straight at a task directory it finds none and fails with "Either
+    # datasets or tasks must be provided", which does not describe the
+    # mistake. So: parent directory, plus a name filter to select the one case.
+    # The filter matches the task *directory* name, not [task].name from
+    # task.toml. Harbor's own error prints the available names, which is how
+    # this was settled.
+    short_name = case_dir.name
+
+    command = [
+        "harbor",
+        "run",
+        "-p",
+        str(case_dir.parent),
+        "-i",
+        short_name,
+        "-a",
+        args.agent,
+        "-m",
+        args.model,
+        "-k",
+        str(args.trials),
+        "--job-name",
+        job_name,
+        "-o",
+        args.jobs_dir,
+        "--yes",
+    ]
+    for skill in skills:
+        command += ["--skill", skill]
+
+    print(f"case    {args.case_id}  ({case_dir.relative_to(ROOT)})")
+    print(f"fleet   {args.fleet}  ({len(skills)} skill(s))")
+    print(f"agent   {args.agent} / {args.model}")
+    print(f"judge   {args.judge}")
+    print(f"trials  {args.trials}")
+    print()
+
+    if args.dry_run:
+        print(" ".join(command))
+        return 0
+
+    env = dict(os.environ, REWARDKIT_JUDGE=args.judge)
+    result = subprocess.run(command, env=env)
+
+    job_dir = Path(args.jobs_dir) / job_name
+    if job_dir.exists():
+        snapshot = {
+            "case_id": args.case_id,
+            "fleet": args.fleet,
+            "fleet_requested": skills,
+            "agent": args.agent,
+            "model": args.model,
+            "judge": args.judge,
+            "trials": args.trials,
+            "recorded_at": stamp,
+            # Requested versions only. The resolved skill commits, task digest
+            # and environment image digest live in Harbor's job lock;
+            # scripts/snapshot reads them from there, because a manifest states
+            # intent and only the lock states fact.
+            "provenance_source": "harbor job lock",
+        }
+        (job_dir / "nr-snapshot.json").write_text(json.dumps(snapshot, indent=2))
+        print(f"\nsnapshot written to {job_dir / 'nr-snapshot.json'}")
+
+    return result.returncode
+
+
+if __name__ == "__main__":
+    sys.exit(main())

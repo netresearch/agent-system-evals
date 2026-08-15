@@ -1,0 +1,32 @@
+# The stack with a proposed change. Differs from main in as few entries as
+# possible — ideally one, so a difference in results has one candidate cause.
+#
+# A branch ref is acceptable here and only here, because a candidate is
+# transient by definition. Record the resolved commit from the job lock with
+# the result; a branch that moves between the two runs of an A/B invalidates
+# the comparison, and the lock is the only thing that will show it.
+
+name: candidate
+description: Proposed stack change under evaluation
+
+skills:
+  # CHANGE UNDER STUDY — replace the ref below, keep everything else identical
+  # to fleets/main.yaml.
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.14.0
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+
+  - repo: netresearch/typo3-conformance-skill
+    ref: v2.18.0
+  - repo: netresearch/typo3-testing-skill
+    ref: v5.20.0
+  - repo: netresearch/typo3-docs-skill
+    ref: v2.16.0
+  - repo: netresearch/typo3-extension-upgrade-skill
+    ref: v3.11.0
+
+  - repo: netresearch/php-modernization-skill
+    ref: v1.22.0
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1

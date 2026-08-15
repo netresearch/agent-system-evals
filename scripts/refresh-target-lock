@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Regenerate the pinned dependency set for a case's target.
+#
+# The targets we review are libraries and do not commit a composer.lock, so a
+# plain `composer install` resolves fresh on every build. That makes the
+# environment drift with the registry: the same case, built a month apart, is
+# not the same case. It also makes builds hostage to advisories published after
+# the target commit, which is how this was discovered — the first build of
+# OFR-TYPO3-EXT-001 failed outright because TYPO3 12.4.9 had since been flagged.
+#
+# So the lock is generated once, reviewed, and committed to the case. It is
+# copied into the working tree for the install and removed again afterwards, so
+# the agent still sees the target exactly as its authors left it.
+#
+# Running this is a deliberate act: it changes the environment and therefore
+# invalidates comparison with results recorded against the previous lock.
+# Record a new snapshot identifier when you do.
+set -euo pipefail
+
+CASE_DIR="${1:?usage: refresh-target-lock <task-dir>}"
+# Absolute: docker -v rejects a relative path as an invalid volume name rather
+# than resolving it against the caller's directory.
+CASE_DIR="$(cd "$CASE_DIR" && pwd)"
+ENV_DIR="$CASE_DIR/environment"
+LOCK_FILE="$ENV_DIR/target.lock"
+OUT="$ENV_DIR/target-composer.lock"
+
+test -f "$LOCK_FILE" || { echo "no target.lock in $ENV_DIR" >&2; exit 1; }
+# shellcheck source=/dev/null
+. "$LOCK_FILE"
+
+echo "resolving dependencies for $TARGET_PACKAGE @ ${TARGET_COMMIT:0:12}"
+
+docker run --rm \
+    -v "$ENV_DIR:/out" \
+    -e COMPOSER_ALLOW_SUPERUSER=1 \
+    -e COMPOSER_NO_INTERACTION=1 \
+    php:8.3-cli bash -euo pipefail -c "
+        apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+            git unzip libzip-dev libicu-dev >/dev/null
+        docker-php-ext-install -j\"\$(nproc)\" ftp zip intl >/dev/null
+        curl -fsSL https://getcomposer.org/installer -o /tmp/ci.php
+        php /tmp/ci.php --install-dir=/usr/bin --filename=composer --quiet
+
+        mkdir -p /src && cd /src
+        git init -q .
+        git remote add origin '$TARGET_REPOSITORY'
+        git fetch -q --depth 1 origin '$TARGET_COMMIT'
+        git checkout -q FETCH_HEAD
+
+        # Advisories published after the target commit must not decide whether
+        # a historical state can be built. The review of that state is the
+        # case; blocking the build would simply delete the case.
+        composer config policy.advisories.block false
+        composer update --no-interaction --no-progress --no-ansi --no-audit
+
+        cp composer.lock /out/target-composer.lock
+    "
+
+test -s "$OUT" || { echo "no lock produced" >&2; exit 1; }
+echo "wrote $OUT"
+python3 - "$OUT" <<'PY'
+import json, sys
+lock = json.load(open(sys.argv[1]))
+pkgs = lock.get("packages", []) + lock.get("packages-dev", [])
+print(f"{len(pkgs)} packages pinned; content-hash {lock.get('content-hash', '?')}")
+for p in pkgs:
+    if p["name"].startswith("typo3/cms-core"):
+        print(f"  typo3/cms-core {p['version']}")
+PY

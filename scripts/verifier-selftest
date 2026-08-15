@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Prove the rubric's mechanical criteria discriminate between recorded runs.
+#
+# An open case has no oracle, so nothing proves the case correct by solving it
+# (ADR 0003). What is provable is that the verifier tells different runs apart.
+# This executes the real rubric — the same criteria.py files a trial uses —
+# against recorded fixtures, and asserts the resulting scores separate a
+# thorough run from one that did nothing.
+#
+# Judge criteria are excluded: they cost an API call each and are calibrated
+# separately by scripts/calibrate-judges. Everything here is free and
+# deterministic, so it runs on every pull request.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+FIXTURES="$ROOT/verifier/tests/fixtures"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+CASE="${1:-$ROOT/tasks/open/typo3-extension-review}"
+TESTS="$CASE/tests"
+
+# A mechanical-only copy of the rubric: same criteria files, judge TOMLs left
+# out so no judge is called.
+mkdir -p "$WORK/tests"
+cp "$TESTS/nreval.py" "$WORK/tests/"
+for dir in "$TESTS"/*/; do
+    name="$(basename "$dir")"
+    if [ -f "$dir/criteria.py" ]; then
+        mkdir -p "$WORK/tests/$name"
+        cp "$dir/criteria.py" "$WORK/tests/$name/"
+    fi
+done
+
+score_fixture() {
+    local fixture="$1"
+    local out="$WORK/$fixture.json"
+    NREVAL_TRAJECTORY="$FIXTURES/$fixture/logs/trajectory.json" \
+    NREVAL_ARTIFACTS="$FIXTURES/$fixture/logs/artifacts" \
+        uvx --quiet --python 3.12 --from 'harbor-rewardkit==0.1.*' \
+            rewardkit "$WORK/tests" \
+            --workspace "$WORK" \
+            --output "$out" >"$WORK/$fixture.log" 2>&1 \
+        || { echo "rewardkit failed on fixture $fixture:" >&2
+             cat "$WORK/$fixture.log" >&2
+             exit 1; }
+    echo "$out"
+}
+
+echo "scoring fixtures with the real mechanical criteria"
+thorough="$(score_fixture thorough)"
+nop="$(score_fixture nop)"
+
+python3 - "$thorough" "$nop" <<'PY'
+import json
+import sys
+
+thorough = json.load(open(sys.argv[1]))
+nop = json.load(open(sys.argv[2]))
+
+dimensions = sorted(set(thorough) | set(nop))
+width = max(len(d) for d in dimensions)
+print(f"\n{'dimension'.ljust(width)}  thorough      nop")
+for d in dimensions:
+    print(f"{d.ljust(width)}  {thorough.get(d, 0.0):>8.2f}  {nop.get(d, 0.0):>8.2f}")
+
+problems = []
+
+# The no-op fixture answers "everything looks good" having done nothing. If any
+# mechanical criterion rewards that, the criterion is measuring the wrong
+# thing, and a rubric that cannot notice this run cannot notice anything.
+for d, value in nop.items():
+    if value > 0.0:
+        problems.append(f"{d}: no-op run scored {value:.2f}, expected 0.00")
+
+# Discrimination: the thorough run must be strictly better somewhere, or the
+# rubric is not measuring behaviour at all.
+if not any(thorough.get(d, 0.0) > nop.get(d, 0.0) for d in dimensions):
+    problems.append("thorough run scored no higher than the no-op run anywhere")
+
+if problems:
+    print("\nverifier does not discriminate:", file=sys.stderr)
+    for p in problems:
+        print(f"  - {p}", file=sys.stderr)
+    sys.exit(1)
+
+print("\nverifier discriminates: no-op scores zero, thorough run scores above it")
+PY

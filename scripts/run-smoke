@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# One trial, one fleet. Answers "is the pipeline working", nothing else.
+#
+# A smoke run is not evidence about the system under test. One sample of a
+# stochastic process says nothing about behaviour, and reporting a smoke result
+# as a finding is the fastest way to make the benchmark untrustworthy. Use
+# scripts/run-evaluation for that.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$ROOT/scripts/run-evaluation" "$@" --trials 1

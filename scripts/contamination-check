@@ -1,0 +1,232 @@
+#!/usr/bin/env -S uv run --quiet --with pyyaml --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Fail if the skill fleet has been told the answers.
+
+A benchmark is evidence only while the system under test has not seen the
+expected results. The realistic route to losing that is not sabotage: skills
+are updated continuously from real work by people who also see the cases, and a
+well-meant update can encode a case's finding without anyone deciding to change
+the benchmark.
+
+Scans the fleet as pinned for:
+
+  - case identifiers
+  - the target repository, owner and package name
+  - the target commit SHA, full and abbreviated
+  - distinctive sentences from case instructions
+  - distinctive phrases from verifier-side known-concerns files
+
+A hit is not automatically contamination — a skill may legitimately mention
+TYPO3 or a common word — so hits are reported with their context for a human to
+judge, and the exit status marks the run as needing that judgement.
+
+    scripts/contamination-check --fleet main
+"""
+
+from __future__ import annotations
+
+import argparse
+import io
+import re
+import sys
+import tarfile
+import tomllib
+import urllib.request
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Extensions worth reading. Skills are prose and configuration; a hit inside a
+# binary is not a learning anyone wrote.
+TEXT_SUFFIXES = {".md", ".txt", ".toml", ".yaml", ".yml", ".json", ".py", ".sh"}
+
+# Words too common to signal anything on their own.
+STOPWORDS = {
+    "typo3", "extension", "review", "composer", "php", "test", "tests",
+    "the", "this", "that", "what", "needs", "attention", "and", "for",
+}
+
+
+def fleet_skills(name: str) -> list[tuple[str, str]]:
+    path = ROOT / "fleets" / f"{name}.yaml"
+    if not path.exists():
+        sys.exit(f"no fleet {name!r}")
+    fleet = yaml.safe_load(path.read_text()) or {}
+    return [(s["repo"], s["ref"]) for s in (fleet.get("skills") or [])]
+
+
+def case_markers() -> dict[str, list[str]]:
+    """Strings that must not appear in any skill, grouped by case."""
+    markers: dict[str, list[str]] = {}
+
+    for config_path in ROOT.glob("tasks/*/*/task.toml"):
+        case_dir = config_path.parent
+        config = tomllib.loads(config_path.read_text())
+        metadata = config.get("metadata", {})
+        case_id = metadata.get("case_id")
+        if not case_id:
+            continue
+
+        found = [case_id]
+
+        repository = metadata.get("target_repository", "")
+        if repository:
+            slug = re.sub(r"^https?://[^/]+/|\.git$", "", repository)
+            found.append(slug)
+            found.append(slug.split("/")[-1])
+
+        package = metadata.get("target_package")
+        if package:
+            found.append(package)
+
+        sha = metadata.get("target_sha", "")
+        if sha:
+            found.extend([sha, sha[:12], sha[:7]])
+
+        instruction = case_dir / "instruction.md"
+        if instruction.exists():
+            for sentence in re.split(r"[.\n]", instruction.read_text()):
+                sentence = sentence.strip()
+                # Long enough to be distinctive; a short phrase from an
+                # instruction as ordinary as ours matches everywhere.
+                if len(sentence.split()) >= 6:
+                    found.append(sentence)
+
+        # Markers from the known-concerns file are declared, not harvested.
+        #
+        # The first version scraped every backticked token, which produced 378
+        # hits across eight skills — `README.md`, `tests/`, `composer.lock`.
+        # Those are ordinary words in any engineering repository, and a check
+        # that cries wolf 378 times gets skipped, which is a worse failure than
+        # not having it. What counts as leakage for a given case is a judgement
+        # its author has to make explicitly:
+        #
+        #     <!-- contamination-markers: DumpFileTrait, SyncImportTask -->
+        concerns = case_dir / "tests" / "known-concerns.md"
+        if concerns.exists():
+            declared = re.search(
+                r"<!--\s*contamination-markers:\s*(.+?)\s*-->",
+                concerns.read_text(),
+                re.S,
+            )
+            if declared:
+                found.extend(
+                    token.strip()
+                    for token in declared.group(1).split(",")
+                    if token.strip()
+                )
+            else:
+                print(
+                    f"warning: {concerns.relative_to(ROOT)} declares no "
+                    f"contamination-markers; only generic case markers will "
+                    f"be checked for this case",
+                    file=sys.stderr,
+                )
+
+        markers[case_id] = [
+            m for m in dict.fromkeys(found) if m and m.lower() not in STOPWORDS
+        ]
+
+    if not markers:
+        sys.exit("no cases found; nothing to check")
+    return markers
+
+
+def fetch_skill(repo: str, ref: str) -> list[tuple[str, str]]:
+    """Return (path, text) for the text files of a skill at a pinned ref."""
+    url = f"https://codeload.github.com/{repo}/tar.gz/refs/tags/{ref}"
+    try:
+        with urllib.request.urlopen(url, timeout=60) as response:
+            payload = response.read()
+    except Exception:
+        # Tag lookup failed; a candidate fleet may pin a branch.
+        url = f"https://codeload.github.com/{repo}/tar.gz/refs/heads/{ref}"
+        with urllib.request.urlopen(url, timeout=60) as response:
+            payload = response.read()
+
+    files = []
+    with tarfile.open(fileobj=io.BytesIO(payload), mode="r:gz") as archive:
+        for member in archive.getmembers():
+            if not member.isfile():
+                continue
+            if Path(member.name).suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            handle = archive.extractfile(member)
+            if handle is None:
+                continue
+            files.append(
+                (member.name, handle.read().decode("utf-8", errors="replace"))
+            )
+    return files
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fleet", default="main")
+    args = parser.parse_args()
+
+    markers = case_markers()
+    skills = fleet_skills(args.fleet)
+
+    if not skills:
+        print(f"fleet {args.fleet!r} injects no skills; nothing to contaminate")
+        return 0
+
+    total_markers = sum(len(v) for v in markers.values())
+    print(
+        f"checking {len(skills)} skill(s) in fleet {args.fleet!r} against "
+        f"{total_markers} marker(s) from {len(markers)} case(s)"
+    )
+
+    hits: list[str] = []
+    for repo, ref in skills:
+        try:
+            files = fetch_skill(repo, ref)
+        except Exception as exc:  # noqa: BLE001
+            # An unreachable skill is an unchecked skill. Reporting this as a
+            # pass would be the worst outcome: silence that reads as safety.
+            print(f"  ! {repo}@{ref}: could not fetch ({exc})", file=sys.stderr)
+            hits.append(f"{repo}@{ref}: NOT CHECKED — could not fetch")
+            continue
+
+        for case_id, case_markers_list in markers.items():
+            for marker in case_markers_list:
+                for path, text in files:
+                    if marker.lower() in text.lower():
+                        line = next(
+                            (
+                                l.strip()
+                                for l in text.splitlines()
+                                if marker.lower() in l.lower()
+                            ),
+                            "",
+                        )
+                        hits.append(
+                            f"{repo}@{ref}: {path} mentions {marker!r} "
+                            f"(case {case_id})\n      {line[:160]}"
+                        )
+        print(f"  checked {repo}@{ref} ({len(files)} text files)")
+
+    if hits:
+        print(f"\n{len(hits)} possible contamination hit(s):", file=sys.stderr)
+        for hit in hits:
+            print(f"  - {hit}", file=sys.stderr)
+        print(
+            "\nA hit needs a human decision. The question is whether the text "
+            "would help an agent on a repository it has never seen (a "
+            "learning) or only on this target (contamination). See "
+            "docs/contamination.md.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print("\nno case-specific knowledge found in the fleet")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

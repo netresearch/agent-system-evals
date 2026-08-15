@@ -1,0 +1,40 @@
+# The Netresearch skill fleet as deployed, at the versions a result was
+# recorded against.
+#
+# Pinned by tag, not by commit. Harbor resolves a --skill ref with
+# `git ls-remote <url> <ref>`, and ls-remote does not answer for a bare commit
+# SHA — a full SHA here fails with "No matching ref". The exact commit is still
+# recorded: Harbor writes the resolved SHA per skill into the job lock, and
+# scripts/snapshot reads it from there. The manifest states intent; the lock
+# states fact.
+#
+# Changing any version here changes what a result means. Record a new snapshot
+# identifier and do not compare across the change unless the fleet is itself
+# the variable under study.
+
+name: main
+description: Production Netresearch agent engineering stack
+
+skills:
+  # Routing: the general assessment capability that should direct the specific
+  # ones. Whether the agent reaches this first is the skill_routing dimension.
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.14.0
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+
+  # TYPO3 domain
+  - repo: netresearch/typo3-conformance-skill
+    ref: v2.18.0
+  - repo: netresearch/typo3-testing-skill
+    ref: v5.20.0
+  - repo: netresearch/typo3-docs-skill
+    ref: v2.16.0
+  - repo: netresearch/typo3-extension-upgrade-skill
+    ref: v3.11.0
+
+  # Cross-cutting
+  - repo: netresearch/php-modernization-skill
+    ref: v1.22.0
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1

@@ -1,0 +1,110 @@
+#!/usr/bin/env -S uv run --quiet --with harbor-rewardkit==0.1.* --script
+# Upper bound on purpose: RewardKit's pydantic calls a typing internal that
+# Python 3.14 removed, and an unbounded floor silently selects it.
+# /// script
+# requires-python = ">=3.12,<3.14"
+# ///
+"""Validate every case's rubric without calling a judge.
+
+RewardKit only reports a malformed rubric when it runs, and running it costs a
+judge call per criterion. Discovery builds the same objects and calls nothing,
+so a broken TOML key, an unparseable criterion or a missing prompt template
+surfaces in CI for free.
+
+Also enforces the repository's own rules about rubric shape, which RewardKit
+has no reason to know:
+
+- every dimension is one of the eight in docs/scoring.md
+- qualitative criteria are three-point, so PARTIAL is reachable
+- every judge is pinned to a named model
+- every judge uses the shared anti-bias prompt template
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+from rewardkit.runner import discover
+
+ROOT = Path(__file__).resolve().parents[1]
+
+DIMENSIONS = {
+    "context_discovery",
+    "skill_routing",
+    "authority",
+    "evidence",
+    "verification",
+    "prioritization",
+    "unsupported_claims",
+    "outcome_quality",
+}
+
+
+def main() -> int:
+    problems: list[str] = []
+    checked = 0
+
+    for tests_dir in sorted(ROOT.glob("tasks/*/*/tests")):
+        case = tests_dir.parent.name
+        subdirs = {
+            d.name
+            for d in tests_dir.iterdir()
+            if d.is_dir() and not d.name.startswith((".", "__"))
+        }
+
+        unknown = subdirs - DIMENSIONS
+        if unknown:
+            problems.append(
+                f"{case}: unknown reward dimension(s) {sorted(unknown)}; "
+                f"see docs/scoring.md"
+            )
+        missing = DIMENSIONS - subdirs
+        if missing:
+            problems.append(f"{case}: missing dimension(s) {sorted(missing)}")
+
+        try:
+            rewards = discover(tests_dir, workspace=ROOT)
+        except Exception as exc:  # noqa: BLE001 - report, do not crash the run
+            problems.append(f"{case}: rubric failed to load: {exc}")
+            continue
+
+        for reward in rewards:
+            checked += 1
+            judge = getattr(reward, "judge", None)
+            if judge is None:
+                continue  # a programmatic-only reward has no judge to check
+
+            model = getattr(judge, "model", None) or getattr(judge, "agent", None)
+            if not model:
+                problems.append(f"{case}/{reward.name}: judge has no pinned model")
+
+            if not getattr(reward, "system_prompt", None):
+                problems.append(
+                    f"{case}/{reward.name}: no prompt_template; the shared "
+                    f"anti-bias framing in tests/judge-prompt.md is mandatory"
+                )
+
+            for criterion in reward.criteria:
+                points = getattr(criterion.output_format, "points", None)
+                if points is None:
+                    continue  # binary mechanical criterion
+                if points != 3:
+                    problems.append(
+                        f"{case}/{reward.name}/{criterion.name}: "
+                        f"{points}-point scale; the rubric is three-point so "
+                        f"PARTIAL stays reachable (docs/scoring.md)"
+                    )
+
+    if problems:
+        print(f"{len(problems)} problem(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+
+    print(f"rubric valid: {checked} reward(s) across all cases")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
