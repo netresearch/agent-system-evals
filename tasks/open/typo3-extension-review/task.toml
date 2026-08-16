@@ -84,9 +84,14 @@ environment_mode = "separate"
 # It is also unnecessary: run-evaluation passes one credential and blanks the
 # other, so there is nothing to disambiguate. scripts/run-evaluation now
 # refuses to start when a declared value is shorter than 12 characters.
+# REWARDKIT_JUDGE is deliberately absent. It was here, holding "claude-code" —
+# eleven characters, and the name of the agent — so Harbor would have stripped
+# that string from every captured file and destroyed the trajectory wholesale.
+# The guard caught it before the run. The judge belongs in the rubric anyway,
+# where judge.toml pins it and the rubric digest records it; an environment
+# override would make the recorded judge unknowable after the fact.
 ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
 CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
-REWARDKIT_JUDGE = "${REWARDKIT_JUDGE}"
 
 [verifier.environment]
 # No docker_image: the verifier image is built from tests/Dockerfile, with

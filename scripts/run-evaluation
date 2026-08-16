@@ -5,9 +5,10 @@
 """Run one case against one fleet, with everything else held constant.
 
 The whole value of an A/B rests on nothing else moving between the two runs, so
-the fleet is the only thing this script takes from a manifest. Agent, model,
-judge, trial count and case are explicit arguments with recorded defaults, and
-they are written into the snapshot alongside the result.
+the fleet is the only thing this script takes from a manifest. Agent, model and
+trial count are explicit arguments with recorded defaults; the judge comes from
+the rubric, which is where it is versioned. All of them are written into the
+snapshot alongside the result.
 
     scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet main
     scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet candidate
@@ -33,7 +34,6 @@ ROOT = Path(__file__).resolve().parents[1]
 # not comparable with earlier ones — see docs/reproducibility.md.
 DEFAULT_AGENT = "claude-code"
 DEFAULT_MODEL = "claude-opus-5"
-DEFAULT_JUDGE = "anthropic/claude-sonnet-4-6"
 DEFAULT_TRIALS = 3
 
 
@@ -59,6 +59,31 @@ def find_case(case_id: str) -> Path:
     if len(matches) > 1:
         sys.exit(f"case id {case_id!r} is used by more than one task: {matches}")
     return matches[0]
+
+
+def rubric_judge(case_dir: Path) -> str:
+    """The judge the case's rubric pins, read from its judge.toml files.
+
+    Recorded rather than chosen at the command line: a result has to be able to
+    say what judged it, and the rubric is where that is versioned.
+    """
+    judges = set()
+    for path in sorted(case_dir.glob("tests/*/judge.toml")):
+        config = tomllib.loads(path.read_text())
+        name = config.get("judge", {}).get("judge")
+        if name:
+            judges.add(name)
+
+    if not judges:
+        sys.exit(f"{case_dir}: no judge pinned in any tests/*/judge.toml")
+    if len(judges) > 1:
+        # Different judges across dimensions would make the vector
+        # incomparable with itself, never mind across runs.
+        sys.exit(
+            f"{case_dir}: dimensions pin different judges ({sorted(judges)}); "
+            f"one case is graded by one judge"
+        )
+    return judges.pop()
 
 
 def load_fleet(name: str) -> list[str]:
@@ -94,7 +119,9 @@ def main() -> int:
     parser.add_argument("--trials", type=int, default=DEFAULT_TRIALS)
     parser.add_argument("--agent", default=DEFAULT_AGENT)
     parser.add_argument("--model", default=DEFAULT_MODEL)
-    parser.add_argument("--judge", default=DEFAULT_JUDGE)
+    # No --judge flag. The judge is a property of the rubric, pinned in each
+    # judge.toml and covered by the rubric digest. An environment override
+    # would leave a recorded result unable to say what judged it.
     parser.add_argument("--jobs-dir", default=str(ROOT / "jobs"))
     parser.add_argument(
         "--dry-run",
@@ -105,6 +132,7 @@ def main() -> int:
 
     case_dir = find_case(args.case_id)
     skills = load_fleet(args.fleet)
+    judge = rubric_judge(case_dir)
 
     # Either credential works, for the agent and for the judge alike. The
     # subscription token is the cheaper path: LiteLLM sends an sk-ant-oat token
@@ -160,7 +188,7 @@ def main() -> int:
     print(f"case    {args.case_id}  ({case_dir.relative_to(ROOT)})")
     print(f"fleet   {args.fleet}  ({len(skills)} skill(s))")
     print(f"agent   {args.agent} / {args.model}")
-    print(f"judge   {args.judge}")
+    print(f"judge   {judge}  (pinned in the rubric)")
     print(f"trials  {args.trials}")
     print(f"auth    {'subscription (OAuth)' if using_subscription else 'API key'}")
     print()
@@ -175,7 +203,7 @@ def main() -> int:
     # Claude Code CLI treat as absent.
     env = dict(
         os.environ,
-        REWARDKIT_JUDGE=args.judge,
+
         ANTHROPIC_API_KEY=api_key,
         CLAUDE_CODE_OAUTH_TOKEN=oauth_token,
     )
@@ -209,7 +237,7 @@ def main() -> int:
             "fleet_requested": skills,
             "agent": args.agent,
             "model": args.model,
-            "judge": args.judge,
+            "judge": judge,
             "trials": args.trials,
             "recorded_at": stamp,
             # Requested versions only. The resolved skill commits, task digest
