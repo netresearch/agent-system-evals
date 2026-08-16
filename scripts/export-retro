@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Turn failed criteria into retro input.
+"""Turn under-performing criteria into retro input.
 
 Nothing here patches a skill. An eval that edits the system it measures has
 stopped measuring it, and a rule written directly from a failing case is a rule
@@ -36,6 +36,18 @@ DIMENSIONS = [
 ]
 
 
+def _criteria(groups) -> list[dict]:
+    """Flatten a dimension's reward groups into individual criterion scores."""
+    out: list[dict] = []
+    for group in groups if isinstance(groups, list) else [groups]:
+        if not isinstance(group, dict):
+            continue
+        for score in group.get("criteria") or []:
+            if isinstance(score, dict):
+                out.append({**score, "kind": group.get("kind", "judge")})
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("job_dir", type=Path)
@@ -50,17 +62,18 @@ def main() -> int:
         trial = details_path.parent.name
         details = json.loads(details_path.read_text())
 
-        for dimension, entry in details.items():
+        for dimension, groups in details.items():
             if dimension not in DIMENSIONS:
                 continue
 
-            scores = entry.get("scores", entry) if isinstance(entry, dict) else []
-            if not isinstance(scores, list):
-                continue
-
-            for score in scores:
-                if not isinstance(score, dict):
-                    continue
+            # reward-details.json holds a *list of reward groups* per
+            # dimension — one programmatic, one per judge — and each group
+            # carries its criteria under "criteria". An earlier version looked
+            # for the criteria at the top level, found dicts without a "value",
+            # and reported "no criterion below threshold" for a run whose
+            # authority dimension scored 0.33 in every trial. A retro bridge
+            # that silently reports nothing wrong is worse than no bridge.
+            for score in _criteria(groups):
                 value = score.get("value")
                 if value is None or value >= args.threshold:
                     continue
@@ -112,8 +125,8 @@ def main() -> int:
     out = args.job_dir / "retro-evidence.json"
     out.write_text(json.dumps(findings, indent=2))
 
-    print(f"{len(findings)} failed criterion instance(s) -> {out}\n")
-    print("repeated across trials (a single instance is noise):")
+    print(f"{len(findings)} criterion instance(s) below {args.threshold} -> {out}\n")
+    print("repeated across trials (a single instance is noise;\na criterion at 0.5 is partial, not failed):")
     for key, count in sorted(by_criterion.items(), key=lambda kv: -kv[1]):
         print(f"  {count}x  {key}")
     print(f"\nNext: /retro {out}")

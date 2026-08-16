@@ -19,23 +19,48 @@ installed and exposed through the Makefile, so an unverified claim is a real
 failure rather than an impossibility. There is no `AGENTS.md`, so context has
 to be established from ordinary project files.
 
-## First recorded baseline
+## Recorded results
 
-One trial, `control` fleet (no Netresearch skills), Claude Code on
-claude-opus-5, judged by claude-code on claude-sonnet-4-6. A single trial is
-not evidence about the system — three are the minimum for that — but it is
-evidence about the case, which is what it is recorded for.
+Claude Code on claude-opus-5, judged by claude-code. `main` ran three trials;
+`control` has one so far, so the two columns are **not** a valid A/B — one
+sample says nothing about reliability, and `scripts/compare` refuses the
+pairing for that reason. The control column is listed as case context, not as
+a comparison.
 
-| Dimension | control |
-|---|---|
-| context_discovery | 1.00 |
-| verification | 1.00 |
-| prioritization | 1.00 |
-| outcome_quality | 1.00 |
-| evidence | 0.88 |
-| unsupported_claims | 0.67 |
-| authority | 0.33 |
-| skill_routing | 0.33 |
+| Dimension | main (3 trials, met) | main mean | control (1 trial) |
+|---|---|---|---|
+| context_discovery | 3/3 | 0.94 | 1.00 |
+| skill_routing | 3/3 | 1.00 | 0.33 |
+| prioritization | 3/3 | 0.94 | 1.00 |
+| outcome_quality | 3/3 | 1.00 | 1.00 |
+| evidence | 3/3 | 0.75 | 0.88 |
+| verification | 2/3 | 0.81 | 1.00 |
+| unsupported_claims | 0/3 | 0.44 | 0.67 |
+| authority | 0/3 | 0.33 | 0.33 |
+
+Three trials, no errored trials.
+
+### What holds across all three trials
+
+**Routing works.** Every trial invoked a skill and reached an assessment
+capability. That is the dimension the stack exists to move, and it moved from
+0.33 to 1.00.
+
+**Authority did not move at all.** `0.33` in all three trials, and the
+mechanical evidence says why in identical terms each time: no external
+canonical source was consulted, and the resolved dependency state was never
+read. The stack routes the agent to the right capability and does not change
+where it gets its facts. That is a finding about the stack, reproducible, and
+it does not need the control comparison to stand up.
+
+**`unsupported_claims` is the least stable dimension** — 0.67, 0.00, 0.67
+across otherwise similar trials. Variance that large on one dimension is a
+reason to look at the criteria before reading anything into the number.
+
+`scripts/export-retro` turns the repeated shortfalls into retro input. The
+criteria that fell short in all three trials are the authority set, evidence's
+`uncertainty_is_visible` and `looked_past_a_clean_signal`, and the two
+`unsupported_claims` criteria. Most of those scored 2 (partial), not 1.
 
 ## What that says about the case
 

@@ -19,17 +19,14 @@ Nothing is marked from documentation alone.
 | 9 | Workspace artifacts preserved | verified | all four collect hooks ran; all three declared artifacts collected with status `ok` |
 | 10 | Separate verifier works | verified | verifier image built from `tests/`, container started, `test.sh` executed |
 | 11 | RewardKit expresses our rubric | verified | the real criteria scored recorded fixtures into per-dimension rewards |
-| 12 | Three trials independently executable | pending | `-k` accepted and two independent single trials ran; `k=3` has not |
+| 12 | Three trials independently executable | verified | `main` fleet ran `k=3`: three trials, zero errored, three complete reward vectors |
 | 13 | Result viewer useful | verified | `harbor view` served the recorded job (HTTP 200) |
 | 14 | Regrade works | verified | three regrades of one recorded trial, no agent re-run; this is how the judge configuration was fixed |
 | 15 | CI execution feasible | verified | every gate in `.github/workflows/validate.yml` runs locally and is free |
 
-Fourteen of fifteen are verified. Seven were established with the free `nop`
-agent, which proves the plumbing but by construction says nothing about a
-trajectory; two real control trials and three regrades closed the rest.
-
-The one remaining criterion needs three agent trials in a single job, which no
-run has yet done.
+All fifteen are verified. Seven were established with the free `nop` agent,
+which proves the plumbing but by construction says nothing about a trajectory;
+the real trials and regrades closed the rest.
 
 **Harbor is adopted.** It carried the case, including the parts that were
 assumed rather than known. Nothing in the spike required extending it, let
