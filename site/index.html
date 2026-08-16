@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Forward Reviews — Netresearch Agent System Evals</title>
+<meta name="description" content="Measuring whether the Netresearch agent engineering stack changes how an agent handles a realistic, underspecified request.">
+<style>
+  :root {
+    --nr-primary: #2F99A4;
+    --nr-primary-dark: #257880;
+    --nr-accent: #FF4D00;
+    --nr-text: #585961;
+    --nr-heading: #3D3E45;
+    --nr-border: #E2E4E6;
+    --nr-bg: #FFFFFF;
+    --nr-bg-alt: #F5F6F7;
+    --nr-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--nr-bg);
+    color: var(--nr-text);
+    font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  h1, h2, h3 {
+    font-family: Raleway, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--nr-heading);
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  h1 { font-size: 2.1rem; margin: 0 0 12px; }
+  h2 { font-size: 1.5rem; margin: 64px 0 16px; }
+  h3 { font-size: 1.1rem; margin: 32px 0 8px; }
+  a { color: var(--nr-primary-dark); text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { color: var(--nr-primary); }
+  code { font-family: var(--nr-mono); font-size: 0.88em; background: var(--nr-bg-alt); padding: 1px 5px; border-radius: 3px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+  header.site {
+    border-bottom: 1px solid var(--nr-border);
+    padding: 20px 0;
+  }
+  header.site .wrap { display: flex; align-items: center; gap: 14px; }
+  header.site svg { width: 44px; height: 44px; flex: 0 0 auto; }
+  header.site .org { font-family: Raleway, sans-serif; font-weight: 600; color: var(--nr-heading); }
+  header.site .org span { display: block; font-family: "Open Sans", sans-serif; font-weight: 400; font-size: 0.82rem; color: var(--nr-text); }
+
+  .hero { background: linear-gradient(135deg, var(--nr-primary), var(--nr-primary-dark)); color: #fff; padding: 56px 0; }
+  .hero h1 { color: #fff; }
+  .hero p { margin: 0; max-width: 62ch; font-size: 1.05rem; }
+  .hero .prompt {
+    margin-top: 28px; background: rgba(255,255,255,.14); border-left: 3px solid #fff;
+    padding: 14px 18px; font-family: var(--nr-mono); font-size: .95rem;
+  }
+
+  .lede { font-size: 1.05rem; }
+  table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: .95rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--nr-border); }
+  th { font-family: Raleway, sans-serif; font-weight: 600; color: var(--nr-heading); }
+  td.num, th.num { text-align: right; font-family: var(--nr-mono); font-variant-numeric: tabular-nums; }
+  tr.moved td { background: #F0F8F9; }
+  .delta-down { color: var(--nr-primary-dark); font-weight: 600; }
+  .delta-flat { color: var(--nr-text); }
+  .scroll { overflow-x: auto; }
+
+  .note {
+    background: var(--nr-bg-alt); border-left: 3px solid var(--nr-accent);
+    padding: 16px 20px; margin: 28px 0;
+  }
+  .note strong { color: var(--nr-heading); }
+
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin: 24px 0; }
+  .card { border: 1px solid var(--nr-border); border-radius: 4px; padding: 18px 20px; }
+  .card .big { font-family: var(--nr-mono); font-size: 1.6rem; color: var(--nr-primary-dark); display: block; }
+  .card .lbl { font-size: .86rem; }
+
+  footer.site { background: var(--nr-text); color: #fff; margin-top: 80px; padding: 32px 0; font-size: .9rem; }
+  footer.site a { color: #fff; }
+  footer.site p { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a href="https://www.netresearch.de/" aria-label="Netresearch DTT GmbH">
+<svg
+  viewBox="-75 -75 440 440"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-label="Netresearch symbol logo">
+  <title>Netresearch DTT GmbH</title>
+  <g>
+    <path
+      fill="#2F99A4"
+      d="M209.6,0V31.62h32.77a26.38,26.38,0,0,1,26.44,26.43V242a26.38,26.38,0,0,1-26.44,26.44H209.6V300h47.93a42.77,42.77,0,0,0,42.86-42.86V42.89A42.76,42.76,0,0,0,257.53,0ZM43.25,0A42.76,42.76,0,0,0,.39,42.89V257.18A42.76,42.76,0,0,0,43.25,300H91.18V268.46H58.4A26.38,26.38,0,0,1,32,242v-184A26.37,26.37,0,0,1,58.4,31.62H91.18V0Z"
+      transform="translate(-0.39 -0.04)" />
+    <path
+      fill="#585961"
+      d="M221.44,120.41c0-34.48-13.94-57.82-48.93-57.82-26.62,0-48.54,7.74-64.17,26.56l-.7-22.06-28.31.06V232.94h31.59V124.69c7.14-18.38,32.14-34.8,53-34.5,27.38.4,25.2,26.24,26,45.81v96.94h31.58"
+      transform="translate(-0.39 -0.04)" />
+  </g>
+</svg>
+    </a>
+    <div class="org">Netresearch<span>Agent Engineering</span></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Open Forward Reviews</h1>
+    <p>Does the Netresearch agent engineering stack change how an agent handles a realistic
+       request — one that does not say what to do?</p>
+    <div class="prompt">Review this TYPO3 extension and tell me what needs attention.</div>
+  </div>
+</section>
+
+<main class="wrap">
+
+<h2>The setup</h2>
+
+<p class="lede">A real TYPO3 extension, frozen at one historical commit. The agent receives the
+single sentence above and nothing else: no framework version, no tool to run, no file to open,
+no category of finding to produce. Working that out is what is being measured.</p>
+
+<p>Two configurations, three runs each. Everything is held constant except the skills:
+same repository, same commit, same model (Claude Code on <code>claude-opus-5</code>), same
+grader, same environment, same trial count.</p>
+
+<table>
+  <tr><th>control</th><td>Claude Code on its own</td></tr>
+  <tr><th>main</th><td>Claude Code plus eight Netresearch skills, pinned to released versions</td></tr>
+</table>
+
+<p>Grading does not ask "did it find the expected bugs" — an open question has no fixed answer
+key. It asks how the work was done, across eight aspects: did it establish what the project is;
+did it reach a systematic route; did each claim come from the source that owns that fact; are
+findings anchored to a place and a consequence; were the available checks actually run; is the
+most important thing first; did it assert anything it never established; and could a developer
+act on the result.</p>
+
+<h2>Result: same output quality, less work</h2>
+
+<p>The clearest difference is not in what the agent produced. It is in what producing it cost.
+Figures are per trial, agent side only, median of three runs.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Per trial</th>
+      <th class="num">control</th>
+      <th class="num">main</th>
+      <th class="num">difference</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Tool calls</td><td class="num">27</td><td class="num">18</td><td class="num delta-down">−33%</td></tr>
+    <tr><td>Agent wall time</td><td class="num">260 s</td><td class="num">156 s</td><td class="num delta-down">−40%</td></tr>
+    <tr><td>Input tokens</td><td class="num">1,304,269</td><td class="num">517,883</td><td class="num delta-down">−60%</td></tr>
+    <tr><td>Output tokens</td><td class="num">19,095</td><td class="num">10,943</td><td class="num delta-down">−43%</td></tr>
+    <tr><td>Agent cost</td><td class="num">$2.16</td><td class="num">$0.91</td><td class="num delta-down">−58%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The median hides the shape of it, so here are the runs themselves:</p>
+
+<div class="scroll">
+<table>
+  <thead><tr><th>Fleet</th><th>Run 1</th><th>Run 2</th><th>Run 3</th></tr></thead>
+  <tbody>
+    <tr><td>control</td><td>27 calls · 319 s · $2.16</td><td>32 calls · 260 s · $2.15</td><td>24 calls · 240 s · $2.26</td></tr>
+    <tr><td>main</td><td>18 calls · 156 s · $0.91</td><td>33 calls · 324 s · $2.04</td><td>18 calls · 155 s · $0.81</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>control is uniform</strong> — three runs, all near $2.20 and roughly 270 seconds.
+<strong>main is split</strong>: two runs at about $0.85 and 155 seconds, one at $2.04 and 324
+seconds. At three runs a median over that shape carries little weight. The accurate statement is
+that two runs in three cost roughly half as much, and no run cost more than control's average.</p>
+
+<h2>Result: the eight quality dimensions</h2>
+
+<p>Counts are runs in which the dimension was met, out of three. Counts rather than averages:
+three samples do not support two decimal places.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Dimension</th><th class="num">control</th><th class="num">main</th><th class="num">mean control</th><th class="num">mean main</th></tr>
+  </thead>
+  <tbody>
+    <tr class="moved"><td>Skill routing</td><td class="num">0/3</td><td class="num">3/3</td><td class="num">0.31</td><td class="num">1.00</td></tr>
+    <tr class="moved"><td>Prioritization</td><td class="num">2/3</td><td class="num">3/3</td><td class="num">0.61</td><td class="num">0.94</td></tr>
+    <tr><td>Context discovery</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">1.00</td><td class="num">0.94</td></tr>
+    <tr><td>Evidence quality</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">0.88</td><td class="num">0.75</td></tr>
+    <tr><td>Verification</td><td class="num">3/3</td><td class="num">2/3</td><td class="num">0.85</td><td class="num">0.81</td></tr>
+    <tr><td>Unsupported claims</td><td class="num">1/3</td><td class="num">0/3</td><td class="num">0.50</td><td class="num">0.44</td></tr>
+    <tr><td>Outcome quality</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">1.00</td><td class="num">1.00</td></tr>
+    <tr><td>Authority of sources</td><td class="num">0/3</td><td class="num">0/3</td><td class="num">0.47</td><td class="num">0.33</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Two dimensions move</h3>
+
+<p>Routing is the larger number and the weaker evidence: <code>control</code> has no injected
+skills, so part of that gap is definitional. Not all of it — the grader counted Claude Code's own
+entry points as available and scored their non-use as a routing failure. Prioritization moves
+from 0.61 to 0.94, and nothing about that is definitional.</p>
+
+<h3>Nothing else moves</h3>
+
+<p>Five dimensions sit within noise at this sample size, and outcome quality is 1.00 on both
+sides. On this case both configurations produce a review a developer could act on. What changes
+is the shape of the work, and what it costs.</p>
+
+<h3>Source authority fails on both sides</h3>
+
+<p>0 of 3 either way. The mechanical evidence is identical in all six runs: no external canonical
+source was consulted, and the resolved dependency state was never read. Every statement about
+framework version support, in every run, rests on recollection rather than on a lookup — and a
+version constraint states what is permitted, not what is installed or tested.</p>
+
+<div class="note">
+  <strong>What this does not show.</strong> One case, one agent, one model, three runs per side.
+  This is one measurement, not a verdict on the stack. The small negative differences are within
+  noise, and reading them as harm would be exactly the overreach that reporting counts instead of
+  averages exists to prevent.
+</div>
+
+<h2>What the agents actually found</h2>
+
+<p>Both configurations produced substantive reviews. The leading finding in the unaided run was a
+cache-clearing middleware registered in the frontend stack that never checks whether a user is
+authenticated — anchored to file and line, with the consequence stated: any anonymous visitor can
+flush page caches. Neither that nor two further findings appear in the case's recorded background
+notes; the agent established them from the code.</p>
+
+<p>The reviewed commit also carries three security findings marked with inline suppression
+comments. A static analysis run reports clean there while the problems remain, which is what lets
+the case distinguish an agent that reads a green result as reassurance from one that asks what
+produced it.</p>
+
+<h2>Method</h2>
+
+<div class="grid">
+  <div class="card"><span class="big">2 × 3</span><span class="lbl">runs, one fleet apart</span></div>
+  <div class="card"><span class="big">8</span><span class="lbl">graded dimensions per run</span></div>
+  <div class="card"><span class="big">15/15</span><span class="lbl">harness acceptance criteria met</span></div>
+</div>
+
+<p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
+<a href="https://harborframework.com">Harbor</a>. This project contributes the review
+methodology, the cases, the eight-dimension rubric and the conventions that keep results
+comparable. Grading rests on observable behaviour only — tool calls, commands, files opened,
+output seen, the resulting diff and the final answer. Stated intentions are not evidence, and
+private reasoning is never read.</p>
+
+<p>The agent cannot reach the reviewed repository's own forge during a run: the working copy is a
+single-commit fetch with the remote removed, and the network allowlist excludes it while still
+permitting the framework's canonical documentation. The later change that fixed several of the
+issues lives in that repository's future and stays out of reach.</p>
+
+<p>Specification, cases, rubric and raw conventions:
+<a href="https://github.com/netresearch/agent-system-evals">github.com/netresearch/agent-system-evals</a></p>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p><strong>Netresearch DTT GmbH</strong></p>
+    <p><a href="https://www.netresearch.de/">www.netresearch.de</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
