@@ -19,48 +19,53 @@ installed and exposed through the Makefile, so an unverified claim is a real
 failure rather than an impossibility. There is no `AGENTS.md`, so context has
 to be established from ordinary project files.
 
-## Recorded results
+## First A/B
 
-Claude Code on claude-opus-5, judged by claude-code. `main` ran three trials;
-`control` has one so far, so the two columns are **not** a valid A/B — one
-sample says nothing about reliability, and `scripts/compare` refuses the
-pairing for that reason. The control column is listed as case context, not as
-a comparison.
+Three trials per fleet, no errored trials. Case, agent (claude-code on
+claude-opus-5), model, judge, rubric, environment and trial count identical;
+only the fleet differs.
 
-| Dimension | main (3 trials, met) | main mean | control (1 trial) |
-|---|---|---|---|
-| context_discovery | 3/3 | 0.94 | 1.00 |
-| skill_routing | 3/3 | 1.00 | 0.33 |
-| prioritization | 3/3 | 0.94 | 1.00 |
-| outcome_quality | 3/3 | 1.00 | 1.00 |
-| evidence | 3/3 | 0.75 | 0.88 |
-| verification | 2/3 | 0.81 | 1.00 |
-| unsupported_claims | 0/3 | 0.44 | 0.67 |
-| authority | 0/3 | 0.33 | 0.33 |
+| Dimension | control | main | control mean | main mean | delta |
+|---|---|---|---|---|---|
+| context_discovery | 3/3 | 3/3 | 1.00 | 0.94 | −0.06 |
+| skill_routing | 0/3 | 3/3 | 0.31 | 1.00 | **+0.69** |
+| authority | 0/3 | 0/3 | 0.47 | 0.33 | −0.14 |
+| evidence | 3/3 | 3/3 | 0.88 | 0.75 | −0.12 |
+| verification | 3/3 | 2/3 | 0.85 | 0.81 | −0.04 |
+| prioritization | 2/3 | 3/3 | 0.61 | 0.94 | **+0.33** |
+| unsupported_claims | 1/3 | 0/3 | 0.50 | 0.44 | −0.06 |
+| outcome_quality | 3/3 | 3/3 | 1.00 | 1.00 | 0.00 |
 
-Three trials, no errored trials.
+### What this shows
 
-### What holds across all three trials
+**Two dimensions move: routing and prioritization.** Routing is the larger
+number and the weaker evidence — `control` has no injected skills, so part of
+that gap is definitional rather than earned. It is not entirely definitional:
+the judge counted Claude Code's own entry points as available and scored their
+non-use as a routing failure. Prioritization is the more interesting move,
+0.61 to 0.94, and nothing about it is definitional.
 
-**Routing works.** Every trial invoked a skill and reached an assessment
-capability. That is the dimension the stack exists to move, and it moved from
-0.33 to 1.00.
+**Nothing else moves.** Five dimensions sit within noise at this sample size,
+and `outcome_quality` is 1.00 on both sides — on this case both
+configurations produce a review a developer could act on. The stack changes
+the shape of the process; it does not, here, change whether the result is
+usable.
 
-**Authority did not move at all.** `0.33` in all three trials, and the
-mechanical evidence says why in identical terms each time: no external
-canonical source was consulted, and the resolved dependency state was never
-read. The stack routes the agent to the right capability and does not change
-where it gets its facts. That is a finding about the stack, reproducible, and
-it does not need the control comparison to stand up.
+**Authority fails on both sides.** 0/3 either way, and the mechanical evidence
+is identical in all six trials: no external canonical source consulted, the
+resolved dependency state never read. Every framework-currency claim in every
+trial rests on recollection. That is the clearest actionable finding the case
+has produced, and the stack does not currently address it.
 
-**`unsupported_claims` is the least stable dimension** — 0.67, 0.00, 0.67
-across otherwise similar trials. Variance that large on one dimension is a
-reason to look at the criteria before reading anything into the number.
+### What this does not show
 
-`scripts/export-retro` turns the repeated shortfalls into retro input. The
-criteria that fell short in all three trials are the authority set, evidence's
-`uncertainty_is_visible` and `looked_past_a_clean_signal`, and the two
-`unsupported_claims` criteria. Most of those scored 2 (partial), not 1.
+One case, one agent, one model, three trials per side. This is not a verdict
+on the Netresearch stack; it is one measurement of it, on a repository-level
+TYPO3 review. The negative deltas are small and within noise — reading them as
+harm would be exactly the overreach the counting convention exists to prevent.
+
+`scripts/export-retro` turns the repeated shortfalls into retro input. Most of
+them scored 2 (partial), not 1, and should be read that way.
 
 ## What that says about the case
 
