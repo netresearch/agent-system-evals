@@ -1,0 +1,42 @@
+# Both stacks at once: the Netresearch skills and the TYPO3 Dev Companion.
+#
+# The reason this fleet exists is that the two overlap. The companion ships
+# typo3-extension-conformance, -upgrade, -documentation and -testing; the
+# Netresearch stack ships its own of each. Running them together is the only
+# way to see whether they compose or collide — a question neither fleet alone
+# can answer, and the one that actually matters for deciding what to maintain.
+#
+# Skill versions are identical to fleets/main.yaml. If they drift apart, a
+# difference between `main` and this fleet stops being attributable to the
+# companion.
+
+name: nr-companion
+description: Netresearch skills and the TYPO3 Dev Companion together
+
+skills:
+  # Routing: the general assessment capability that should direct the specific
+  # ones. Whether the agent reaches this first is the skill_routing dimension.
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.14.0
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+
+  # TYPO3 domain
+  - repo: netresearch/typo3-conformance-skill
+    ref: v2.18.0
+  - repo: netresearch/typo3-testing-skill
+    ref: v5.20.0
+  - repo: netresearch/typo3-docs-skill
+    ref: v2.16.0
+  - repo: netresearch/typo3-extension-upgrade-skill
+    ref: v3.11.0
+
+  # Cross-cutting
+  - repo: netresearch/php-modernization-skill
+    ref: v1.22.0
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1
+
+companion:
+  repo: TYPO3/dev-companion
+  ref: 845c0c633ae921962387f38b8e941ede4d26d1a3

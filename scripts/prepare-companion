@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Materialise the TYPO3 Dev Companion for a fleet, at a pinned commit.
+#
+# The companion is two halves and they arrive by different routes.
+#
+# Its skills cannot be taken from its repository directly. Each one opens on a
+# `references/base.md` that only its installer writes, and its own frontmatter
+# says so: "A copy taken out of that repository's skills directory alone has
+# neither the tools nor that base file." Harbor's git skill injection would do
+# exactly that copy, so the skills are published here by the installer instead
+# and handed to Harbor as a local path.
+#
+# Its server is a PHP process the client launches over stdio, so it has to exist
+# inside the container. The environment image installs it at
+# /opt/typo3-dev-companion; the config written here points there rather than at
+# any path on this machine.
+#
+# Pinned by commit because the project asks for it: "This is a 0.x package and
+# its surface is not settled … Pin a commit where you depend on it."
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REF="${1:?usage: prepare-companion <commit-sha>}"
+CACHE="$ROOT/.cache/companion/$REF"
+CONTAINER_PATH="/opt/typo3-dev-companion/bin/typo3-dev-companion"
+
+if [ -d "$CACHE/skills" ] && [ -f "$CACHE/mcp.json" ]; then
+    echo "companion $REF already materialised at $CACHE"
+    exit 0
+fi
+
+command -v php >/dev/null 2>&1 || { echo "php is required (8.2+)" >&2; exit 1; }
+command -v composer >/dev/null 2>&1 || { echo "composer is required" >&2; exit 1; }
+
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+echo "cloning TYPO3/dev-companion at $REF"
+git clone -q https://github.com/TYPO3/dev-companion.git "$work/src"
+git -C "$work/src" checkout -q "$REF"
+(cd "$work/src" && composer install --no-interaction --no-progress --quiet)
+
+# The installer publishes into the directory it is run in.
+mkdir -p "$work/project"
+(cd "$work/project" && php "$work/src/bin/typo3-dev-companion" install >/dev/null)
+
+published="$work/project/.agents/skills"
+test -d "$published" || { echo "installer published no skills" >&2; exit 1; }
+
+count="$(find "$published" -mindepth 1 -maxdepth 1 -type d | wc -l)"
+[ "$count" -gt 0 ] || { echo "installer published an empty skill set" >&2; exit 1; }
+
+mkdir -p "$CACHE"
+rm -rf "$CACHE/skills"
+cp -a "$published" "$CACHE/skills"
+
+# Written rather than copied from the installer's own .mcp.json: that one holds
+# this machine's checkout path, which does not exist in the container.
+cat > "$CACHE/mcp.json" <<EOF
+{
+    "mcpServers": {
+        "typo3-dev-companion": {
+            "type": "stdio",
+            "command": "php",
+            "args": ["$CONTAINER_PATH"]
+        }
+    }
+}
+EOF
+
+echo "$REF" > "$CACHE/commit.txt"
+echo "materialised $count skill(s) and an MCP config at $CACHE"

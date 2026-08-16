@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# Re-score a recorded job with the current rubric, keeping its provenance.
+#
+# `harbor job regrade` writes a new job directory and does not carry over the
+# snapshot this repository writes beside a run. Without it the regraded job
+# cannot say which fleet, agent or model produced the trials it re-scored, and
+# scripts/compare refuses it — correctly, because a comparison whose
+# configuration is unknown is not interpretable.
+#
+# Regrading costs judge calls and no agent time, which is what makes a rubric
+# fix affordable: raise a timeout, re-score the history, keep the trials.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SOURCE="${1:?usage: regrade <job-dir> [case-dir]}"
+SOURCE="$(cd "$SOURCE" && pwd)"
+CASE="${2:-}"
+
+if [ -z "$CASE" ]; then
+    case_id="$(python3 -c "
+import json, sys
+print(json.load(open('$SOURCE/nr-snapshot.json'))['case_id'])" 2>/dev/null || true)"
+    [ -n "$case_id" ] || { echo "no case_id in $SOURCE/nr-snapshot.json; pass the case directory" >&2; exit 1; }
+    CASE="$(python3 -c "
+import tomllib, pathlib, sys
+for p in pathlib.Path('$ROOT/tasks').glob('*/*/task.toml'):
+    if tomllib.loads(p.read_text()).get('metadata', {}).get('case_id') == '$case_id':
+        print(p.parent); break
+")"
+    [ -n "$CASE" ] || { echo "no case directory for $case_id" >&2; exit 1; }
+fi
+
+name="rg-$(basename "$SOURCE")"
+rm -rf "${ROOT:?}/jobs/$name"
+
+harbor job regrade "$SOURCE" -p "$CASE" -o "$ROOT/jobs" --job-name "$name"
+
+if [ -f "$SOURCE/nr-snapshot.json" ]; then
+    python3 - "$SOURCE/nr-snapshot.json" "$ROOT/jobs/$name/nr-snapshot.json" <<'PY'
+import json, sys
+
+snapshot = json.load(open(sys.argv[1]))
+# Marked, so a regraded result is never mistaken for a fresh run: the trials
+# are the originals, only the scoring is new.
+snapshot["regraded_from"] = sys.argv[1].rsplit("/", 2)[-2]
+json.dump(snapshot, open(sys.argv[2], "w"), indent=2)
+PY
+    echo "provenance carried over to jobs/$name/nr-snapshot.json"
+fi

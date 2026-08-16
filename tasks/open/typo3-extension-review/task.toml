@@ -60,7 +60,10 @@ allowed_hosts = [
 ]
 
 [verifier]
-timeout_sec = 1800.0
+# Eight dimensions, judged at up to 900s each, two at a time: the worst case is
+# four batches. 1800s did not cover it and the excess arrived as timed-out
+# judges scored zero, which is indistinguishable from a system that failed.
+timeout_sec = 5400.0
 environment_mode = "separate"
 
 [verifier.env]

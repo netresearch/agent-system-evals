@@ -1,0 +1,25 @@
+# The TYPO3 Dev Companion alone, without any Netresearch skill.
+#
+# The companion is not a skill set that can be injected from git. Its skills are
+# published by its own installer, which writes a references/base.md each one
+# opens on; a copy taken straight from its repository is missing that file, and
+# its frontmatter says so. scripts/prepare-companion runs that installer and
+# hands Harbor the result as a local path.
+#
+# Its server is a PHP process launched over stdio, so it lives in the
+# environment image and this fleet only registers it. The image therefore
+# carries the companion's code for every fleet, including the ones that do not
+# use it. Nothing registers it there and no skill mentions it, but it is a
+# confound and is recorded as one.
+#
+# Pinned by commit, as the project asks: "This is a 0.x package and its surface
+# is not settled … Pin a commit where you depend on it."
+
+name: companion
+description: TYPO3 Dev Companion only — its own skills plus its MCP server
+
+skills: []
+
+companion:
+  repo: TYPO3/dev-companion
+  ref: 845c0c633ae921962387f38b8e941ede4d26d1a3

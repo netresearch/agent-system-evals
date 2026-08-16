@@ -3,7 +3,12 @@ judge = "claude-code"
 model = "claude-sonnet-4-6"
 mode = "batched"
 reasoning_effort = "medium"
-timeout = 300
+# 900s, not 300. An agent judge opens the trajectory from disk itself,
+# which an LLM judge never has to do, and 300s was not enough: nine
+# criteria across three recorded jobs timed out and RewardKit records a
+# timed-out judge as 0. That turns a slow instrument into evidence that
+# the system failed.
+timeout = 900
 prompt_template = "../judge-prompt.md"
 cwd = "/logs"
 atif-trajectory = "/logs/verifier/trajectory.json"

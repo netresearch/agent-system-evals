@@ -52,6 +52,38 @@ def load_trials(job_dir: Path) -> list[dict[str, float]]:
     return rewards
 
 
+def errored_criteria(job_dir: Path) -> list[str]:
+    """Criteria whose judge failed rather than scored.
+
+    RewardKit records a timed-out or errored judge as 0.0, which is
+    indistinguishable from a criterion the run genuinely failed. That is not a
+    theoretical risk: nine criteria across three jobs timed out at the default
+    limit, and the resulting zeros were published as findings — one of them as
+    the headline difference between two fleets, which better measurement then
+    erased.
+
+    So a comparison refuses to average over them. A dimension whose judge did
+    not answer has no value, not a low one.
+    """
+    problems: list[str] = []
+    for path in sorted(job_dir.glob("**/reward-details.json")):
+        try:
+            details = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for dimension, groups in details.items():
+            for group in groups if isinstance(groups, list) else [groups]:
+                if not isinstance(group, dict):
+                    continue
+                for score in group.get("criteria") or []:
+                    if isinstance(score, dict) and score.get("error"):
+                        problems.append(
+                            f"{path.parent.parent.name} {dimension}/"
+                            f"{score.get('name')}: {str(score['error'])[:60]}"
+                        )
+    return problems
+
+
 def load_snapshot(job_dir: Path) -> dict:
     path = job_dir / "nr-snapshot.json"
     if not path.exists():
@@ -94,6 +126,24 @@ def main() -> int:
 
     snap_a, snap_b = load_snapshot(dir_a), load_snapshot(dir_b)
     check_comparable(snap_a, snap_b)
+
+    for job in (dir_a, dir_b):
+        problems = errored_criteria(job)
+        if problems:
+            print(
+                f"{job.name}: {len(problems)} criterion/criteria did not score — "
+                f"their judge errored, and RewardKit records that as 0.0:",
+                file=sys.stderr,
+            )
+            for problem in problems[:8]:
+                print(f"  - {problem}", file=sys.stderr)
+            print(
+                "\nA zero from a failed judge is not a result. Raise the judge "
+                "timeout and regrade the recorded job — that costs no agent time "
+                "— then compare again.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
     trials_a, trials_b = load_trials(dir_a), load_trials(dir_b)
 

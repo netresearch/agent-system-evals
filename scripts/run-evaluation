@@ -112,6 +112,73 @@ def load_fleet(name: str) -> list[str]:
     return entries
 
 
+def load_companion(name: str) -> tuple[Path, Path] | None:
+    """Materialise the fleet's TYPO3 Dev Companion, if it declares one.
+
+    Returns (skills directory, MCP config), both local paths.
+
+    The companion arrives by two routes rather than one. Its skills cannot be
+    injected from git: each opens on a references/base.md that only its
+    installer writes, so scripts/prepare-companion runs that installer and this
+    passes the published result as a local path. Its server is a PHP process
+    launched over stdio and lives in the environment image; only the config
+    that registers it varies per fleet.
+    """
+    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    companion = fleet.get("companion")
+    if not companion:
+        return None
+
+    ref = companion.get("ref")
+    if not ref:
+        sys.exit(f"fleets/{name}.yaml: companion has no ref; pin a commit")
+
+    cache = ROOT / ".cache" / "companion" / ref
+    if not (cache / "skills").is_dir() or not (cache / "mcp.json").is_file():
+        print(f"materialising companion {ref[:12]}")
+        result = subprocess.run(
+            [str(ROOT / "scripts" / "prepare-companion"), ref],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            sys.exit(
+                f"could not materialise the companion:\n{result.stdout}{result.stderr}"
+            )
+
+    return cache / "skills", cache / "mcp.json"
+
+
+def companion_was_reached(job_dir: Path) -> tuple[int, int]:
+    """How many recorded trials actually called a companion tool.
+
+    The companion's own skills stop on the first turn when its server is not
+    answering — "no `typo3_` tool in this session … stop, say this workflow
+    needs the server and it is not there". A mis-installed server therefore
+    produces trials that look like a catastrophically bad tool rather than like
+    a broken harness, and nothing downstream can tell the two apart.
+
+    So this counts them. It is a validity check, not a score: a fleet that was
+    never active did not lose, it did not run.
+    """
+    reached = 0
+    total = 0
+    for path in sorted(job_dir.glob("**/agent/trajectory.json")):
+        total += 1
+        try:
+            trajectory = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        calls = (
+            call.get("function_name", "")
+            for step in trajectory.get("steps", [])
+            for call in (step.get("tool_calls") or [])
+        )
+        if any("typo3_" in name for name in calls):
+            reached += 1
+    return reached, total
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("case_id")
@@ -132,6 +199,7 @@ def main() -> int:
 
     case_dir = find_case(args.case_id)
     skills = load_fleet(args.fleet)
+    companion = load_companion(args.fleet)
     judge = rubric_judge(case_dir)
 
     # Either credential works, for the agent and for the judge alike. The
@@ -182,11 +250,18 @@ def main() -> int:
     ]
     for skill in skills:
         command += ["--skill", skill]
+    if companion:
+        skills_dir, mcp_config = companion
+        command += ["--skill", str(skills_dir), "--mcp-config", str(mcp_config)]
 
     using_subscription = bool(oauth_token) and not api_key
 
     print(f"case    {args.case_id}  ({case_dir.relative_to(ROOT)})")
-    print(f"fleet   {args.fleet}  ({len(skills)} skill(s))")
+    companion_note = ""
+    if companion:
+        published = len([p for p in companion[0].iterdir() if p.is_dir()])
+        companion_note = f" + companion ({published} skill(s) and its MCP server)"
+    print(f"fleet   {args.fleet}  ({len(skills)} skill(s)){companion_note}")
     print(f"agent   {args.agent} / {args.model}")
     print(f"judge   {judge}  (pinned in the rubric)")
     print(f"trials  {args.trials}")
@@ -235,6 +310,11 @@ def main() -> int:
             "case_id": args.case_id,
             "fleet": args.fleet,
             "fleet_requested": skills,
+            "companion": (
+                {"path": str(companion[0]), "mcp": str(companion[1])}
+                if companion
+                else None
+            ),
             "agent": args.agent,
             "model": args.model,
             "judge": judge,
@@ -246,6 +326,24 @@ def main() -> int:
             # intent and only the lock states fact.
             "provenance_source": "harbor job lock",
         }
+        if companion:
+            reached, total = companion_was_reached(job_dir)
+            snapshot["companion_reached_in_trials"] = f"{reached}/{total}"
+            if total and reached == 0:
+                print(
+                    f"\nWARNING: no trial called a companion tool. Its skills stop "
+                    f"on the first turn when the server does not answer, so these "
+                    f"{total} trial(s) measure a broken installation, not the "
+                    f"companion. Do not report them as a result.",
+                    file=sys.stderr,
+                )
+            elif reached < total:
+                print(
+                    f"\nWARNING: the companion answered in only {reached} of "
+                    f"{total} trial(s); the rest are not comparable with them.",
+                    file=sys.stderr,
+                )
+
         (job_dir / "nr-snapshot.json").write_text(json.dumps(snapshot, indent=2))
         print(f"\nsnapshot written to {job_dir / 'nr-snapshot.json'}")
 

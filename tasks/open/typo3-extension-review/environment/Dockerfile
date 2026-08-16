@@ -35,6 +35,24 @@ RUN composer ci:test:php:lint \
     && .build/bin/php-cs-fixer --version \
     && make help
 
+# The TYPO3 Dev Companion server, for the fleets that register it.
+#
+# It is a PHP process the client launches over stdio, so it has to be inside the
+# container; only the MCP config that points at it varies per fleet. That means
+# the code sits in the image for every fleet, including the ones that do not use
+# it — a small confound, stated here and in fleets/companion.yaml rather than
+# hidden. Nothing registers it, no skill mentions it, and no path leads to it
+# from /app.
+#
+# Pinned by commit because the project asks for it: a 0.x package whose surface
+# is explicitly not settled.
+ARG COMPANION_REF=845c0c633ae921962387f38b8e941ede4d26d1a3
+RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion \
+    && git -C /opt/typo3-dev-companion checkout -q "$COMPANION_REF" \
+    && cd /opt/typo3-dev-companion \
+    && composer install --no-interaction --no-progress --no-ansi --quiet \
+    && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
+
 # Harbor collects everything written here.
 RUN mkdir -p /logs/artifacts
 
