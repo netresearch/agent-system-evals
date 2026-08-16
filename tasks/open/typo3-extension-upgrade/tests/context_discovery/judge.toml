@@ -1,0 +1,49 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json"]
+
+[[criterion]]
+name = "established_the_current_window"
+description = """
+Did the agent establish which versions the extension supports today, and where
+that is expressed — the manifest, the CI matrix, the extension metadata,
+version-conditional code — before changing any of it?
+
+Score 3 if the existing window was mapped across the places that carry it.
+Score 2 if only the manifest was consulted. Score 1 if the agent began editing
+without knowing what the current state was.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "found_the_projects_own_convention"
+description = """
+The request did not say whether the line the extension already supports is
+kept. This project's history, CI configuration and documentation say what it
+does in practice.
+
+Score 3 if the agent looked for that convention and followed it. Score 2 if it
+made a defensible choice without checking. Score 1 if it imposed a pattern the
+project does not use.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "oriented_before_changing"
+description = """
+Did orientation precede the first edit, or did the agent start changing files
+and work out the shape of the task afterwards? Interleaving is fine where
+context still informed the changes; score 1 where the first substantive edit
+preceded any understanding of what the change implied.
+"""
+type = "likert"
+points = 3

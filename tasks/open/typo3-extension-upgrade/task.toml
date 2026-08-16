@@ -1,0 +1,133 @@
+schema_version = "1.4"
+
+# Must stay above the first table header. `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead —
+# where it parses to an empty list in silence.
+artifacts = [
+    "/logs/artifacts",
+    # The agent's trajectory. A separate verifier is not given the agent's log
+    # directory; without this entry every judge criterion grades behaviour it
+    # cannot observe.
+    "/logs/agent",
+    "/app/composer.json",
+]
+
+[task]
+name = "netresearch/ofr-typo3-extension-upgrade"
+version = "1.0.0"
+description = "Open forward review: move a real TYPO3 extension onto the current LTS"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "upgrade", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-UPGRADE-001"
+category = "open-forward-review"
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-contexts.git"
+target_package = "netresearch/contexts"
+target_sha = "0b8d0091004db19c3799ab4eaa27a89496846b6b"
+# Repository-level only. Nothing here claims anything about runtime behaviour;
+# see docs/adr/0006-runtime-fidelity.md.
+runtime = false
+# A writing task. Unlike the review case this one has a partly knowable correct
+# outcome — it must resolve and test on the line the agent targets — so it sits
+# closer to the contract end of the spectrum. The prompt stays open: it names
+# no version, no tool, and does not say whether the older line is kept.
+# See docs/adr/0007-writing-cases.md.
+writing_task = true
+source_learning_id = "retro-20260816-source-authority"
+
+[agent]
+timeout_sec = 5400.0
+
+# The agent may consult canonical upstream sources — for this case it must,
+# since which line is current and what the newest one removed are not derivable
+# from the checkout — but it must not reach the target's own forge, where the
+# real migration commit lives.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+[verifier]
+timeout_sec = 2400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy may be declared here: Harbor removes every value
+# in this table from all captured output, so a flag passed as "1" strikes every
+# digit 1 from the recorded trajectory. run-evaluation refuses values under 12
+# characters for that reason.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# The outcome of a writing task is not visible in the trajectory: it is in the
+# tree the agent left behind. These hooks run in the agent's environment after
+# it stops and before teardown, and they are the only chance to execute the
+# result. They run under the environment baseline rather than the agent's
+# allowlist, so Composer can reach package metadata.
+#
+# Every hook ends in `|| true`. A failing check is a finding for the rubric to
+# read out of its recorded output, never a reason to lose the whole trial.
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff --stat HEAD > /logs/artifacts/git-diffstat.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "cp /app/composer.json /logs/artifacts/composer.after.json 2>&1 || true"
+
+[[verifier.collect]]
+command = "cd /app && composer validate --no-check-publish > /logs/artifacts/composer-validate.txt 2>&1 || true"
+timeout_sec = 180.0
+
+# The matrix. Each leg is resolved and tested in a scratch copy so the tree the
+# rubric inspects is the one the agent left, not one these checks mutated.
+[[verifier.collect]]
+command = "/usr/local/bin/run-matrix-leg 13.4 > /logs/artifacts/matrix-13.4.txt 2>&1 || true"
+timeout_sec = 900.0
+
+[[verifier.collect]]
+command = "/usr/local/bin/run-matrix-leg 14.3 > /logs/artifacts/matrix-14.3.txt 2>&1 || true"
+timeout_sec = 900.0
+
+# The suite as the agent left it, against whatever it installed. Invoked
+# through the project's own declared scripts rather than through binary paths:
+# the scripts are the project's interface, and a hard-coded path would test a
+# command this repository never asks anyone to run.
+[[verifier.collect]]
+command = "cd /app && composer ci:test:php:unit > /logs/artifacts/unit-tests.txt 2>&1 || true"
+timeout_sec = 600.0
+
+[[verifier.collect]]
+command = "cd /app && composer ci:test:php:phpstan -- --memory-limit=1G > /logs/artifacts/phpstan.txt 2>&1 || true"
+timeout_sec = 600.0
+
+[[verifier.collect]]
+command = "cd /app && composer ci:test:php:cgl > /logs/artifacts/cgl.txt 2>&1 || true"
+timeout_sec = 300.0
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 30720
+network_mode = "public"

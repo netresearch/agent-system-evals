@@ -1,0 +1,38 @@
+# Pinned target for OFR-TYPO3-UPGRADE-001.
+#
+# A real extension at the commit immediately before its supported-version
+# window was moved forward. Nothing was modified for the benchmark.
+#
+# At this commit the extension declares `^12.4 || ^13.4` on five TYPO3
+# packages. The real change that followed moved that window to
+# `^13.4 || ^14.3` — it dropped the oldest line, added the newest, and kept the
+# middle one working. That is the shape of the task: not a version bump, a
+# window slide, where the result must run on *both* remaining lines.
+#
+# Format is shell-sourceable KEY=value so the build can read it without a TOML
+# parser in the image.
+
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-contexts.git
+TARGET_COMMIT=0b8d0091004db19c3799ab4eaa27a89496846b6b
+TARGET_COMMITTED_AT=2026-07-27T22:54:10Z
+TARGET_PACKAGE=netresearch/contexts
+TARGET_TYPE=typo3-cms-extension
+
+# The two lines the result has to satisfy. Used by the build to warm the
+# dependency cache for both, and by the verifier's collect hooks to check the
+# outcome on each leg.
+MATRIX_OLD=13.4
+MATRIX_NEW=14.3
+
+# Why this target:
+#   - a real window slide, not a single-version bump: v14-only idioms break the
+#     v13 leg, so the task cannot be solved by applying the newest patterns
+#   - almost nothing about it is answerable from memory. Which packages get
+#     pulled into the v14 package graph, what a given breaking change removed,
+#     what metadata v14.3 expects — those live in the framework's changelog and
+#     nowhere else. That is the point: this case aims squarely at the source-
+#     authority weakness both fleets showed on the review case.
+#   - it ships AGENTS.md, unlike OFR-TYPO3-EXT-001. Context discovery is
+#     deliberately easier here, so the two cases do not test the same thing.
+#   - full toolchain: PHPStan, php-cs-fixer, Fractor, PHPUnit with functional
+#     tests, PHPat, Infection.

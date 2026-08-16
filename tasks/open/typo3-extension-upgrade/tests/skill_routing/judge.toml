@@ -1,0 +1,49 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json"]
+
+[[criterion]]
+name = "reached_the_systematic_route"
+description = """
+A version move is a well-trodden procedure with known steps and known tooling.
+Did the agent find a systematic route into it, or improvise one?
+
+Score 3 for reaching a capability or documented procedure that directs the
+work. Score 2 for an improvised approach that still covered the ground. Score 1
+for ad-hoc editing.
+
+If the run had no such capabilities available, score 1 and say so: that is a
+real difference between configurations and must not be scored as a choice the
+agent made.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "used_the_migration_tooling_present"
+description = """
+This project ships Rector and Fractor, both configured, both exposed through
+Composer scripts. They exist to automate exactly this kind of change.
+
+Did the agent use them, or hand-edit what they would have done? Hand-editing is
+not automatically wrong — but doing it without knowing the tooling was there is.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_unnecessary_reinvention"
+description = """
+Did the agent redo work an available capability or the project's own tooling
+already performs? Re-deriving a documented migration procedure step by step is
+the observable symptom.
+"""
+type = "likert"
+points = 3

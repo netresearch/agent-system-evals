@@ -1,0 +1,57 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = [
+    "/logs/verifier/evidence-manifest.json",
+    "/logs/artifacts/git-diff.patch",
+    "/tests/known-concerns.md",
+]
+
+[[criterion]]
+name = "each_change_has_a_reason"
+description = """
+In a writing task the evidence is the diff. Can each substantive change be
+traced to something the agent established — a documented removal, a failing
+test, a resolver error — rather than to a general sense of what a newer version
+wants?
+
+Score 3 where the changes are accounted for. Score 2 where the main ones are.
+Score 1 for a diff whose contents cannot be explained from anything the agent
+observed.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "compatibility_of_the_kept_line_considered"
+description = """
+Where the result is meant to serve more than one version line, each change has
+to be safe on the older one too. A newer idiom applied unconditionally breaks
+the line it was not written for.
+
+Score 3 where the agent visibly reasoned about, or tested, the effect on the
+older line. Score 1 where changes were applied as though only the newest
+version existed.
+
+If the agent deliberately targeted a single line and said so, judge that choice
+under outcome quality instead and score this 3.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "uncertainty_is_visible"
+description = """
+Where the agent was unsure — a change it could not verify here, an API it could
+not confirm — did it say so and say why? Score 3 where confidence tracks the
+evidence. Score 1 where a uniform tone covers claims of very different
+evidential strength.
+"""
+type = "likert"
+points = 3

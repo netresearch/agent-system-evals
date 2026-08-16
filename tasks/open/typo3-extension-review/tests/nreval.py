@@ -376,3 +376,30 @@ def nr_final_answer_matches(workspace: Path, pattern: str) -> bool:
 @criterion(shared=True, description="Agent left the working tree unmodified")
 def nr_workspace_unmodified(workspace: Path) -> bool:
     return not workspace_modified()
+
+
+@criterion(shared=True, description="Agent modified the working tree")
+def nr_workspace_modified(workspace: Path) -> bool:
+    """The positive form, for writing cases where changing nothing is failure.
+
+    Not the negation of the criterion above: a writing case wants a high score
+    for having done the work, and a negated criterion inverts the raw value,
+    which makes the reward unreadable when a dimension mixes polarities.
+    """
+    return workspace_modified()
+
+
+@criterion(shared=True, description="Artifact '{name}' matches '{pattern}'")
+def nr_artifact_matches(workspace: Path, name: str, pattern: str) -> bool:
+    """Whether a collected artifact's contents match a regex.
+
+    This is how a writing case reads its outcome. The result of such a task is
+    not in the trajectory but in the tree the agent left, so collect hooks run
+    that tree and write their verdict to a file; this reads the verdict.
+
+    Absence raises rather than returning False. A missing artifact means the
+    hook did not run — an infrastructure failure — and scoring it as the
+    agent's failure would convert a broken harness into evidence about the
+    system under test.
+    """
+    return bool(re.search(pattern, artifact(name), re.MULTILINE))

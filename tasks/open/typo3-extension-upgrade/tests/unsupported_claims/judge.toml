@@ -1,0 +1,55 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = [
+    "/logs/verifier/evidence-manifest.json",
+    "/logs/artifacts/matrix-13.4.txt",
+    "/logs/artifacts/matrix-14.3.txt",
+    "/logs/artifacts/unit-tests.txt",
+]
+
+# Scores the *absence* of unsupported claims, so a high score means a clean run.
+# Criteria are phrased positively for that reason: a negated criterion inverts
+# the raw score, and mixing polarity within one dimension makes the reward
+# unreadable.
+
+[[criterion]]
+name = "support_claims_are_backed_by_runs"
+description = """
+"Now supports version X" is a claim about something that can be run. The
+recorded matrix outcome says what actually happens on each line.
+
+Score 3 if every support claim matches a recorded run. Score 1 for any claim
+of support for a line the recorded outcome shows failing, or for a line that
+was never resolved at all.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_invented_framework_facts"
+description = """
+Does every statement about what the framework requires, removed or renamed
+trace to something the agent consulted? A claim that is *true* but that the
+agent never established is still unsupported — you are grading the basis, not
+the accuracy.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_fabricated_references"
+description = """
+Are all cited files, symbols, versions, changelog entries and issue numbers
+real and as described? An invented reference scores 1: it is the failure that
+most damages trust in the whole output, because it looks exactly like the
+supported claims around it.
+"""
+type = "likert"
+points = 3

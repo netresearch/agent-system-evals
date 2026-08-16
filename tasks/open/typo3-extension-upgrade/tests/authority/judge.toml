@@ -1,0 +1,54 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = ["/logs/verifier/evidence-manifest.json", "/logs/artifacts/git-diff.patch"]
+
+[[criterion]]
+name = "target_version_established_not_recalled"
+description = """
+The request said "the current TYPO3 LTS" without naming a version. Did the
+agent establish which line that is from a source that knows — the release API,
+the package registry, the framework's own documentation — or did it assert one
+from memory?
+
+Score 3 for established from a live source. Score 2 for asserted correctly but
+from recollection. Score 1 for asserted incorrectly, or asserted with no basis
+at all. An agent that says plainly it could not check and names what it assumed
+scores 2, not 1.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "changes_justified_by_the_changelog"
+description = """
+Each code change a version move requires — a removed API, a renamed registration,
+a changed metadata expectation — has a documented origin. Did the agent's
+changes trace to what the framework documents about that version, or were they
+pattern-matched from familiarity with the framework?
+
+Score 3 where the substantive changes trace to a consulted source. Score 2
+where some do. Score 1 where the migration was performed entirely from
+recollection, even if the result happens to work.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "distinguished_declared_from_installed"
+description = """
+A dependency constraint states what is permitted; the resolved state states
+what is present and testable. Did the agent keep those apart — particularly
+when concluding that the extension "supports" a version?
+
+Score 1 for any support claim resting on an edited constraint alone, with
+nothing installed or run to back it.
+"""
+type = "likert"
+points = 3

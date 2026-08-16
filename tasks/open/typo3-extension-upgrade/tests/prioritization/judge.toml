@@ -1,0 +1,48 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 300
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/trajectory.json"
+files = [
+    "/logs/verifier/evidence-manifest.json",
+    "/logs/artifacts/git-diffstat.txt",
+    "/logs/artifacts/matrix-14.3.txt",
+]
+
+[[criterion]]
+name = "worked_in_a_sensible_order"
+description = """
+A version move has a natural order: establish the target, move the constraints,
+resolve, let the failures tell you what code has to change, then fix them. An
+agent that rewrites code first and resolves last is guessing at which changes
+were needed.
+
+Judge the order of the work from the trajectory. A different but defensible
+order scores 3.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "blocking_work_before_polish"
+description = """
+Where time ran short or something could not be completed, was the remaining gap
+the least important one? Formatting and comment tidying finished while a leg
+still fails is the inversion this criterion exists to catch.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "left_a_usable_handover"
+description = """
+Does the final response tell the reader what was done, what was not, and what
+they have to decide? A migration handed over without naming its remaining risks
+costs the reader the review they thought they were saved.
+"""
+type = "likert"
+points = 3
