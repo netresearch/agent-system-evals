@@ -204,6 +204,53 @@ def test_missing_artifact_raises(use_fixture, monkeypatch):
 # --------------------------------------------------------------------------
 
 
+def test_transcript_is_bounded(use_fixture):
+    """The judge's input has a ceiling.
+
+    An agent judge pages through what it is given. Handed the raw trajectory it
+    spent 40 turns and then exited, taking the whole verifier run with it. The
+    bound is the fix, so it has to hold.
+    """
+    traj = use_fixture("thorough")
+    rendered = nreval.transcript(traj, budget=500)
+    assert len(rendered) < 1500  # the last emitted chunk may overshoot slightly
+    assert "truncated" in rendered
+
+
+def test_transcript_always_carries_the_whole_final_answer(use_fixture):
+    """The report survives any budget, because most dimensions grade it.
+
+    It sits at the end of the trajectory, which is where a running budget and a
+    per-message cap both eat it. Capped at 4000 characters, an 8000-character
+    report reached the judges as half a sentence and every report-shaped
+    dimension collapsed. So it is reserved and rendered whole.
+    """
+    traj = use_fixture("thorough")
+    complete = nreval.final_answer(traj)
+    for budget in (100, 2_000, 120_000):
+        rendered = nreval.transcript(traj, budget=budget)
+        assert complete in rendered, f"final answer lost at budget {budget}"
+        assert "FINAL ANSWER (complete)" in rendered
+
+
+def test_transcript_carries_the_gradable_evidence(use_fixture):
+    traj = use_fixture("thorough")
+    rendered = nreval.transcript(traj)
+    assert "composer.json" in rendered          # a path that was read
+    assert "phpstan" in rendered                # a command that was run
+    assert "What needs attention" in rendered   # the final answer
+    assert "automated-assessment" in rendered   # a skill that was invoked
+
+
+def test_transcript_never_carries_reasoning(use_fixture):
+    """Same rule as everywhere else: only observable behaviour is graded."""
+    for name in ("thorough", "nop"):
+        traj = use_fixture(name)
+        rendered = nreval.transcript(traj)
+        assert "must never be graded" not in rendered
+        assert "I will answer directly" not in rendered
+
+
 def test_manifest_is_complete_and_written(use_fixture, tmp_path):
     use_fixture("thorough")
     manifest = nreval.evidence_manifest()

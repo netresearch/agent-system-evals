@@ -79,6 +79,20 @@ def main() -> int:
             if not model:
                 problems.append(f"{case}/{reward.name}: judge has no pinned model")
 
+            # An agent judge never sees `files`. RewardKit's agent path builds
+            # its prompt, appends the atif-trajectory path, and ignores the
+            # file list entirely — so evidence placed only in `files` reaches
+            # nobody. That happened: the judges were left with no pointer to
+            # anything, explored blindly, and every dimension collapsed across
+            # every fleet. The numbers looked like a finding.
+            is_agent = getattr(judge, "agent", None) is not None
+            if is_agent and not getattr(judge, "atif_trajectory", None):
+                problems.append(
+                    f"{case}/{reward.name}: an agent judge with no "
+                    f"atif-trajectory has no pointer to any evidence — `files` "
+                    f"is ignored on the agent path"
+                )
+
             if not getattr(reward, "system_prompt", None):
                 problems.append(
                     f"{case}/{reward.name}: no prompt_template; the shared "

@@ -15,7 +15,7 @@ the cases and the rubric.
 | `tasks/contracts/` | Known-failure-mode checks (not yet populated) |
 | `verifier/common/nreval.py` | Canonical evidence library; copied into each case |
 | `verifier/tests/` | Verifier self-test and fixtures |
-| `fleets/` | Pinned skill fleets: `control`, `main`, `candidate` |
+| `fleets/` | Pinned skill fleets: `control`, `nr`, `candidate` |
 | `datasets/` | Harbor dataset manifests and aggregation metrics |
 | `scripts/` | Everything runnable |
 | `jobs/`, `reports/` | Generated, gitignored |
@@ -28,7 +28,7 @@ the cases and the rubric.
 | `./scripts/validate-rubric` | Rubric loads; repository rules hold. No judge calls. |
 | `./scripts/sync-verifier-lib [--check]` | Copy `nreval.py` into each case |
 | `./scripts/verifier-selftest` | Prove the rubric separates a thorough run from a no-op |
-| `./scripts/contamination-check --fleet main` | Fail if the fleet knows a case's answers |
+| `./scripts/contamination-check --fleet nr` | Fail if the fleet knows a case's answers |
 | `./scripts/refresh-target-lock <task-dir>` | Regenerate a target's pinned dependency set |
 | `./scripts/run-smoke <CASE-ID> --fleet <name>` | One trial. Pipeline check only, not evidence. |
 | `./scripts/run-evaluation <CASE-ID> --fleet <name>` | Three trials. Costs money. |
@@ -107,7 +107,7 @@ material suggested.
 ./scripts/sync-verifier-lib --check
 ./scripts/verifier-selftest
 uv run --with pytest python -m pytest verifier/tests -q
-./scripts/contamination-check --fleet main
+./scripts/contamination-check --fleet nr
 ```
 
 CI runs exactly these. No agent trial gates a pull request: one trial is not

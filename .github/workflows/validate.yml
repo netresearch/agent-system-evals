@@ -72,4 +72,4 @@ jobs:
       # so it fails for reasons unrelated to the change under review. Keeping
       # it apart makes that distinguishable at a glance.
       - name: Fleet carries no case-specific knowledge
-        run: ./scripts/contamination-check --fleet main
+        run: ./scripts/contamination-check --fleet nr

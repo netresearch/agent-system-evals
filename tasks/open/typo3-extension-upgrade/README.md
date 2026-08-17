@@ -65,6 +65,6 @@ Not yet run. Nothing is recorded here until it is.
 
 ```
 ./scripts/run-evaluation OFR-TYPO3-UPGRADE-001 --fleet control
-./scripts/run-evaluation OFR-TYPO3-UPGRADE-001 --fleet main
-./scripts/compare jobs/<control-job> jobs/<main-job>
+./scripts/run-evaluation OFR-TYPO3-UPGRADE-001 --fleet nr
+./scripts/compare jobs/<control-job> jobs/<nr-job>
 ```

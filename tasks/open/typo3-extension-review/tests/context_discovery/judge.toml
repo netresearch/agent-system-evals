@@ -16,8 +16,15 @@ prompt_template = "../judge-prompt.md"
 # scored every criterion not-met — a broken instrument returning confident
 # zeros, which is the most dangerous shape a rubric failure can take.
 cwd = "/logs"
-atif-trajectory = "/logs/verifier/trajectory.json"
-files = ["/logs/verifier/evidence-manifest.json"]
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+]
 
 [[criterion]]
 name = "established_project_identity"

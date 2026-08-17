@@ -19,53 +19,9 @@ installed and exposed through the Makefile, so an unverified claim is a real
 failure rather than an impossibility. There is no `AGENTS.md`, so context has
 to be established from ordinary project files.
 
-## First A/B
+## Results
 
-Three trials per fleet, no errored trials. Case, agent (claude-code on
-claude-opus-5), model, judge, rubric, environment and trial count identical;
-only the fleet differs.
-
-| Dimension | control | main | control mean | main mean | delta |
-|---|---|---|---|---|---|
-| context_discovery | 3/3 | 3/3 | 1.00 | 0.94 | −0.06 |
-| skill_routing | 0/3 | 3/3 | 0.31 | 1.00 | **+0.69** |
-| authority | 0/3 | 0/3 | 0.47 | 0.33 | −0.14 |
-| evidence | 3/3 | 3/3 | 0.88 | 0.75 | −0.12 |
-| verification | 3/3 | 2/3 | 0.85 | 0.81 | −0.04 |
-| prioritization | 2/3 | 3/3 | 0.61 | 0.94 | **+0.33** |
-| unsupported_claims | 1/3 | 0/3 | 0.50 | 0.44 | −0.06 |
-| outcome_quality | 3/3 | 3/3 | 1.00 | 1.00 | 0.00 |
-
-### What this shows
-
-**Two dimensions move: routing and prioritization.** Routing is the larger
-number and the weaker evidence — `control` has no injected skills, so part of
-that gap is definitional rather than earned. It is not entirely definitional:
-the judge counted Claude Code's own entry points as available and scored their
-non-use as a routing failure. Prioritization is the more interesting move,
-0.61 to 0.94, and nothing about it is definitional.
-
-**Nothing else moves.** Five dimensions sit within noise at this sample size,
-and `outcome_quality` is 1.00 on both sides — on this case both
-configurations produce a review a developer could act on. The stack changes
-the shape of the process; it does not, here, change whether the result is
-usable.
-
-**Authority fails on both sides.** 0/3 either way, and the mechanical evidence
-is identical in all six trials: no external canonical source consulted, the
-resolved dependency state never read. Every framework-currency claim in every
-trial rests on recollection. That is the clearest actionable finding the case
-has produced, and the stack does not currently address it.
-
-### What this does not show
-
-One case, one agent, one model, three trials per side. This is not a verdict
-on the Netresearch stack; it is one measurement of it, on a repository-level
-TYPO3 review. The negative deltas are small and within noise — reading them as
-harm would be exactly the overreach the counting convention exists to prevent.
-
-`scripts/export-retro` turns the repeated shortfalls into retro input. Most of
-them scored 2 (partial), not 1, and should be read that way.
+Four fleets, three trials each: see [RESULTS.md](RESULTS.md).
 
 ## What that says about the case
 
@@ -94,8 +50,10 @@ benchmark that only contains cases the stack passes is not measuring anything.
 
 ```
 ./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet control
-./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet main
-./scripts/compare jobs/<control-job> jobs/<main-job>
+./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet nr
+./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet companion
+./scripts/run-evaluation OFR-TYPO3-EXT-001 --fleet nr-companion
+./scripts/compare jobs/<control-job> jobs/<nr-job>
 ```
 
 Rubric changes should be applied to recorded trials with `harbor job regrade`

@@ -1,6 +1,12 @@
 # The Netresearch skill fleet as deployed, at the versions a result was
 # recorded against.
 #
+# Named `nr`, not `main`. `main` is also the branch and says nothing about
+# whose stack this is, which made a four-way table read as though one column
+# were the default rather than one of the things being compared. Jobs recorded
+# before the rename carry `fleet: main` in their snapshot and are the same
+# fleet.
+#
 # Pinned by tag, not by commit. Harbor resolves a --skill ref with
 # `git ls-remote <url> <ref>`, and ls-remote does not answer for a bare commit
 # SHA — a full SHA here fails with "No matching ref". The exact commit is still
@@ -12,7 +18,7 @@
 # identifier and do not compare across the change unless the fleet is itself
 # the variable under study.
 
-name: main
+name: nr
 description: Production Netresearch agent engineering stack
 
 skills:

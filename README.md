@@ -48,7 +48,7 @@ docs/            methodology, scoring, lifecycle, ADRs
 tasks/open/      Open Forward Review cases
 tasks/contracts/ known-failure-mode checks
 datasets/        Harbor dataset manifests and aggregation metrics
-fleets/          pinned skill fleets (control / main / candidate)
+fleets/          pinned skill fleets (control / nr / candidate)
 verifier/        shared mechanical evidence library
 scripts/         run, compare, contamination, provenance
 ```

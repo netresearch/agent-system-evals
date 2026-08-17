@@ -331,6 +331,109 @@ def evidence_manifest() -> dict[str, Any]:
     }
 
 
+def transcript(traj: dict[str, Any] | None = None, budget: int = 120_000) -> str:
+    """A bounded, readable rendering of the trajectory for a judge to read.
+
+    An agent judge opens what it is given as a file and pages through it. The
+    raw ATIF trajectory is over a megabyte on a rich run, and reading it that
+    way cost 40 turns and then a CLI exit — one failed reward, and RewardKit
+    takes the whole run with it. Handing over a digest instead is bounded work
+    with no exploration in it.
+
+    It is also better evidence. The same input produces the same reading, where
+    a judge left to page through a large file may stop in a different place
+    each time.
+
+    Reasoning is not included, here as everywhere: only observable behaviour is
+    graded. Long observations are cut with the cut marked, so the judge can see
+    that something was elided rather than silently receiving less.
+    """
+    traj = traj or load_trajectory()
+
+    # The final answer is reserved and rendered whole, before anything else
+    # competes for room. It is the single most important piece of evidence in a
+    # review case — most dimensions ask about the report — and it sits at the
+    # very end of the trajectory, which is exactly where a running budget or a
+    # per-message cap eats it.
+    #
+    # Both happened. Capped at 4000 characters, an 8000-character report
+    # reached the judges as half a sentence, and prioritization, evidence and
+    # outcome quality collapsed across every fleet. The scores moved so far
+    # that they were obviously about the instrument rather than the agents.
+    answer = final_answer(traj)
+    reserved = len(answer) + 200
+
+    lines: list[str] = []
+    used = 0
+    truncated = False
+    budget = max(budget - reserved, budget // 4)
+
+    def emit(text: str) -> bool:
+        """Append unless it would breach the budget; report whether it fit.
+
+        The flag is what marks the cut. An earlier version inferred truncation
+        from the running total, which never reaches the budget precisely
+        because this refuses to append — so the transcript was silently short
+        with nothing saying so.
+        """
+        nonlocal used, truncated
+        if used + len(text) > budget:
+            truncated = True
+            return False
+        lines.append(text)
+        used += len(text)
+        return True
+
+    for step in steps(traj):
+        if truncated:
+            break
+        source = step.get("source", "?")
+        step_id = step.get("step_id")
+
+        message = _message_text(step.get("message")).strip()
+        if message:
+            if not emit(f"\n[{step_id}] {source}:\n{message[:4000]}"):
+                break
+
+        for call in step.get("tool_calls") or []:
+            args = call.get("arguments") or {}
+            detail = ""
+            for key in (*_COMMAND_KEYS, *_PATH_KEYS, "pattern", "skill"):
+                value = args.get(key)
+                if isinstance(value, str) and value.strip():
+                    detail = f" {key}={value.strip()[:300]}"
+                    break
+            if not emit(f"\n[{step_id}] tool {call.get('function_name')}{detail}"):
+                break
+
+        for observation in (step.get("observation") or {}).get("results") or []:
+            text = _message_text(observation.get("content")).strip()
+            if not text:
+                continue
+            shown = text[:1200]
+            suffix = "" if len(text) <= 1200 else f"\n  … {len(text) - 1200} more characters"
+            if not emit(f"\n[{step_id}] observed:\n{shown}{suffix}"):
+                break
+
+    if truncated:
+        lines.append(
+            f"\n\n[intermediate steps truncated at {budget} characters; "
+            f"{len(steps(traj))} steps total. The final answer below is complete.]"
+        )
+
+    if answer:
+        lines.append("\n\n=== FINAL ANSWER (complete) ===\n")
+        lines.append(answer)
+    return "".join(lines)
+
+
+def write_transcript(path: str | Path | None = None) -> Path:
+    target = Path(path or f"{ARTIFACTS_DIR}/transcript.txt")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(transcript())
+    return target
+
+
 def write_evidence_manifest(path: str | Path | None = None) -> Path:
     target = Path(path or f"{ARTIFACTS_DIR}/evidence-manifest.json")
     target.parent.mkdir(parents=True, exist_ok=True)

@@ -6,7 +6,7 @@
 # way to see whether they compose or collide — a question neither fleet alone
 # can answer, and the one that actually matters for deciding what to maintain.
 #
-# Skill versions are identical to fleets/main.yaml. If they drift apart, a
+# Skill versions are identical to fleets/nr.yaml. If they drift apart, a
 # difference between `main` and this fleet stops being attributable to the
 # companion.
 

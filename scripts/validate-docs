@@ -31,7 +31,11 @@ def markdown_files() -> list[Path]:
     return [
         path
         for path in sorted(ROOT.rglob("*.md"))
-        if not any(part in {"jobs", "reports", ".git", "node_modules"}
+        # .cache holds third-party material materialised for a fleet — the
+        # companion's published skills, for one. Their links are their own
+        # project's business, and scanning them made this report 60 files where
+        # the repository has 26.
+        if not any(part in {"jobs", "reports", ".git", "node_modules", ".cache"}
                    for part in path.relative_to(ROOT).parts)
     ]
 

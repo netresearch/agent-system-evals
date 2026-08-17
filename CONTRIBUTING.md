@@ -64,7 +64,7 @@ every case that shares the rubric.
 ./scripts/sync-verifier-lib --check
 ./scripts/verifier-selftest
 uv run --with pytest python -m pytest verifier/tests -q
-./scripts/contamination-check --fleet main
+./scripts/contamination-check --fleet nr
 ```
 
 Sign off every commit (`git commit -s`). Do not squash-merge; the commit

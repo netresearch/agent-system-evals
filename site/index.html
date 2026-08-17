@@ -113,8 +113,8 @@
 <section class="hero">
   <div class="wrap">
     <h1>Open Forward Reviews</h1>
-    <p>Does the Netresearch agent engineering stack change how an agent handles a realistic
-       request — one that does not say what to do?</p>
+    <p>Four configurations, one realistic request that does not say what to do.
+       What changes — the answer, or what it costs to reach it?</p>
     <div class="prompt">Review this TYPO3 extension and tell me what needs attention.</div>
   </div>
 </section>
@@ -127,13 +127,15 @@
 single sentence above and nothing else: no framework version, no tool to run, no file to open,
 no category of finding to produce. Working that out is what is being measured.</p>
 
-<p>Two configurations, three runs each. Everything is held constant except the skills:
+<p>Four configurations, three runs each. Everything is held constant except the skills:
 same repository, same commit, same model (Claude Code on <code>claude-opus-5</code>), same
 grader, same environment, same trial count.</p>
 
 <table>
   <tr><th>control</th><td>Claude Code on its own</td></tr>
-  <tr><th>main</th><td>Claude Code plus eight Netresearch skills, pinned to released versions</td></tr>
+  <tr><th>nr</th><td>plus eight Netresearch skills, pinned to released versions</td></tr>
+  <tr><th>companion</th><td>plus the TYPO3 Dev Companion: twelve skills and its MCP server</td></tr>
+  <tr><th>nr&nbsp;+&nbsp;companion</th><td>both stacks at once</td></tr>
 </table>
 
 <p>Grading does not ask "did it find the expected bugs" — an open question has no fixed answer
@@ -151,93 +153,82 @@ Figures are per trial, agent side only, median of three runs.</p>
 <div class="scroll">
 <table>
   <thead>
-    <tr>
-      <th>Per trial</th>
-      <th class="num">control</th>
-      <th class="num">main</th>
-      <th class="num">difference</th>
-    </tr>
+    <tr><th>Per trial</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">nr + comp.</th></tr>
   </thead>
   <tbody>
-    <tr><td>Tool calls</td><td class="num">27</td><td class="num">18</td><td class="num delta-down">−33%</td></tr>
-    <tr><td>Agent wall time</td><td class="num">260 s</td><td class="num">156 s</td><td class="num delta-down">−40%</td></tr>
-    <tr><td>Input tokens</td><td class="num">1,304,269</td><td class="num">517,883</td><td class="num delta-down">−60%</td></tr>
-    <tr><td>Output tokens</td><td class="num">19,095</td><td class="num">10,943</td><td class="num delta-down">−43%</td></tr>
-    <tr><td>Agent cost</td><td class="num">$2.16</td><td class="num">$0.91</td><td class="num delta-down">−58%</td></tr>
+    <tr><td>Tool calls</td><td class="num">27</td><td class="num delta-down">18</td><td class="num">58</td><td class="num">70</td></tr>
+    <tr><td>Agent wall time</td><td class="num">260 s</td><td class="num delta-down">156 s</td><td class="num">576 s</td><td class="num">579 s</td></tr>
+    <tr><td>Input tokens</td><td class="num">1,304,269</td><td class="num delta-down">517,883</td><td class="num">4,052,407</td><td class="num">4,823,265</td></tr>
+    <tr><td>Agent cost</td><td class="num">$2.16</td><td class="num delta-down">$0.91</td><td class="num">$4.95</td><td class="num">$5.59</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>The median hides the shape of it, so here are the runs themselves:</p>
-
-<div class="scroll">
-<table>
-  <thead><tr><th>Fleet</th><th>Run 1</th><th>Run 2</th><th>Run 3</th></tr></thead>
-  <tbody>
-    <tr><td>control</td><td>27 calls · 319 s · $2.16</td><td>32 calls · 260 s · $2.15</td><td>24 calls · 240 s · $2.26</td></tr>
-    <tr><td>main</td><td>18 calls · 156 s · $0.91</td><td>33 calls · 324 s · $2.04</td><td>18 calls · 155 s · $0.81</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p><strong>control is uniform</strong> — three runs, all near $2.20 and roughly 270 seconds.
-<strong>main is split</strong>: two runs at about $0.85 and 155 seconds, one at $2.04 and 324
-seconds. At three runs a median over that shape carries little weight. The accurate statement is
-that two runs in three cost roughly half as much, and no run cost more than control's average.</p>
+<p><strong>A factor of six separates the cheapest configuration from the dearest</strong>, and
+nearly four in wall time. The Netresearch stack is the cheapest of the four: 2.4× cheaper than
+the unaided agent and 5.4× cheaper than the companion.</p>
 
 <h2>Result: the eight quality dimensions</h2>
 
-<p>Counts are runs in which the dimension was met, out of three. Counts rather than averages:
-three samples do not support two decimal places.</p>
+<p>Counts are runs in which the dimension was met, out of three, with the mean in brackets.
+Counts rather than averages: three samples do not support two decimal places.</p>
 
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Dimension</th><th class="num">control</th><th class="num">main</th><th class="num">mean control</th><th class="num">mean main</th></tr>
+    <tr><th>Dimension</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">nr + comp.</th></tr>
   </thead>
   <tbody>
-    <tr class="moved"><td>Skill routing</td><td class="num">0/3</td><td class="num">3/3</td><td class="num">0.31</td><td class="num">1.00</td></tr>
-    <tr class="moved"><td>Prioritization</td><td class="num">2/3</td><td class="num">3/3</td><td class="num">0.61</td><td class="num">0.94</td></tr>
-    <tr><td>Context discovery</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">1.00</td><td class="num">0.94</td></tr>
-    <tr><td>Evidence quality</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">0.88</td><td class="num">0.75</td></tr>
-    <tr><td>Verification</td><td class="num">3/3</td><td class="num">2/3</td><td class="num">0.85</td><td class="num">0.81</td></tr>
-    <tr><td>Unsupported claims</td><td class="num">1/3</td><td class="num">0/3</td><td class="num">0.50</td><td class="num">0.44</td></tr>
-    <tr><td>Outcome quality</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">1.00</td><td class="num">1.00</td></tr>
-    <tr><td>Authority of sources</td><td class="num">0/3</td><td class="num">0/3</td><td class="num">0.47</td><td class="num">0.33</td></tr>
+    <tr class="moved"><td>Skill routing</td><td class="num">0/3 (0.33)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
+    <tr><td>Prioritization</td><td class="num">3/3 (0.94)</td><td class="num">3/3 (0.94)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
+    <tr><td>Context discovery</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (0.92)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
+    <tr><td>Outcome quality</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
+    <tr><td>Evidence quality</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
+    <tr><td>Verification</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.79)</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.88)</td></tr>
+    <tr class="moved"><td>Unsupported claims</td><td class="num">1/3 (0.72)</td><td class="num">0/3 (0.61)</td><td class="num">2/3 (0.78)</td><td class="num">2/3 (0.89)</td></tr>
+    <tr class="moved"><td>Source authority</td><td class="num">0/3 (0.50)</td><td class="num">0/3 (0.36)</td><td class="num">1/3 (0.53)</td><td class="num">0/3 (0.53)</td></tr>
   </tbody>
 </table>
 </div>
 
-<h3>Two dimensions move</h3>
+<h3>All four produce equally usable reviews</h3>
 
-<p>Routing is the larger number and the weaker evidence: <code>control</code> has no injected
-skills, so part of that gap is definitional. Not all of it — the grader counted Claude Code's own
-entry points as available and scored their non-use as a routing failure. Prioritization moves
-from 0.61 to 0.94, and nothing about that is definitional.</p>
+<p>Outcome quality is 3/3 everywhere, and six of the eight dimensions are flat across the four
+configurations. On this case, what a developer receives does not depend on which stack produced
+it. What differs is the effort spent reaching it.</p>
 
-<h3>Nothing else moves</h3>
+<h3>Routing separates, but partly by construction</h3>
 
-<p>Five dimensions sit within noise at this sample size, and outcome quality is 1.00 on both
-sides. On this case both configurations produce a review a developer could act on. What changes
-is the shape of the work, and what it costs.</p>
+<p>Skill routing is the one large gap, and the weakest evidence in the table: <code>control</code>
+has no injected skills, so there is less to route to. It is not entirely definitional — the
+grader counted Claude Code's own entry points as available and scored their non-use as a routing
+failure — but it should not be read as a quality difference.</p>
 
-<h3>Source authority fails on both sides</h3>
+<h3>Two dimensions stay weak everywhere</h3>
 
-<p>0 of 3 either way. The mechanical evidence is identical in all six runs: no external canonical
-source was consulted, and the resolved dependency state was never read. Every statement about
-framework version support, in every run, rests on recollection rather than on a lookup — and a
-version constraint states what is permitted, not what is installed or tested.</p>
+<p>No configuration reaches source authority reliably. In all twelve runs the mechanical evidence
+says the same thing: no external canonical source consulted, the resolved dependency state never
+read. Every statement about framework version support rests on recollection rather than a lookup,
+and a version constraint states what is permitted, not what is installed or tested.</p>
+
+<p>Unsupported claims is weakest with the Netresearch stack alone (0/3) and strongest with both
+stacks together (2/3, 0.89) — better than either alone. On this case the two compose rather than
+collide.</p>
+
+<h3>The most expensive configuration buys the least</h3>
+
+<p>Both stacks together cost six times what the Netresearch stack alone costs, and reach no
+dimension it does not, apart from unsupported claims.</p>
 
 <div class="note">
-  <strong>What this does not show.</strong> One case, one agent, one model, three runs per side.
-  This is one measurement, not a verdict on the stack. The small negative differences are within
-  noise, and reading them as harm would be exactly the overreach that reporting counts instead of
-  averages exists to prevent.
+  <strong>What this does not show.</strong> One case, one agent, one model, three runs per
+  configuration. This is one measurement, not a verdict on any stack. Differences of a single run
+  are within noise, which is why counts are reported instead of averages.
 </div>
 
 <h2>What the agents actually found</h2>
 
-<p>Both configurations produced substantive reviews. The leading finding in the unaided run was a
+<p>Every configuration produced a substantive review. The leading finding in the unaided run was a
 cache-clearing middleware registered in the frontend stack that never checks whether a user is
 authenticated — anchored to file and line, with the consequence stated: any anonymous visitor can
 flush page caches. Neither that nor two further findings appear in the case's recorded background
@@ -248,10 +239,21 @@ comments. A static analysis run reports clean there while the problems remain, w
 the case distinguish an agent that reads a green result as reassurance from one that asks what
 produced it.</p>
 
+<div class="note">
+  <strong>Correction, 17 August 2026.</strong> An earlier version of this page reported that the
+  Netresearch stack improved prioritization from 0.61 to 0.94 and called the difference real. It
+  was not. Nine grading criteria had hit a judge timeout, and the grading harness records a
+  timed-out judge as zero. Re-scored without the timeout, the control configuration reaches 0.94
+  as well and the difference disappears. Its unsupported-claims figure was reported as 0.50 and is
+  0.72. Six such instrument failures were found and fixed while producing this table, every one
+  returning a plausible number rather than an error; they are listed in
+  <a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/instrument-failures.md">docs/instrument-failures.md</a>.
+</div>
+
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">2 × 3</span><span class="lbl">runs, one fleet apart</span></div>
+  <div class="card"><span class="big">4 × 3</span><span class="lbl">runs, one fleet apart</span></div>
   <div class="card"><span class="big">8</span><span class="lbl">graded dimensions per run</span></div>
   <div class="card"><span class="big">15/15</span><span class="lbl">harness acceptance criteria met</span></div>
 </div>

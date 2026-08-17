@@ -11,8 +11,13 @@ reasoning_effort = "medium"
 timeout = 900
 prompt_template = "../judge-prompt.md"
 cwd = "/logs"
-atif-trajectory = "/logs/verifier/trajectory.json"
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
 files = [
+    "/logs/verifier/transcript.txt",
     "/logs/verifier/evidence-manifest.json",
     "/logs/artifacts/git-diffstat.txt",
     "/logs/artifacts/matrix-14.3.txt",

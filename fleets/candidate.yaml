@@ -11,7 +11,7 @@ description: Proposed stack change under evaluation
 
 skills:
   # CHANGE UNDER STUDY — replace the ref below, keep everything else identical
-  # to fleets/main.yaml.
+  # to fleets/nr.yaml.
   - repo: netresearch/automated-assessment-skill
     ref: v2.14.0
   - repo: netresearch/agent-harness-skill

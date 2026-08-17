@@ -25,6 +25,12 @@ print(f"trajectory: {source} -> /logs/verifier/trajectory.json")
 
 path = nreval.write_evidence_manifest("/logs/verifier/evidence-manifest.json")
 print(f"wrote {path}")
+
+# A bounded rendering for the judge to read instead of the raw ATIF file.
+# Paging through a megabyte of JSON cost an agent judge 40 turns and then a
+# CLI exit, which took the whole verifier run with it.
+path = nreval.write_transcript("/logs/verifier/transcript.txt")
+print(f"wrote {path}")
 PY
 
 # One reward per subdirectory of /tests. Version-pinned: an unpinned judge
