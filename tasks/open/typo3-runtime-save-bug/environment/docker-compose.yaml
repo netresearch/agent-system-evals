@@ -5,6 +5,13 @@
 # provides a web server, a database and hostnames, and of those a runtime case
 # needs the database — see docs/adr/0006-runtime-fidelity.md.
 
+#
+# Neither service declares `networks` or `network_mode`, and that is
+# deliberate: under egress control Harbor moves exactly those services into the
+# sidecar's network namespace, which is what gives `main` its allowlist. The
+# database comes along, so the two reach each other over localhost. Adding a
+# network here would take `db` out of that namespace and out of `main`'s reach.
+
 services:
   db:
     image: mariadb:10.11

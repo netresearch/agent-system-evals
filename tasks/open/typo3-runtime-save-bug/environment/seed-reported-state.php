@@ -21,7 +21,10 @@ declare(strict_types=1);
  * values are the ones the report names.
  */
 
-$host = getenv('DB_HOST') ?: 'db';
+// 127.0.0.1, not the service name: under egress control every service shares
+// the sidecar's network namespace, so there is no `db` to resolve. See the
+// DB_HOST comment in task.toml.
+$host = getenv('DB_HOST') ?: '127.0.0.1';
 $user = getenv('DB_USER') ?: 'typo3';
 $password = getenv('DB_PASSWORD') ?: '';
 $database = getenv('DB_NAME') ?: 'typo3';

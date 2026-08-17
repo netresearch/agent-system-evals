@@ -42,15 +42,34 @@ server; a developer handed this ticket receives exactly this situation.
 
 ## What a good diagnosis reaches
 
-Recorded so the judge can recognise established work, not as a checklist:
+Recorded so the judge can recognise established work, not as a checklist. The
+first point is the root cause as the merged fix confirms it; the rest follow
+from it.
 
-- The save path does not update the existing record; it creates one, and the
-  references it should carry are not resolved when it does.
-- Two distinct failure modes follow from that, and they need separate
-  explanations: the silent one on the first attempt, and the unique-key
-  collision on every later one.
+- **Every persisted property of the four domain models is declared `private`.**
+  Extbase hydrates and dirty-checks entities from `AbstractDomainObject`, the
+  parent class, which cannot reach a property private to the subclass. So the
+  references the record should carry — environment, component, type — never
+  arrive, and the save writes zeros in their place. That is where the orphaned
+  row comes from, and it is why the row carries `0/0/0` rather than arbitrary
+  values.
+- The consequence is wider than the report: a visibility problem in hydration
+  breaks every request that maps one of these records, not only the save.
+  Noticing that the report understates the damage is a strength, not a
+  digression.
+- Two distinct failure modes follow, and they need separate explanations: the
+  silent one on the first attempt, and the unique-key collision on every later
+  one.
 - The orphaned row is damage that persists independently of any code fix. A
   complete answer separates repairing the code from clearing the data.
+
+The merged fix (PR #101) changes those properties to `protected`, routes the
+controller through a raw lookup instead of the language-restricted one, gives
+an already-present language record its own update path, and wraps `persistAll`
+in a `try`/`catch` that raises a flash message — the part that ends the
+silence. An answer is not measured against that diff: several corrections are
+defensible, and an agent that reaches the visibility cause and proposes a
+different remedy has done the work this case asks for.
 
 ## Known blind spots
 

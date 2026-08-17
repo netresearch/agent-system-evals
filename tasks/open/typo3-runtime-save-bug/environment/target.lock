@@ -28,7 +28,17 @@ TYPO3_LINE=13.4
 # developers work against — see docs/adr/0006-runtime-fidelity.md.
 SITE_IDENTIFIER=textdb
 INSTANCE_DIR=/instance
-DB_NAME=typo3
-DB_USER=typo3
-DB_PASSWORD=typo3-benchmark-password
-DB_HOST=db
+# The database settings are declared in task.toml and only defaulted here,
+# because this file is *sourced* — a plain assignment would silently overwrite
+# the container environment and win. It did: the host stood here as the Compose
+# service name `db` and beat the corrected value in task.toml, so the
+# installation kept resolving a name that does not exist. Defaults are still
+# needed because build-instance.sh sources this file at build time, where
+# nothing is set.
+#
+# Not the Compose service name: under egress control Harbor puts `main` and
+# `db` into the sidecar's network namespace, so they meet on localhost.
+DB_NAME=${DB_NAME:-typo3}
+DB_USER=${DB_USER:-typo3}
+DB_PASSWORD=${DB_PASSWORD:-typo3-benchmark-password}
+DB_HOST=${DB_HOST:-127.0.0.1}

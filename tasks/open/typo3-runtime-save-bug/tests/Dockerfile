@@ -23,6 +23,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # not include claude.ai, so an install during the run would fail — and it
 # should not be reaching out mid-verification anyway.
 RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && /root/.local/bin/claude --version \
+    && mv /root/.local/bin/claude /root/.local/bin/claude-real
+
+# A wrapper around the CLI rather than the CLI itself, so a failing judge
+# leaves a readable error behind: RewardKit truncates the CLI's error envelope
+# at 200 characters, which stops before the field naming what went wrong.
+#
+# It has to take the place of the real binary in /root/.local/bin. test.sh puts
+# that directory at the front of PATH, so a wrapper installed anywhere else is
+# shadowed and silently never runs — which is how the first version of this
+# failed: the image built, the judges ran, and no log appeared.
+COPY judge-cli.sh /root/.local/bin/claude
+RUN chmod +x /root/.local/bin/claude \
     && ln -sf /root/.local/bin/claude /usr/local/bin/claude \
     && claude --version
 

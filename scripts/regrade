@@ -33,6 +33,21 @@ fi
 name="rg-$(basename "$SOURCE")"
 rm -rf "${ROOT:?}/jobs/$name"
 
+# Both credentials must exist as variables even when only one holds a value.
+# `[verifier.env]` names both, Harbor resolves every name it finds there
+# against the host environment, and an unset one aborts the run with
+# `Environment variable 'ANTHROPIC_API_KEY' not found in host environment` —
+# after the verifier image has been built, so the failure looks like a grading
+# problem rather than a missing export. run-evaluation passes the unused one as
+# an empty string, which RewardKit and the Claude Code CLI read as absent; a
+# regrade re-runs the same verifier and needs the same treatment.
+export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
+export CLAUDE_CODE_OAUTH_TOKEN="${CLAUDE_CODE_OAUTH_TOKEN:-}"
+if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    echo "No credential: set CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY." >&2
+    exit 1
+fi
+
 harbor job regrade "$SOURCE" -p "$CASE" -o "$ROOT/jobs" --job-name "$name"
 
 if [ -f "$SOURCE/nr-snapshot.json" ]; then
