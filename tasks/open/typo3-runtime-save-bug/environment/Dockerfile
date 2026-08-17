@@ -1,0 +1,51 @@
+# Runtime case: a TYPO3 instance with the extension under test installed.
+#
+# Everything that does not need a database happens here — the project skeleton,
+# the extension, the vendor tree. The installation itself runs at container
+# start (see docker-compose.yaml), because it needs the database and the
+# database only exists once Compose is up.
+FROM php:8.3-cli
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_NO_INTERACTION=1 \
+    COMPOSER_HOME=/composer
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git unzip libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
+        default-mysql-client \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install -j"$(nproc)" zip intl mysqli pdo_mysql gd \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# TYPO3 needs mysqli for the connection this case configures, and intl and gd
+# for a working installation. Verified at build time so a missing extension
+# surfaces here rather than as an unexplained failure at run time.
+RUN php -r 'exit((int) !(extension_loaded("mysqli") && extension_loaded("intl") && extension_loaded("gd")));'
+
+# The client refuses to connect without TLS against this server, which the
+# target's own DDEV setup does not do. Left alone it would cost an agent turns
+# on an artefact of this environment rather than on the case.
+RUN printf '[client]\nskip-ssl\n' > /etc/mysql/conf.d/benchmark.cnf 2>/dev/null \
+    || { mkdir -p /etc/mysql/conf.d && printf '[client]\nskip-ssl\n' > /etc/mysql/conf.d/benchmark.cnf; }
+
+COPY target.lock seed-reported-state.php /opt/case/
+COPY install-instance.sh /usr/local/bin/install-instance
+COPY build-instance.sh /usr/local/bin/build-instance
+RUN chmod +x /usr/local/bin/install-instance /usr/local/bin/build-instance \
+    && build-instance /opt/case/target.lock
+
+# Environment readiness (ADR 0003): before the agent arrives, the instance must
+# be one command away from running. A failure here is a broken case.
+WORKDIR /instance
+RUN test -x vendor/bin/typo3 \
+    && vendor/bin/typo3 --version \
+    && test -d vendor/netresearch/nr-textdb \
+    && composer show netresearch/nr-textdb >/dev/null
+
+RUN mkdir -p /logs/artifacts
+
+
+WORKDIR /instance

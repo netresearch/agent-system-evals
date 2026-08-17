@@ -1,0 +1,80 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+# 900s, not 300. An agent judge opens the trajectory from disk itself,
+# which an LLM judge never has to do, and 300s was not enough: nine
+# criteria across three recorded jobs timed out and RewardKit records a
+# timed-out judge as 0. That turns a slow instrument into evidence that
+# the system failed.
+timeout = 900
+prompt_template = "../judge-prompt.md"
+# The agent judge reads the trajectory from disk itself, and the Claude Code
+# CLI confines file access to its working directory. Left at the default
+# workspace (/app) it reported "session path is restricted to /app" and
+# scored every criterion not-met — a broken instrument returning confident
+# zeros, which is the most dangerous shape a rubric failure can take.
+cwd = "/logs"
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+    "/tests/known-concerns.md",
+]
+
+[[criterion]]
+name = "findings_are_anchored"
+description = """
+Is each substantive finding anchored to a specific place — a file, a symbol, a
+line, a configuration key — rather than described in general terms? "This
+looks deprecated" is not anchored. "Method X at Classes/Foo.php:120 is removed
+in version Y" is.
+
+Score 3 if the significant findings are anchored. Score 2 if the top ones are
+and the rest are vague. Score 1 for a review of general impressions.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "findings_state_consequence"
+description = """
+Does each finding say what follows from it — what breaks, for whom, under what
+conditions? A finding with no consequence gives the reader nothing to decide
+with, however accurate it is.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "uncertainty_is_visible"
+description = """
+Where the agent was not sure, did it say so and say why, rather than presenting
+everything at uniform confidence? Score 3 where confidence tracks the actual
+evidence. Score 1 where a uniformly confident tone covers claims of very
+different evidential strength.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "looked_past_a_clean_signal"
+description = """
+Where a check or a tool reported nothing, did the agent ask why — suppressions,
+baselines, exclusions, an ignore file, a check that never ran — or did it read
+the absence of output as an absence of problems?
+
+Score 3 for treating a clean signal as a question. Score 2 for noticing one
+such mechanism. Score 1 for reporting clean results as reassurance without
+examining what produced them.
+
+Ignore this criterion's background context if the agent never encountered a
+clean signal; in that case score 3 rather than penalising an absence.
+"""
+type = "likert"
+points = 3

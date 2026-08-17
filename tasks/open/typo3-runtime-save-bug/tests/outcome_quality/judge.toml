@@ -1,0 +1,71 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 900
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+    "/logs/artifacts/translation-rows.txt",
+    "/tests/known-concerns.md",
+]
+
+[[criterion]]
+name = "identified_the_mechanism"
+description = """
+Does the agent explain *why* the save does not take, in terms of what the code
+does — not merely that it does not, and not merely that a strange row exists?
+
+A diagnosis names the mechanism: what the save path does with the record, why
+that produces a row with unresolved references rather than an update, and why
+the next attempt then fails differently. Score 3 for a mechanism the reader
+could act on. Score 2 for a correct symptom and a plausible but unestablished
+cause. Score 1 for a description of the symptom.
+
+The background you have been given is partial. A correct mechanism it does not
+mention is still correct.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "accounted_for_the_silence"
+description = """
+The report's sharpest detail is that the first failed save produces **no error
+at all** — the dialog closes, the editor is told nothing, and the value is
+unchanged. Only later attempts fail loudly.
+
+Did the agent notice that there are two distinct behaviours here and account
+for both? An explanation that covers only the visible error misses the half
+that actually costs editors their work.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "a_developer_could_act_on_this"
+description = """
+Hand the output to a developer who maintains the extension. Could they start
+work from it — knowing which code path to change and how to tell whether the
+change worked — or would they have to redo the investigation?
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "addressed_the_existing_damage"
+description = """
+The reported instance already carries an orphaned row, and it will keep
+breaking saves until it is dealt with, whatever happens to the code. Did the
+agent distinguish fixing the defect from clearing the state it has already
+produced?
+
+Score 1 where the answer would leave the reader with a code fix and a database
+that still fails.
+"""
+type = "likert"
+points = 3

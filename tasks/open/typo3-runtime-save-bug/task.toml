@@ -1,0 +1,105 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-runtime-save-bug"
+version = "1.0.0"
+description = "Open forward review: diagnose a reported save failure in a running TYPO3 instance"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "runtime", "debugging", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-RUNTIME-001"
+category = "open-forward-review"
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-nr-textdb.git"
+target_package = "netresearch/nr-textdb"
+target_sha = "9c40a04ec935350aa7ddbbd802ea85b889eeb3ff"
+# The first runtime case. The agent works against an installed TYPO3 13.4
+# instance with the extension active and a database in the state a real bug
+# report described. See docs/adr/0006-runtime-fidelity.md.
+runtime = true
+source_learning_id = "retro-20260817-runtime-fidelity"
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+# The agent must not start against a half-installed instance. The installation
+# runs at container start because it needs the database; this holds the agent
+# phase until it has finished, and fails the trial if it never does.
+[environment.healthcheck]
+command = "test -f /instance/.instance-ready && cd /instance && vendor/bin/typo3 site:list >/dev/null"
+interval_sec = 10.0
+timeout_sec = 60.0
+start_period_sec = 240.0
+start_interval_sec = 10.0
+retries = 5
+
+[environment.env]
+DB_HOST = "db"
+DB_NAME = "typo3"
+DB_USER = "typo3"
+DB_PASSWORD = "typo3-benchmark-password"
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# Snapshot the runtime state the agent leaves behind. For a diagnosis case the
+# database is part of the evidence: whether the agent only looked, or also
+# changed something, is visible nowhere else.
+[[verifier.collect]]
+command = "git -C /extension status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /extension diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+[[verifier.collect]]
+command = "mysql --skip-ssl -h db -u typo3 -ptypo3-benchmark-password typo3 -e 'SELECT uid, pid, sys_language_uid, environment, component, type, placeholder, value FROM tx_nrtextdb_domain_model_translation ORDER BY uid;' > /logs/artifacts/translation-rows.txt 2>&1 || true"
+timeout_sec = 120.0
+
+[[verifier.collect]]
+command = "cd /instance && vendor/bin/typo3 site:list > /logs/artifacts/sites.txt 2>&1 || true"
+timeout_sec = 120.0
+
+[[verifier.collect]]
+command = "cp /var/log/install-instance.log /logs/artifacts/install-instance.log 2>&1 || true"
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 30720
+network_mode = "public"

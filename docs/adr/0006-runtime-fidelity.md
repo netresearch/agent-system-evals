@@ -1,49 +1,75 @@
-# ADR 0006 — Repository-level cases first; runtime fidelity deferred to a spike
+# ADR 0006 — Runtime cases run a real installation, built without DDEV
 
-- Status: accepted
-- Date: 2026-08-15
+- Status: accepted — supersedes the original decision of 2026-08-15
+- Date: 2026-08-17
 
 ## Context
 
 Part of the Netresearch TYPO3 workflow runs against a live instance under DDEV.
-Evaluating that behaviour needs a running installation: database, web server,
-TYPO3 boot, backend.
+Evaluating that behaviour needs a running installation: database, TYPO3 boot,
+backend, resolved TypoScript.
 
-DDEV is itself a Docker orchestrator. Running it inside a Harbor sandbox means
-nested containerisation, with consequences for reproducibility, CI, isolation
-and runtime that are not knowable in advance.
+The first version of this ADR deferred all runtime cases behind a fidelity
+spike, on the reasoning that DDEV is itself a Docker orchestrator and running it
+inside a Harbor sandbox means nested containerisation with unknown consequences.
 
-There is a sharper risk than any of those: an approximation of the real runtime
-measures the approximation. A case that reports a runtime behaviour the actual
-workflow does not have is worse than no case, because it is believed.
+That reasoning was sound and the conclusion drawn from it was not. It slid from
+"running DDEV inside Harbor is risky" to "runtime is deferred", and then the
+repository-level cases were built as though repository-level were the natural
+scope for extension work. It is not.
+
+**Extension work here is runtime work.** The upgrade case's own target ships
+`ddev install-all`, builds two complete TYPO3 instances, and its `AGENTS.md`
+names that as the recommended setup. Plugin behaviour, resolved TypoScript after
+site-set merging, TCA once every extension has loaded — none of it exists in a
+file. A case that reviews an extension without an instance is measuring a
+reduced version of the job and should say so.
 
 ## Decision
 
-Version 1 covers repository-level cases only — source, dependencies, tests,
-static analysis, documentation, CI configuration. These run in ordinary Harbor
-Docker environments with no fidelity question.
+**Runtime cases are built, and they do not use DDEV.**
 
-Runtime cases are blocked on a spike that must answer, with measurements rather
-than expectations:
+DDEV supplies three things: a web server, a database, and hostnames. Harbor
+supplies the first two through a Compose task. The third is not needed for
+CLI-level introspection and is a Compose service name where it is.
 
-- **Option A** — Harbor Compose provides web and database directly. Clean
-  isolation, but the agent is not using DDEV, so the case tests TYPO3 runtime
-  and not the workflow.
-- **Option B** — nested Docker with DDEV inside the sandbox. Accepted only on
-  demonstrated reproducibility, no host Docker leak, CI viability and tolerable
-  runtime.
-- **Option C** — a Netresearch environment provider on Harbor's
-  `BaseEnvironment` interface, backing onto an ephemeral VM. Highest fidelity,
-  highest cost.
+What a runtime case installs is exactly what the target's own DDEV command
+installs, minus DDEV:
 
-The spike's own precondition: show that a runtime case would materially change
-what we learn. If repository-level cases already discriminate between fleets,
-the fidelity work buys resolution we are not using.
+```
+composer create-project typo3/cms-base-distribution:^13.4 <dir>
+composer config repositories.local path <extension-dir>
+composer require <vendor>/<extension>:*
+config/system/additional.php     # database connection
+vendor/bin/typo3 setup --driver=... --no-interaction --force
+vendor/bin/typo3 extension:setup
+config/sites/<id>/config.yaml
+```
+
+The recipe is taken from the target repository rather than invented, so the
+instance under test is the one its developers actually work against.
+
+**Repository-level cases remain**, and their limitation is now stated rather
+than implied: they measure what can be established from a checkout, which is
+less than the job. `metadata.runtime` distinguishes them.
+
+**Nested Docker stays out.** If a future case genuinely needs DDEV itself
+rather than what DDEV sets up, that is a separate decision with its own
+evidence.
 
 ## Consequences
 
-Version 1 cannot make claims about runtime behaviour, and must not imply
-otherwise. Case categories carry `metadata.target_type` so a repository-level
-result is never read as a runtime one.
+Runtime cases are more expensive: a database service, an installation step, and
+a longer environment build. The build is where that cost belongs — a case whose
+instance cannot be provisioned must fail at build time rather than score every
+trial as the agent's failure.
 
-DDEV does not block the project. That is the point of deferring it.
+They also make a class of tool measurable that repository-level cases cannot
+assess at all. A server that introspects a running installation has nothing to
+read in a checkout; measuring it there would produce a bad score for a reason
+unrelated to its quality.
+
+The claim that DDEV fidelity is the blocker is retired. The remaining fidelity
+question is narrower and honest: an instance built by this recipe is the one the
+target's developers build, but it is not their laptop. Where that difference
+matters for a finding, the case says so.

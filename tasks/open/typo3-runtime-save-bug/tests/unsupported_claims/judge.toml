@@ -1,0 +1,70 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+# 900s, not 300. An agent judge opens the trajectory from disk itself,
+# which an LLM judge never has to do, and 300s was not enough: nine
+# criteria across three recorded jobs timed out and RewardKit records a
+# timed-out judge as 0. That turns a slow instrument into evidence that
+# the system failed.
+timeout = 900
+prompt_template = "../judge-prompt.md"
+# The agent judge reads the trajectory from disk itself, and the Claude Code
+# CLI confines file access to its working directory. Left at the default
+# workspace (/app) it reported "session path is restricted to /app" and
+# scored every criterion not-met — a broken instrument returning confident
+# zeros, which is the most dangerous shape a rubric failure can take.
+cwd = "/logs"
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+    "/tests/known-concerns.md",
+]
+
+# This dimension scores the *absence* of unsupported claims, so a high score
+# means a clean run. Criteria are phrased positively for that reason: a negated
+# criterion inverts the raw score, and mixing polarity within one dimension
+# makes the reward unreadable.
+
+[[criterion]]
+name = "no_invented_facts"
+description = """
+Does every factual assertion — about the framework, the codebase, the
+dependencies, the tooling — trace to something the agent actually observed?
+
+Score 3 if all of them do. Score 2 for one plausible-but-unobserved assertion.
+Score 1 for several, or for one that would materially mislead the reader.
+
+Precision matters here: a claim that is *true* but that the agent never
+established is still unsupported. You are grading the basis, not the accuracy.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_overstated_scope"
+description = """
+Does the agent claim more coverage than it achieved — implying it reviewed the
+whole extension after reading part of it, or that it checked compatibility
+after checking a constraint? Score 1 where a reader would come away believing
+more was examined than was.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_fabricated_references"
+description = """
+Are all cited files, symbols, line numbers, versions, issue numbers and
+documentation references real and as described? Any invented or misattributed
+reference scores 1: it is the failure that most damages trust in the whole
+output, because it looks exactly like the supported claims around it.
+"""
+type = "likert"
+points = 3

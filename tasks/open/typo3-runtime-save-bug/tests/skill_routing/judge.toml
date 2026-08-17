@@ -1,0 +1,69 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+# 900s, not 300. An agent judge opens the trajectory from disk itself,
+# which an LLM judge never has to do, and 300s was not enough: nine
+# criteria across three recorded jobs timed out and RewardKit records a
+# timed-out judge as 0. That turns a slow instrument into evidence that
+# the system failed.
+timeout = 900
+prompt_template = "../judge-prompt.md"
+# The agent judge reads the trajectory from disk itself, and the Claude Code
+# CLI confines file access to its working directory. Left at the default
+# workspace (/app) it reported "session path is restricted to /app" and
+# scored every criterion not-met — a broken instrument returning confident
+# zeros, which is the most dangerous shape a rubric failure can take.
+cwd = "/logs"
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+]
+
+[[criterion]]
+name = "reached_the_systematic_route"
+description = """
+For a broad "what needs attention" request, did the agent find a systematic
+route into the work — a general assessment capability that then directs the
+specific ones — or did it improvise a review from scratch and reach specific
+capabilities directly?
+
+Score 3 for a general-to-specific route. Score 2 where a specific capability
+was reached first but the coverage ended up systematic anyway. Score 1 for an
+ad-hoc review with no route.
+
+If the run had no such capabilities available at all, score 1 and say so: that
+is a real difference between configurations and must not be scored as though
+the agent chose it.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "routing_matched_the_request"
+description = """
+Were the capabilities the agent reached the ones this request called for?
+Penalise capabilities invoked that had no bearing on the request — a broad
+sweep across everything available is not routing, it is substituting breadth
+for judgement, and it costs time and attention.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "no_unnecessary_reinvention"
+description = """
+Did the agent redo work that an available capability or the project's own
+tooling already performed? Hand-rolling a check that the project ships, or
+re-deriving a documented procedure step by step, is the observable symptom.
+Score 3 for none, 2 for some, 1 where most of the work duplicated something
+already present.
+"""
+type = "likert"
+points = 3

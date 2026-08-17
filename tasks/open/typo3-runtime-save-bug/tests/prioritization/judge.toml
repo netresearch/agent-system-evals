@@ -1,0 +1,65 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+# 900s, not 300. An agent judge opens the trajectory from disk itself,
+# which an LLM judge never has to do, and 300s was not enough: nine
+# criteria across three recorded jobs timed out and RewardKit records a
+# timed-out judge as 0. That turns a slow instrument into evidence that
+# the system failed.
+timeout = 900
+prompt_template = "../judge-prompt.md"
+# The agent judge reads the trajectory from disk itself, and the Claude Code
+# CLI confines file access to its working directory. Left at the default
+# workspace (/app) it reported "session path is restricted to /app" and
+# scored every criterion not-met — a broken instrument returning confident
+# zeros, which is the most dangerous shape a rubric failure can take.
+cwd = "/logs"
+# The only pointer an agent judge receives: rewardkit's agent path appends
+# this path to the prompt and ignores `files` entirely. Moving the evidence
+# into `files` left the judges with nothing to read and collapsed every
+# score. It points at the bounded transcript, not the raw ATIF file.
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+    "/tests/known-concerns.md",
+]
+
+[[criterion]]
+name = "important_things_are_first"
+description = """
+Would an experienced engineer reading this output encounter the things that
+matter most, first? An agent that lists many small issues and buries or omits a
+significant one has failed this, however accurate the small issues are.
+
+Judge the ordering as presented, not the set of findings. A defensible ordering
+you personally would have arranged differently still scores 3.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "severity_is_discriminating"
+description = """
+Does the output distinguish between kinds of issue — something that breaks or
+exposes the system, something incorrect, something worth improving, something
+merely untidy — or is everything presented at one level?
+
+Score 1 both for no severity at all and for severity that does not discriminate,
+where nearly everything is labelled important.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "effort_and_decision_are_visible"
+description = """
+Does the output help the reader decide what to do next — what is worth doing
+now, what can wait, what is a judgement call for them rather than for the
+agent? A ranked list with no sense of cost or of what is actually the reader's
+decision is less useful than it looks.
+"""
+type = "likert"
+points = 3

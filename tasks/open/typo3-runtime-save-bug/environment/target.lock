@@ -1,0 +1,34 @@
+# Pinned target for OFR-TYPO3-RUNTIME-001.
+#
+# A real extension at the commit immediately before a reported production
+# defect was fixed. Nothing was modified for the benchmark: the defect is the
+# repository's own, at the commit where it was present.
+#
+# The defect is why this case is a runtime case. It is invisible in the files:
+# saving a translation through the backend module silently inserts an orphaned
+# row instead of updating, and every later save then collides with a unique
+# key. Nothing in the checkout says that. The behaviour exists only when the
+# module runs against a database.
+#
+# Format is shell-sourceable KEY=value so the build can read it without a TOML
+# parser in the image.
+
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-nr-textdb.git
+TARGET_COMMIT=9c40a04ec935350aa7ddbbd802ea85b889eeb3ff
+TARGET_PACKAGE=netresearch/nr-textdb
+TARGET_EXTENSION_KEY=nr_textdb
+TARGET_TYPE=typo3-cms-extension
+
+# The line the extension declares at this commit. One line only, so the
+# instance is unambiguous.
+TYPO3_LINE=13.4
+
+# The instance the recipe builds. Taken from the target's own DDEV command
+# rather than invented, so the installation under test is the one its
+# developers work against — see docs/adr/0006-runtime-fidelity.md.
+SITE_IDENTIFIER=textdb
+INSTANCE_DIR=/instance
+DB_NAME=typo3
+DB_USER=typo3
+DB_PASSWORD=typo3-benchmark-password
+DB_HOST=db

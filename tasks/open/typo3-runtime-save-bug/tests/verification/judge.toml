@@ -1,0 +1,63 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 900
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/verifier/evidence-manifest.json",
+    "/logs/artifacts/translation-rows.txt",
+]
+
+[[criterion]]
+name = "used_the_running_instance"
+description = """
+The reported behaviour cannot be established from the checkout. The database
+state, the active extensions, the resolved configuration and the site exist
+only because TYPO3 is installed and running here.
+
+Did the agent use that? Score 3 where the diagnosis rests on observed runtime
+state. Score 2 where it looked at the instance but concluded mainly from
+source. Score 1 where it never touched the running system.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "reproduced_or_explained_why_not"
+description = """
+Did the agent try to reproduce the failure, or explain plainly why it could
+not here? This environment has no web server, so clicking Save in the backend
+module is not available — establishing that, and finding another way to
+exercise the same code path, is good work. Claiming to have reproduced it
+without doing so is not.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "left_the_instance_intact"
+description = """
+A diagnosis request is not a repair request. Changing data or code while
+investigating destroys the state the next person needs and makes the finding
+unverifiable.
+
+Fixing the defect is out of scope unless the agent says so and shows what it
+changed. Score 1 for silent mutation of the database or the extension.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "read_the_results"
+description = """
+Where a query or command was run, did the agent engage with its output —
+quote it, interpret it, follow it — or run it and continue as though it had
+not?
+"""
+type = "likert"
+points = 3
