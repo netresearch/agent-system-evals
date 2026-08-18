@@ -53,6 +53,23 @@ RUN chmod +x /usr/local/bin/check-matrix && check-matrix /tmp/target/target.lock
 COPY run-matrix-leg.sh /usr/local/bin/run-matrix-leg
 RUN chmod +x /usr/local/bin/run-matrix-leg
 
+# The TYPO3 Dev Companion's MCP server, for the fleets that use it. It is a PHP
+# process the client launches over stdio, so it has to live inside the
+# container; only the MCP config that points at it varies per fleet. The code
+# therefore sits in the image for every fleet, including the ones that never
+# reach it — the same small confound the other cases state. Nothing registers
+# it, no skill mentions it, and no path leads to it from /app.
+#
+# Without this the companion fleets would receive their skills and a config
+# pointing at a file that does not exist, and the arm would silently measure
+# companion-skills-without-a-server. `scripts/validate-tasks` checks for it.
+ARG COMPANION_REF=845c0c633ae921962387f38b8e941ede4d26d1a3
+RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion \
+    && git -C /opt/typo3-dev-companion checkout -q "$COMPANION_REF" \
+    && cd /opt/typo3-dev-companion \
+    && composer install --no-interaction --no-progress --no-ansi --quiet \
+    && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
+
 RUN mkdir -p /logs/artifacts
 
 # Build-time input only. Leaving it in the image would put the target's forge

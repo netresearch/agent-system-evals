@@ -179,6 +179,58 @@ def companion_was_reached(job_dir: Path) -> tuple[int, int]:
     return reached, total
 
 
+# A trial of this benchmark takes minutes and a fleet takes hours, while a
+# subscription token is valid for a couple of hours and is *revoked* the moment
+# Claude Code refreshes it. A run started with a token near the end of its life
+# therefore dies partway through with
+# `401 OAuth access token has been revoked` — and dies per trial, so the job
+# still reports a mixture of completed and errored trials rather than failing
+# outright. That mixture is the dangerous part: three graded trials beside
+# three dead ones look like a fleet that scored worse, not like a run that lost
+# its credential halfway.
+#
+# So the check is up front, where a warning still costs nothing.
+CREDENTIALS = Path.home() / ".claude" / ".credentials.json"
+# Generous: an agent trial plus up to four batches of judges at 900s each.
+MINUTES_PER_TRIAL = 25
+
+
+def token_expiry(token: str) -> datetime | None:
+    """When the running Claude Code session's token expires, if that is knowable."""
+    try:
+        stored = json.loads(CREDENTIALS.read_text())["claudeAiOauth"]
+    except (OSError, KeyError, json.JSONDecodeError):
+        return None
+    # Only meaningful if the caller passed the very token this file describes;
+    # a token from `claude setup-token` is long-lived and unrelated.
+    if stored.get("accessToken") != token or not stored.get("expiresAt"):
+        return None
+    return datetime.fromtimestamp(stored["expiresAt"] / 1000, tz=timezone.utc)
+
+
+def check_token_outlives_the_run(token: str, args: argparse.Namespace) -> None:
+    expiry = token_expiry(token)
+    if expiry is None:
+        return
+
+    remaining = (expiry - datetime.now(timezone.utc)).total_seconds() / 60
+    needed = args.trials * MINUTES_PER_TRIAL
+    if remaining >= needed:
+        return
+
+    message = (
+        f"The session token expires in {remaining:.0f} min; "
+        f"{args.trials} trials need roughly {needed} min. It is revoked on "
+        "refresh, so trials past that point fail with a 401 and the job "
+        "reports them as errored trials rather than as a credential problem.\n"
+        "Re-read the token, or run fewer trials per invocation."
+    )
+    if args.dry_run:
+        print(f"warning: {message}", file=sys.stderr)
+        return
+    sys.exit(message)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("case_id")
@@ -215,6 +267,8 @@ def main() -> int:
             "ANTHROPIC_API_KEY (billed per token). Both the agent and the "
             "verifier's judge use whichever is present."
         )
+
+    check_token_outlives_the_run(oauth_token, args)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     job_name = f"{args.case_id}-{args.fleet}-{stamp}"

@@ -38,6 +38,51 @@ REQUIRED_METADATA = (
 )
 
 
+def companion_pin() -> str | None:
+    """The commit the companion fleets are pinned to, if that fleet exists."""
+    import yaml
+
+    fleet = ROOT / "fleets" / "companion.yaml"
+    if not fleet.exists():
+        return None
+    return (yaml.safe_load(fleet.read_text()) or {}).get("companion", {}).get("ref")
+
+
+def check_companion_server(case_dir: Path, label: Path, problems: list[str]) -> None:
+    """Every case must be able to host the companion, at the fleet's commit.
+
+    The companion's MCP server is a PHP process the client starts over stdio, so
+    it lives in the agent image while only the config pointing at it varies per
+    fleet. A case that omits it still *runs* the companion fleets: they get the
+    skills and a config aimed at a path that does not exist, and the result is
+    an arm labelled `companion` that measured companion-without-a-server.
+
+    Nothing failed when this happened — the trials completed and produced
+    scores. So it is checked here rather than discovered in a results table.
+    """
+    ref = companion_pin()
+    if ref is None:
+        return
+
+    dockerfile = case_dir / "environment" / "Dockerfile"
+    if not dockerfile.exists():
+        return
+    text = dockerfile.read_text()
+
+    if "typo3-dev-companion" not in text:
+        problems.append(
+            f"{label}: environment/Dockerfile does not install the companion's "
+            f"MCP server, but fleets/companion.yaml exists — the companion "
+            f"fleets would run against a server that is not there"
+        )
+    elif ref not in text:
+        problems.append(
+            f"{label}: the companion server in environment/Dockerfile is not "
+            f"pinned to {ref[:12]}, the commit fleets/companion.yaml pins its "
+            f"skills to; skills and server would come from different versions"
+        )
+
+
 def main() -> int:
     problems: list[str] = []
     checked = 0
@@ -47,6 +92,7 @@ def main() -> int:
         label = case_dir.relative_to(ROOT)
         checked += 1
         paths = TaskPaths(case_dir)
+        check_companion_server(case_dir, label, problems)
 
         # Harbor's own validation, with the error surfaced instead of hidden.
         try:

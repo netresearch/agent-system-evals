@@ -45,7 +45,25 @@ RUN test -x vendor/bin/typo3 \
     && test -d vendor/netresearch/nr-textdb \
     && composer show netresearch/nr-textdb >/dev/null
 
-RUN mkdir -p /logs/artifacts
+# The TYPO3 Dev Companion's MCP server, for the fleets that use it. It is a PHP
+# process the client launches over stdio, so it has to live inside the
+# container; only the MCP config that points at it varies per fleet. The code
+# therefore sits in the image for every fleet, including the ones that never
+# reach it — the same small confound the review case states, kept identical here
+# so the two cases are read the same way. Nothing registers it, no skill
+# mentions it, and no path leads to it from the instance.
+#
+# Without this the companion fleets would receive their skills and an MCP config
+# pointing at a file that does not exist: an arm that looks like "companion" and
+# measures companion-skills-without-a-server. `scripts/run-evaluation` counts
+# `typo3_` tool calls per trial for exactly that reason.
+ARG COMPANION_REF=845c0c633ae921962387f38b8e941ede4d26d1a3
+RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion \
+    && git -C /opt/typo3-dev-companion checkout -q "$COMPANION_REF" \
+    && cd /opt/typo3-dev-companion \
+    && composer install --no-interaction --no-progress --no-ansi --quiet \
+    && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
 
+RUN mkdir -p /logs/artifacts
 
 WORKDIR /instance

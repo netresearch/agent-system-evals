@@ -1,6 +1,6 @@
 # Instrument failures
 
-Six ways this benchmark measured the wrong thing while looking like it was
+Eight ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -97,6 +97,38 @@ collapsed again.
 **Fix:** `atif-trajectory` points at the bounded transcript — the one channel
 that reaches an agent judge. **Guard:** `scripts/validate-rubric` rejects an
 agent judge that has no pointer.
+
+## 7. A revoked credential, reported as three bad trials
+
+The runtime case's `companion` and `nr-companion` fleets came back as three
+graded trials beside three errored ones. Read as a result, that is a fleet
+performing worse. It was not: the trials that died carry
+`401 OAuth access token has been revoked`.
+
+A subscription token lives about two hours and is revoked the moment Claude
+Code refreshes it. A fleet of three runtime trials takes longer than that, and
+the token was read once at launch — so the run outlived its own credential.
+Because Harbor reports per trial, the job did not fail; it reported a mixture,
+and a mixture looks like data.
+
+**Fix:** `scripts/run-evaluation` refuses to start when the session token
+expires sooner than the run is expected to take, and says so instead of
+producing half a fleet. **Guard:** the check is exercised in three directions —
+it fires on a short-lived token, stays silent on a healthy one, and stays
+silent on a token the credentials file does not describe.
+
+## 8. A session limit, arriving as a zero
+
+The re-run then produced `ApiRateLimitError` on all six trials and a mean of
+`0.0000`. The number is well-formed and entirely meaningless: `You've hit your
+session limit · resets 2:50am (UTC)`.
+
+No fix belongs in the code for this one — it is a quota, not a defect. It
+belongs here because of its shape. Both this and the failure above arrive as
+plausible numbers rather than as errors, and both would have been published as
+fleet differences by anyone reading only the metrics block. **The habit that
+catches them is the same one at the end of this file: a dimension that moves
+when nothing about the agent changed is a question about the instrument.**
 
 ## What this cost, and what it teaches
 
