@@ -202,7 +202,15 @@ def mcp_was_reached(job_dir: Path, server: str) -> tuple[int, int]:
     prefix = f"mcp__{server}__"
     reached = 0
     total = 0
-    for path in sorted(job_dir.glob("**/agent/trajectory.json")):
+    # One trajectory per trial, at the trial's own `agent/` path. A recursive
+    # glob counts each trial twice: Harbor writes the file once there and again
+    # under `artifacts/logs/agent/`, so this reported "4 of 6" for a job of
+    # three trials — a ratio that cannot occur, printed as a warning about the
+    # tool rather than about the counter.
+    for trial_dir in sorted(p for p in job_dir.iterdir() if p.is_dir()):
+        path = trial_dir / "agent" / "trajectory.json"
+        if not path.is_file():
+            continue
         total += 1
         try:
             trajectory = json.loads(path.read_text())
@@ -347,6 +355,21 @@ def main() -> int:
         "-o",
         args.jobs_dir,
         "--yes",
+        # Harbor retries nothing by default, and a trial that dies on a
+        # transient API fault is not dropped — it is kept, scored zero, and
+        # averaged into the fleet's metrics. One such trial pulled a companion
+        # arm down to means of 0.2–0.3, which reads as a catastrophically bad
+        # tool rather than as a lost credential.
+        #
+        # Only transport faults are retried. An environment failure, a missing
+        # reward file or a broken rubric must surface as itself; retrying those
+        # would hide a defect in the case behind a second attempt.
+        "--max-retries",
+        "2",
+        "--retry-include",
+        "ApiRateLimitError",
+        "--retry-include",
+        "UnknownApiError",
     ]
     for skill in skills:
         command += ["--skill", skill]
