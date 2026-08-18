@@ -57,11 +57,7 @@ handed this ticket receives exactly this state anyway.
 
 ## Results
 
-Not yet run. Nothing is recorded here until it is.
-
-```
-./scripts/run-evaluation OFR-TYPO3-RUNTIME-001 --fleet control
-./scripts/run-evaluation OFR-TYPO3-RUNTIME-001 --fleet nr
-./scripts/run-evaluation OFR-TYPO3-RUNTIME-001 --fleet companion
-./scripts/compare jobs/<a> jobs/<b>
-```
+See [RESULTS.md](RESULTS.md). In short: every agent in every fleet found the
+root cause and established it against the running instance, no tool stack made
+a difference beyond noise, and all of them left the same gap — they see the
+orphaned row and never tell the developer to remove it.
