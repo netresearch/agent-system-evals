@@ -27,13 +27,17 @@ Both MCP servers answered in 3 of 3 trials of their arm.
 | context_discovery | 3/3 (0.90) | 3/3 (0.88) | 3/3 (0.88) | **1/3 (0.69)** |
 | skill_routing | 0/3 (0.36) | 0/3 (0.36) | 0/3 (0.39) | 0/3 (0.39) |
 
-## Cost — median per trial, agent side
+## Cost — per trial, agent side
+
+Three trials, so every trial is shown. A median alone would be read as a
+measurement here, and it is not one.
 
 | | control | nr | companion | dev-mcp |
 |---|---|---|---|---|
-| tool calls | 93 | 106 | 68 | **49** |
-| wall time | 1157 s | 1394 s | 967 s | **899 s** |
-| agent cost | $6.76 | $8.33 | $4.10 | **$3.18** |
+| tool calls (median) | 93 | 106 | 68 | 49 |
+| wall time (median) | 1157 s | 1394 s | 967 s | 899 s |
+| agent cost, each trial | 2.99 / 6.76 / 8.21 | 7.17 / 8.33 / 19.11 | 3.83 / 4.10 / 6.25 | 2.72 / 3.18 / 8.22 |
+| range | $2.99–8.21 | $7.17–19.11 | $3.83–6.25 | $2.72–8.22 |
 
 ## What this shows
 
@@ -48,28 +52,36 @@ show what better tooling is worth, however good the tooling is. The same holds
 for the upgrade case, where `control` widened the constraints and passed 719
 tests on both TYPO3 lines at the first attempt.
 
-**Where the arms do separate is cost, and there the spread is large.**
-`dev-mcp` runs the case for **53% of what `control` costs**, with 47% fewer
-tool calls. That is an independent replication of the vendor's own published
-figure — they report 53% cheaper and 60% fewer turns on live-state questions,
-measured on their own harness, and this benchmark reproduces it on a case they
-did not write.
+**Cost does not separate them either, at this trial count.** The medians
+suggest it does — `dev-mcp` at 47% of control, `companion` at 61%, `nr` at
+123% — and the per-trial figures show why that reading fails: the spread
+*inside* each arm swallows the difference between them. Control alone runs
+from $2.99 to $8.21, a factor of 2.7 on identical inputs, and `dev-mcp`'s
+range of $2.72–8.22 covers virtually the same ground.
 
-`companion` lands between the two at 61% of control's cost. Note the direction
-against the review case, where the same companion cost **three times** what
-control did: a tool that pays for itself on a runtime question and not on a
-repository question is a finding about where it fits.
+Stated plainly because it was published the other way first: the median gap
+was written up here as a 53% saving that independently replicated the vendor's
+own figure. It does not. Three trials with that variance cannot carry the
+claim, and the same one-trial caution applied to every quality column has to
+apply to the cost column.
 
-`nr` is the only arm that costs *more* than control here — 23% more, for the
-same result. Its skills were never invoked (see below), so what is being paid
-for is the description of eight skills on every request.
+What survives is weaker and worth keeping: `companion` is the only arm whose
+range is both narrow and low ($3.83–6.25), and `nr` the only one whose *whole*
+range sits above control's median. Neither is a result yet. Cost is now the
+only dimension with any headroom left on this case, which makes it the one
+worth spending trials on.
 
-**The cheapest arm is also the least grounded, and the two are the same fact.**
+The direction against the review case still stands on its own numbers: there
+the same companion cost **three times** what control did. A tool that looks
+cheap on a runtime question and expensive on a repository question is a
+finding about where it fits, even before the runtime figure is settled.
+
+**The arm with the fewest tool calls is also the least grounded.**
 `context_discovery` is mechanical, not a judgement: it checks whether the agent
 read the package manifest, the source, and the project's own documentation.
 The `dev-mcp` arm read the project documentation in **none** of its three
-trials. It did not need to — it asked the running system instead, which is
-precisely how it saves half the money.
+trials. It asked the running system instead — the same behaviour that produces
+its low call count.
 
 Whether that is a defect depends on what the documentation holds that the
 server cannot report: conventions, intent, known problems. On this case it cost
