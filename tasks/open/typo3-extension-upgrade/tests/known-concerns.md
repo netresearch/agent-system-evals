@@ -11,7 +11,6 @@ could ever clear. Text that helps on a repository the agent has never seen is
 a learning by docs/contamination.md's own test; only target identity goes
 here. -->
 
-
 **This file must never reach the agent environment.** It is copied into the
 verifier container with `tests/`, which the agent cannot read. Checked by
 `scripts/contamination-check`.

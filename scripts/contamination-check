@@ -158,11 +158,18 @@ def case_decisions() -> dict[tuple[str, str, str, str, str], str]:
             continue
         for entry in yaml.safe_load(path.read_text()) or []:
             # A malformed decision silently accepting nothing would read as
-            # safety; refuse it loudly instead.
-            if not all(str(entry.get(k, "")).strip() for k in required):
+            # safety; refuse it loudly instead. Fields must be strings: a
+            # YAML null passes a truthiness check as the string "None", and
+            # an unquoted number (a Forge issue used as a marker, say)
+            # parses as int and then never matches the string it was meant
+            # to accept.
+            if not isinstance(entry, dict) or not all(
+                isinstance(entry.get(k), str) and entry[k].strip()
+                for k in required
+            ):
                 sys.exit(
                     f"{path.relative_to(ROOT)}: decision needs non-empty "
-                    f"{', '.join(required)}: {entry}"
+                    f"string {', '.join(required)}: {entry}"
                 )
             key = (
                 case_id,
@@ -171,6 +178,12 @@ def case_decisions() -> dict[tuple[str, str, str, str, str], str]:
                 entry["path"],
                 entry["marker"],
             )
+            if key in decisions:
+                sys.exit(
+                    f"{path.relative_to(ROOT)}: duplicate decision for "
+                    f"{entry['skill']}@{entry['ref']}: {entry['path']} / "
+                    f"{entry['marker']!r}"
+                )
             decisions[key] = entry["reason"]
 
     return decisions
@@ -226,9 +239,11 @@ def main() -> int:
     hits: list[str] = []
     accepted: list[str] = []
     used: set[tuple[str, str, str, str, str]] = set()
+    fetched: set[tuple[str, str]] = set()
     for repo, ref in skills:
         try:
             files = fetch_skill(repo, ref)
+            fetched.add((repo, ref))
         except Exception as exc:  # noqa: BLE001
             # An unreachable skill is an unchecked skill. Reporting this as a
             # pass would be the worst outcome: silence that reads as safety.
@@ -270,11 +285,10 @@ def main() -> int:
     # A decision that no longer matches anything while its skill@ref was
     # scanned is dead configuration — the case's marker list changed under it.
     # Not fatal: decisions for skills outside this fleet are expected to sit
-    # idle, and content at a pinned ref cannot change.
-    scanned = set(skills)
+    # idle, and content at a pinned ref cannot change without moving the tag.
     for key, _reason in decisions.items():
         case_id, repo, ref, path, marker = key
-        if (repo, ref) in scanned and key not in used:
+        if (repo, ref) in fetched and key not in used:
             print(
                 f"warning: unused decision for {repo}@{ref}: {path} / "
                 f"{marker!r} (case {case_id})",
