@@ -51,6 +51,33 @@ It runs in CI on every pull request and before every recorded evaluation. It
 scans the *resolved* fleet — the commits Harbor actually injected, read back
 from the job lock — because scanning a manifest proves only what was intended.
 
+## Recording a decision
+
+A reported hit needs the test above applied by a human, and the check has a
+place to keep the outcome. A hit judged a learning is recorded in the case's
+`tests/contamination-decisions.yaml`, one entry per skill file and marker,
+with the reason:
+
+```yaml
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.0
+  path: typo3-testing-skill-5.20.0/skills/typo3-testing/references/functional-test-patterns.md
+  marker: netresearch/contexts
+  reason: Source attribution on generalized guidance; no case finding stated.
+```
+
+The check skips recorded hits and prints what it skipped. A decision is
+pinned to the skill ref it was judged at: moving a fleet to a new version
+lapses it, and the new version's text is judged fresh.
+
+A hit judged contamination is never recorded — the skill is fixed instead. A
+recurring shape worth naming: a skill reference that attributes generalized
+guidance to its source repository trips the check the moment that repository
+becomes a target. The guidance is a learning; the attribution is the problem,
+and the durable fix is to generalize it in the skill — a learning that needs
+its origin's name was never a learning. Record the decision to unblock the
+fleet as pinned, and drop the entry when the fleet moves past it.
+
 ## Holdout
 
 The public dataset is developed against and will drift toward being solved. A

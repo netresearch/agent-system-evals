@@ -1,0 +1,46 @@
+# Recorded human decisions on contamination-check hits for this case.
+#
+# Every entry is a hit that scripts/contamination-check reported and a human
+# judged a learning by the test in docs/contamination.md: the text helps an
+# agent on a repository it has never seen. An entry is pinned to the skill ref
+# it was judged at — bumping the skill in a fleet lapses the decision, and the
+# new version's text is judged fresh. A hit judged contamination is never
+# recorded here; the skill is fixed instead.
+#
+# All five entries are the same shape: a source-attribution or example line
+# that names the target repository next to generalized guidance. The guidance
+# predates this case (2024-12 provenance, v11→v12/v13 era), states none of
+# the case's findings, and applies to any TYPO3 extension. The attribution
+# itself should still be generalized in the skills — a learning that needs
+# its origin's name was never a learning — and these entries retire when the
+# fleet moves to skill versions that have done so.
+
+- skill: netresearch/automated-assessment-skill
+  ref: v2.14.0
+  path: automated-assessment-skill-2.14.0/README.md
+  marker: netresearch/contexts
+  reason: Example project name in a JSON config snippet; no finding stated.
+
+- skill: netresearch/automated-assessment-skill
+  ref: v2.14.0
+  path: automated-assessment-skill-2.14.0/skills/automated-assessment/references/checkpoint-workflow.md
+  marker: netresearch/contexts
+  reason: Example project name in a JSON config snippet; no finding stated.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.18.0
+  path: typo3-conformance-skill-2.18.0/skills/typo3-conformance/references/dual-version-compatibility.md
+  marker: netresearch/contexts
+  reason: Source attribution on 12.4/13.4 dual-version guidance from 2024-12; generalized content, no case finding.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.0
+  path: typo3-testing-skill-5.20.0/skills/typo3-testing/references/functional-test-patterns.md
+  marker: netresearch/contexts
+  reason: Source attribution on functional-test patterns from 2024-12; generalized content, no case finding.
+
+- skill: netresearch/typo3-extension-upgrade-skill
+  ref: v3.11.0
+  path: typo3-extension-upgrade-skill-3.11.0/skills/typo3-extension-upgrade/references/real-world-patterns.md
+  marker: netresearch/contexts
+  reason: Source attribution on v11-to-v12/v13 upgrade patterns from 2024-12; generalized content, no case finding.
