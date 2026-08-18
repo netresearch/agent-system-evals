@@ -13,18 +13,18 @@ skills:
   # CHANGE UNDER STUDY — replace the ref below, keep everything else identical
   # to fleets/nr.yaml.
   - repo: netresearch/automated-assessment-skill
-    ref: v2.14.0
+    ref: v2.15.1
   - repo: netresearch/agent-harness-skill
     ref: v1.7.1
 
   - repo: netresearch/typo3-conformance-skill
-    ref: v2.18.0
+    ref: v2.19.1
   - repo: netresearch/typo3-testing-skill
-    ref: v5.20.0
+    ref: v5.20.2
   - repo: netresearch/typo3-docs-skill
     ref: v2.16.0
   - repo: netresearch/typo3-extension-upgrade-skill
-    ref: v3.11.0
+    ref: v3.11.1
 
   - repo: netresearch/php-modernization-skill
     ref: v1.22.0
