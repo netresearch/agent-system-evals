@@ -1,0 +1,36 @@
+name: dev-mcp
+description: balatD/typo3-dev-mcp only — its MCP server against the running instance
+
+# No skills. This tool has none: it is a TYPO3 extension that exposes the
+# running installation over MCP — TCA, database schema, sites, TypoScript,
+# logs, the core changelog — and that is its whole delivery mechanism.
+skills: []
+
+# The server is a console command of the instance under test, so it lives in
+# the environment image like the companion's does, and only this config varies
+# per fleet. `scripts/validate-tasks` requires every runtime case to install
+# the package at the pin below.
+#
+# Runtime cases only. The package requires typo3/cms-core and answers by
+# querying a booted TYPO3; in a repository-level case there is nothing for it
+# to read, and scoring it there would produce a bad number for a reason that
+# has nothing to do with its quality.
+requires: runtime
+
+package: balatd/typo3-dev-mcp:v0.1.0-alpha.8
+
+mcp:
+  name: typo3-dev-mcp
+  command: /instance/vendor/bin/typo3
+  args: ["devmcp:serve"]
+
+# Stated asymmetry, because it understates this arm rather than flattering it:
+# the vendor's own setup (`typo3 devmcp:install`) registers the server *and*
+# writes a guidelines file into the project, linked from CLAUDE.md, which is
+# then always-on context. This arm installs only the server.
+#
+# The reason is mechanical: Harbor's per-fleet channel is skill injection, and
+# a guideline is not a skill — wrapping it as one would change it from context
+# the agent always has into a document it must decide to open, which is a
+# different intervention wearing the same name. Measuring the guidelines
+# variant needs a second arm, not a silent substitution here.

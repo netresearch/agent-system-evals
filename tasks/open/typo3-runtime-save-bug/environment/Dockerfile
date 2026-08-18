@@ -64,6 +64,24 @@ RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-compa
     && composer install --no-interaction --no-progress --no-ansi --quiet \
     && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
 
+# balatD/typo3-dev-mcp, for the fleet that uses it. Unlike the companion this
+# is a TYPO3 extension: it answers by querying the booted instance, so it has
+# to be installed *into* the instance rather than beside it, and it is
+# therefore present in the instance for every fleet — only the MCP config that
+# registers its server varies. `extension:setup` at container start activates
+# it along with everything else.
+#
+# What that costs in fidelity is bounded and worth stating: the package ships
+# no TCA, no ext_tables.sql and no ext_localconf.php, so the data model, the
+# schema and the request chain of the instance under diagnosis are unchanged.
+# What every arm does see is one additional dev extension in the extension
+# list. Keeping it out of the other arms would be worse — then the fleets would
+# differ by the instance as well as by the tooling.
+ARG DEV_MCP_VERSION=v0.1.0-alpha.8
+RUN composer require --dev --no-interaction --no-progress --no-ansi \
+        "balatd/typo3-dev-mcp:$DEV_MCP_VERSION" \
+    && test -f /instance/vendor/balatd/typo3-dev-mcp/composer.json
+
 RUN mkdir -p /logs/artifacts
 
 WORKDIR /instance

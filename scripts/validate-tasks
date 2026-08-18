@@ -48,6 +48,51 @@ def companion_pin() -> str | None:
     return (yaml.safe_load(fleet.read_text()) or {}).get("companion", {}).get("ref")
 
 
+def check_runtime_mcp_servers(
+    case_dir: Path, label: Path, config: dict, problems: list[str]
+) -> None:
+    """A fleet that declares `requires: runtime` must be installable here.
+
+    Same failure as the companion's, one level further in: a runtime fleet
+    whose package is missing from the image produces trials that are
+    indistinguishable from a control run, and nothing fails while it happens.
+    Repository-level cases are exempt by the fleet's own declaration, because
+    a server that reads a booted TYPO3 has nothing to answer from a checkout.
+    """
+    import yaml
+
+    if not config.get("metadata", {}).get("runtime"):
+        return
+
+    dockerfile = case_dir / "environment" / "Dockerfile"
+    if not dockerfile.exists():
+        return
+    text = dockerfile.read_text()
+
+    for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
+        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        if fleet.get("requires") != "runtime":
+            continue
+        package = fleet.get("package")
+        if not package:
+            problems.append(
+                f"fleets/{fleet_path.name}: requires runtime but names no "
+                f"package, so nothing can check that a case installs it"
+            )
+            continue
+        name, _, version = package.partition(":")
+        if name not in text:
+            problems.append(
+                f"{label}: runtime case does not install {name}, required by "
+                f"fleets/{fleet_path.name}; that arm would be a control run"
+            )
+        elif version and version not in text:
+            problems.append(
+                f"{label}: installs {name} at a version other than {version}, "
+                f"which fleets/{fleet_path.name} pins"
+            )
+
+
 def check_companion_server(case_dir: Path, label: Path, problems: list[str]) -> None:
     """Every case must be able to host the companion, at the fleet's commit.
 
@@ -114,6 +159,7 @@ def main() -> int:
 
         # Repository rules.
         raw = tomllib.loads(config_path.read_text())
+        check_runtime_mcp_servers(case_dir, label, raw, problems)
         if raw.get("schema_version") != "1.4":
             problems.append(f"{label}: schema_version is not 1.4")
 

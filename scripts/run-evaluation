@@ -149,18 +149,57 @@ def load_companion(name: str) -> tuple[Path, Path] | None:
     return cache / "skills", cache / "mcp.json"
 
 
-def companion_was_reached(job_dir: Path) -> tuple[int, int]:
-    """How many recorded trials actually called a companion tool.
+def load_mcp_server(name: str) -> tuple[str, Path] | None:
+    """An MCP server that lives in the environment image, if the fleet has one.
+
+    Returns (server name, written config). Unlike the companion there is
+    nothing to materialise: the server is a console command of the instance
+    under test, installed into the image for every fleet so that only this
+    config varies between arms.
+    """
+    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    server = fleet.get("mcp")
+    if not server:
+        return None
+
+    for key in ("name", "command"):
+        if not server.get(key):
+            sys.exit(f"fleets/{name}.yaml: mcp has no {key}")
+
+    config = {
+        "mcpServers": {
+            server["name"]: {
+                "type": "stdio",
+                "command": server["command"],
+                "args": list(server.get("args") or []),
+            }
+        }
+    }
+    path = ROOT / ".cache" / "mcp" / f"{name}.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(config, indent=4) + "\n")
+    return server["name"], path
+
+
+def mcp_was_reached(job_dir: Path, server: str) -> tuple[int, int]:
+    """How many recorded trials actually called a tool of *server*.
 
     The companion's own skills stop on the first turn when its server is not
-    answering — "no `typo3_` tool in this session … stop, say this workflow
-    needs the server and it is not there". A mis-installed server therefore
-    produces trials that look like a catastrophically bad tool rather than like
-    a broken harness, and nothing downstream can tell the two apart.
+    answering — "no tool in this session … stop, say this workflow needs the
+    server and it is not there". A mis-installed server therefore produces
+    trials that look like a catastrophically bad tool rather than like a broken
+    harness, and nothing downstream can tell the two apart.
 
     So this counts them. It is a validity check, not a score: a fleet that was
     never active did not lose, it did not run.
+
+    Matched on the client's own prefix, `mcp__<server>__`, rather than on a
+    guess at the tool names. Guessing was tried: `typo3_` matches the
+    companion's tools and none of typo3-dev-mcp's, which are `site_info`,
+    `database_query` and the like behind a hyphenated server name — so the
+    check would have reported a working arm as never reached.
     """
+    prefix = f"mcp__{server}__"
     reached = 0
     total = 0
     for path in sorted(job_dir.glob("**/agent/trajectory.json")):
@@ -174,7 +213,7 @@ def companion_was_reached(job_dir: Path) -> tuple[int, int]:
             for step in trajectory.get("steps", [])
             for call in (step.get("tool_calls") or [])
         )
-        if any("typo3_" in name for name in calls):
+        if any(name.startswith(prefix) for name in calls):
             reached += 1
     return reached, total
 
@@ -252,6 +291,13 @@ def main() -> int:
     case_dir = find_case(args.case_id)
     skills = load_fleet(args.fleet)
     companion = load_companion(args.fleet)
+    mcp_server = load_mcp_server(args.fleet)
+    if companion and mcp_server:
+        sys.exit(
+            f"fleets/{args.fleet}.yaml declares both a companion and an mcp "
+            f"server, and Harbor accepts a single --mcp-config. Merging the "
+            f"two configs is not implemented; a combined arm needs it."
+        )
     judge = rubric_judge(case_dir)
 
     # Either credential works, for the agent and for the judge alike. The
@@ -307,6 +353,8 @@ def main() -> int:
     if companion:
         skills_dir, mcp_config = companion
         command += ["--skill", str(skills_dir), "--mcp-config", str(mcp_config)]
+    if mcp_server:
+        command += ["--mcp-config", str(mcp_server[1])]
 
     using_subscription = bool(oauth_token) and not api_key
 
@@ -315,6 +363,8 @@ def main() -> int:
     if companion:
         published = len([p for p in companion[0].iterdir() if p.is_dir()])
         companion_note = f" + companion ({published} skill(s) and its MCP server)"
+    if mcp_server:
+        companion_note = f" + {mcp_server[0]} (MCP server, no skills)"
     print(f"fleet   {args.fleet}  ({len(skills)} skill(s)){companion_note}")
     print(f"agent   {args.agent} / {args.model}")
     print(f"judge   {judge}  (pinned in the rubric)")
@@ -369,6 +419,7 @@ def main() -> int:
                 if companion
                 else None
             ),
+            "mcp_server": mcp_server[0] if mcp_server else None,
             "agent": args.agent,
             "model": args.model,
             "judge": judge,
@@ -381,7 +432,7 @@ def main() -> int:
             "provenance_source": "harbor job lock",
         }
         if companion:
-            reached, total = companion_was_reached(job_dir)
+            reached, total = mcp_was_reached(job_dir, "typo3-dev-companion")
             snapshot["companion_reached_in_trials"] = f"{reached}/{total}"
             if total and reached == 0:
                 print(
@@ -394,6 +445,24 @@ def main() -> int:
             elif reached < total:
                 print(
                     f"\nWARNING: the companion answered in only {reached} of "
+                    f"{total} trial(s); the rest are not comparable with them.",
+                    file=sys.stderr,
+                )
+
+        if mcp_server:
+            reached, total = mcp_was_reached(job_dir, mcp_server[0])
+            snapshot["mcp_reached_in_trials"] = f"{reached}/{total}"
+            if total and reached == 0:
+                print(
+                    f"\nWARNING: no trial called a tool of {mcp_server[0]}. This "
+                    f"fleet is nothing but that server, so these {total} trial(s) "
+                    f"are indistinguishable from a control run. Do not report "
+                    f"them as a result for this arm.",
+                    file=sys.stderr,
+                )
+            elif reached < total:
+                print(
+                    f"\nWARNING: {mcp_server[0]} answered in only {reached} of "
                     f"{total} trial(s); the rest are not comparable with them.",
                     file=sys.stderr,
                 )
