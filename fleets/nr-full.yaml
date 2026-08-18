@@ -26,6 +26,11 @@ description: The deployed Netresearch setup — domain skills, general tooling s
 #
 # The remainder of the value is the php:8.3-cli default, spelled out because
 # --agent-env replaces PATH rather than extending it.
+#
+# Verified rather than assumed, because the failure would be silent: inside the
+# agent's own Bash tool, `command -v rg` answers /opt/nr-toolchain/bin/rg. A
+# PATH that Harbor accepts but the tool's shell resets would produce an arm
+# that looks like a stack nobody used, when it is a stack nobody could reach.
 env:
   PATH: /opt/nr-toolchain/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
