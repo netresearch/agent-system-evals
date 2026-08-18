@@ -90,10 +90,17 @@ the noise. The honest statement is that the trade is real and this case does
 not price it. A case whose answer lives in a `Documentation/` directory would.
 
 **`skill_routing` carries no signal here.** No agent invoked a skill in any
-arm, including the ones with eight and twelve available. That is not a routing
-failure: none of the Netresearch skills covers runtime diagnosis, and the
-conformance skill says nothing about Extbase property visibility, which is the
-defect. There was nothing to reach for.
+arm, including the ones with eight and twelve available. None of the eight in
+the `nr` fleet covers runtime diagnosis, and its conformance skill says nothing
+about Extbase property visibility, which is the defect.
+
+That is a statement about the fleet, not about the Netresearch skill set, and
+the difference matters: the fleet holds eight of the 38 skills the
+organisation publishes, and `typo3-ddev` — which is precisely about operating
+a running TYPO3 — is not among them. Whether the agent failed to route or the
+fleet failed to offer cannot be told apart from these runs. The fleet's
+composition has never been justified in this repository and is itself an
+untested variable.
 
 ## The shared weakness
 
