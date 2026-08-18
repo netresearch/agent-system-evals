@@ -82,6 +82,15 @@ RUN composer require --dev --no-interaction --no-progress --no-ansi \
         "balatd/typo3-dev-mcp:$DEV_MCP_VERSION" \
     && test -f /instance/vendor/balatd/typo3-dev-mcp/composer.json
 
+# The Netresearch command-line toolchain, installed off the default PATH. Only
+# a fleet that declares it in `env:` can reach it; see the script's header and
+# fleets/nr-full.yaml. An arm without it sees an image where these commands do
+# not resolve, which is the state the comparison needs.
+COPY install-toolchain.sh /usr/local/bin/install-toolchain
+RUN chmod +x /usr/local/bin/install-toolchain \
+    && install-toolchain \
+    && ! command -v rg > /dev/null
+
 RUN mkdir -p /logs/artifacts
 
 WORKDIR /instance

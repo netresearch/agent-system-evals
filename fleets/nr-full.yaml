@@ -1,0 +1,84 @@
+name: nr-full
+description: The deployed Netresearch setup — domain skills, general tooling skills, and the toolchain they instruct
+
+# Why this exists beside `nr`.
+#
+# `nr` holds eight skills and calls itself the production stack. It is not: the
+# organisation publishes 38, and the eight were carried over from the
+# implementation plan without ever being checked against what is actually
+# installed. Two consequences showed up in the first runtime results — the
+# fleet had no `typo3-ddev` while the case was about operating a running TYPO3,
+# and `skill_routing` scored zero in a way that cannot distinguish "the agent
+# did not route" from "the fleet offered nothing to route to".
+#
+# This fleet is the setup as deployed. Keeping both is deliberate: `nr` against
+# `nr-full` isolates what the general tooling adds, which is the one question
+# the flat quality columns left open.
+
+# The toolchain is part of the stack, not part of the environment.
+#
+# The tools live in the image at /opt/nr-toolchain/bin, off the default PATH,
+# and this is what puts them within reach. Installing them for every arm would
+# answer a different question — what the skills add *given* the tools — while
+# the benchmark asks what an equipped agent does against an unequipped one.
+# Three of the skills below are instructions for using exactly these binaries,
+# so shipping the skills without the tools would measure neither.
+#
+# The remainder of the value is the php:8.3-cli default, spelled out because
+# --agent-env replaces PATH rather than extending it.
+env:
+  PATH: /opt/nr-toolchain/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+skills:
+  # Routing: the general assessment capability that should direct the specific
+  # ones. Whether the agent reaches this first is the skill_routing dimension.
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.15.1
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+
+  # TYPO3 domain
+  - repo: netresearch/typo3-conformance-skill
+    ref: v2.19.1
+  - repo: netresearch/typo3-testing-skill
+    ref: v5.20.2
+  - repo: netresearch/typo3-docs-skill
+    ref: v2.16.0
+  - repo: netresearch/typo3-extension-upgrade-skill
+    ref: v3.11.1
+  # Missing from `nr`, and the omission that mattered: this one is about
+  # operating a running TYPO3 instance, which is what the runtime case is.
+  - repo: netresearch/typo3-ddev-skill
+    ref: v1.22.0
+
+  # Cross-cutting
+  - repo: netresearch/php-modernization-skill
+    ref: v1.22.0
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1
+
+  # General tooling. These are the skills the toolchain above serves, and the
+  # reason the two cannot be separated: data-tools states outright that its
+  # commands replace grep and sed on structured formats, which is most of what
+  # an agent does to a TYPO3 configuration.
+  - repo: netresearch/file-search-skill
+    ref: v1.8.0
+  - repo: netresearch/data-tools-skill
+    ref: v1.8.0
+  - repo: netresearch/cli-tools-skill
+    ref: v1.9.1
+
+# Deliberately absent, with reasons rather than silence:
+#
+# context7 — it calls https://context7.com/api/v2 over curl, and that host is
+#   not on the case's allowlist. Adding it would widen the network for every
+#   arm, since the allowlist is a property of the case; including the skill
+#   without it would guarantee failed fetches that get scored as agent
+#   behaviour. Worth doing as its own change, not folded in here.
+#
+# jujutsu-workflow — a version-control workflow for work that commits. The
+#   runtime case is a read-only diagnosis and the upgrade case commits nothing,
+#   so there is no path by which it could be reached. It would add prompt
+#   surface with no route to use, and the first results suggest that is not
+#   free: `nr` was the one arm whose entire cost range sat above control's
+#   median, having invoked no skill at all.

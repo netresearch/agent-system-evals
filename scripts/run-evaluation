@@ -149,6 +149,28 @@ def load_companion(name: str) -> tuple[Path, Path] | None:
     return cache / "skills", cache / "mcp.json"
 
 
+def load_agent_env(name: str) -> list[str]:
+    """Environment the fleet gives the agent, as KEY=VALUE strings.
+
+    A stack is not only the skills it injects. The Netresearch setup includes a
+    command-line toolchain — ripgrep, fd, jq, yq, ast-grep — and several of its
+    skills are instructions for using exactly those. Installing the toolchain
+    into every arm would answer a different question: what the skills add
+    *given* the tools, rather than what the equipped agent does against one
+    that is not equipped, which is what this benchmark asks.
+
+    So the tools sit in the image at a path outside the default PATH, and the
+    fleet that claims them prepends it here. Present but unreachable is the
+    same arrangement the companion's binary already has: nothing registers it
+    and no path leads to it.
+    """
+    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    env = fleet.get("env") or {}
+    if not isinstance(env, dict):
+        sys.exit(f"fleets/{name}.yaml: env must be a mapping of KEY: VALUE")
+    return [f"{key}={value}" for key, value in env.items()]
+
+
 def load_mcp_server(name: str) -> tuple[str, Path] | None:
     """An MCP server that lives in the environment image, if the fleet has one.
 
@@ -300,6 +322,7 @@ def main() -> int:
     skills = load_fleet(args.fleet)
     companion = load_companion(args.fleet)
     mcp_server = load_mcp_server(args.fleet)
+    agent_env = load_agent_env(args.fleet)
     if companion and mcp_server:
         sys.exit(
             f"fleets/{args.fleet}.yaml declares both a companion and an mcp "
@@ -378,6 +401,8 @@ def main() -> int:
         command += ["--skill", str(skills_dir), "--mcp-config", str(mcp_config)]
     if mcp_server:
         command += ["--mcp-config", str(mcp_server[1])]
+    for entry in agent_env:
+        command += ["--agent-env", entry]
 
     using_subscription = bool(oauth_token) and not api_key
 
@@ -443,6 +468,7 @@ def main() -> int:
                 else None
             ),
             "mcp_server": mcp_server[0] if mcp_server else None,
+            "agent_env": agent_env,
             "agent": args.agent,
             "model": args.model,
             "judge": judge,
