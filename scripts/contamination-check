@@ -20,7 +20,11 @@ Scans the fleet as pinned for:
 
 A hit is not automatically contamination — a skill may legitimately mention
 TYPO3 or a common word — so hits are reported with their context for a human to
-judge, and the exit status marks the run as needing that judgement.
+judge, and the exit status marks the run as needing that judgement. A hit
+judged a learning is recorded in the case's
+`tests/contamination-decisions.yaml`, pinned to the skill ref it was judged
+at, and no longer fails the run; a hit judged contamination is fixed in the
+skill, never recorded.
 
     scripts/contamination-check --fleet main
 """
@@ -136,6 +140,55 @@ def case_markers() -> dict[str, list[str]]:
     return markers
 
 
+def case_decisions() -> dict[tuple[str, str, str, str, str], str]:
+    """Recorded human decisions, keyed (case, skill, ref, path, marker).
+
+    Each entry is a reported hit a human judged a learning by the test in
+    docs/contamination.md. The value is the recorded reason. Pinned to the
+    skill ref: a fleet moving to a new version lapses the decision, and the
+    new version's text is judged fresh.
+    """
+    required = ("skill", "ref", "path", "marker", "reason")
+    decisions: dict[tuple[str, str, str, str, str], str] = {}
+
+    for path in ROOT.glob("tasks/*/*/tests/contamination-decisions.yaml"):
+        config = tomllib.loads((path.parent.parent / "task.toml").read_text())
+        case_id = config.get("metadata", {}).get("case_id")
+        if not case_id:
+            continue
+        for entry in yaml.safe_load(path.read_text()) or []:
+            # A malformed decision silently accepting nothing would read as
+            # safety; refuse it loudly instead. Fields must be strings: a
+            # YAML null passes a truthiness check as the string "None", and
+            # an unquoted number (a Forge issue used as a marker, say)
+            # parses as int and then never matches the string it was meant
+            # to accept.
+            if not isinstance(entry, dict) or not all(
+                isinstance(entry.get(k), str) and entry[k].strip()
+                for k in required
+            ):
+                sys.exit(
+                    f"{path.relative_to(ROOT)}: decision needs non-empty "
+                    f"string {', '.join(required)}: {entry}"
+                )
+            key = (
+                case_id,
+                entry["skill"],
+                entry["ref"],
+                entry["path"],
+                entry["marker"],
+            )
+            if key in decisions:
+                sys.exit(
+                    f"{path.relative_to(ROOT)}: duplicate decision for "
+                    f"{entry['skill']}@{entry['ref']}: {entry['path']} / "
+                    f"{entry['marker']!r}"
+                )
+            decisions[key] = entry["reason"]
+
+    return decisions
+
+
 def fetch_skill(repo: str, ref: str) -> list[tuple[str, str]]:
     """Return (path, text) for the text files of a skill at a pinned ref."""
     url = f"https://codeload.github.com/{repo}/tar.gz/refs/tags/{ref}"
@@ -170,6 +223,7 @@ def main() -> int:
     args = parser.parse_args()
 
     markers = case_markers()
+    decisions = case_decisions()
     skills = fleet_skills(args.fleet)
 
     if not skills:
@@ -183,9 +237,13 @@ def main() -> int:
     )
 
     hits: list[str] = []
+    accepted: list[str] = []
+    used: set[tuple[str, str, str, str, str]] = set()
+    fetched: set[tuple[str, str]] = set()
     for repo, ref in skills:
         try:
             files = fetch_skill(repo, ref)
+            fetched.add((repo, ref))
         except Exception as exc:  # noqa: BLE001
             # An unreachable skill is an unchecked skill. Reporting this as a
             # pass would be the worst outcome: silence that reads as safety.
@@ -197,6 +255,14 @@ def main() -> int:
             for marker in case_markers_list:
                 for path, text in files:
                     if marker.lower() in text.lower():
+                        key = (case_id, repo, ref, path, marker)
+                        if key in decisions:
+                            used.add(key)
+                            accepted.append(
+                                f"{repo}@{ref}: {path} mentions {marker!r} "
+                                f"— {decisions[key]}"
+                            )
+                            continue
                         line = next(
                             (
                                 l.strip()
@@ -210,6 +276,24 @@ def main() -> int:
                             f"(case {case_id})\n      {line[:160]}"
                         )
         print(f"  checked {repo}@{ref} ({len(files)} text files)")
+
+    if accepted:
+        print(f"\n{len(accepted)} hit(s) accepted by recorded decision:")
+        for entry in accepted:
+            print(f"  - {entry}")
+
+    # A decision that no longer matches anything while its skill@ref was
+    # scanned is dead configuration — the case's marker list changed under it.
+    # Not fatal: decisions for skills outside this fleet are expected to sit
+    # idle, and content at a pinned ref cannot change without moving the tag.
+    for key, _reason in decisions.items():
+        case_id, repo, ref, path, marker = key
+        if (repo, ref) in fetched and key not in used:
+            print(
+                f"warning: unused decision for {repo}@{ref}: {path} / "
+                f"{marker!r} (case {case_id})",
+                file=sys.stderr,
+            )
 
     if hits:
         print(f"\n{len(hits)} possible contamination hit(s):", file=sys.stderr)

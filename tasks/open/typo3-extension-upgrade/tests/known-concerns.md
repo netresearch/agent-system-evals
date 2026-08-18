@@ -1,6 +1,15 @@
 # Background on the target — verifier-side only
 
-<!-- contamination-markers: t3x-contexts, netresearch/contexts, RemovePointerFieldFunctionalityOfTCAFlex, 107047, 108345 -->
+<!-- contamination-markers: t3x-contexts, netresearch/contexts -->
+
+<!-- Markers name the target, not the framework. The first version also
+declared the framework-change identifiers behind the migration (two Forge
+issue numbers and a core class name). Those are public TYPO3 knowledge that
+any competent skill documents for every repository — the conformance and
+upgrade skills legitimately did, and CI reported five hits that no skill fix
+could ever clear. Text that helps on a repository the agent has never seen is
+a learning by docs/contamination.md's own test; only target identity goes
+here. -->
 
 **This file must never reach the agent environment.** It is copied into the
 verifier container with `tests/`, which the agent cannot read. Checked by
