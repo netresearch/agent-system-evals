@@ -129,7 +129,10 @@ RUN composer require --dev --no-interaction --no-progress --no-ansi \
 COPY install-toolchain.sh /usr/local/bin/install-toolchain
 RUN chmod +x /usr/local/bin/install-toolchain \
     && install-toolchain \
-    && ! command -v rg > /dev/null
+    && ! command -v rg > /dev/null \
+    # Build-time only. Left in place it sits in the agent's PATH describing the
+    # apparatus that is measuring it — scripts/agent-surface-audit reports it.
+    && rm -f /usr/local/bin/install-toolchain
 
 RUN mkdir -p /logs/artifacts
 

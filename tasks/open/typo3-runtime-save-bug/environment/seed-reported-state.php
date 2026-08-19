@@ -3,22 +3,15 @@
 declare(strict_types=1);
 
 /**
- * Put the instance into the state a real bug report described.
+ * Put the instance into the state the ticket describes.
  *
- * This seeds *data*, not a defect. The defect is the extension's own, present
- * at the pinned commit, and nothing here touches its code. What is recreated
- * is the situation an editor reported from production: a translation record
- * that will not save, and beside it the orphaned row the failed save left
- * behind — `sys_language_uid = 0` with unresolved foreign keys, colliding with
- * the unique key `translation` on every subsequent attempt.
+ * Seeds *data*, never a defect: the extension's own code is untouched. What the
+ * rows represent, and why, is verifier-side knowledge and lives in
+ * tests/known-concerns.md — not here, because this file used to sit in the
+ * agent's container and explain the answer. It is now deleted before the agent
+ * is admitted, and it carries no explanation either way.
  *
- * It is seeded rather than reproduced because reproducing it needs a click in
- * the backend module, and this environment has no web server. A developer
- * handed this ticket receives exactly this: a database in a broken state and a
- * report that saving does nothing.
- *
- * The schema is the extension's own ext_tables.sql at the pinned commit; the
- * values are the ones the report names.
+ * The schema is the extension's own ext_tables.sql at the pinned commit.
  */
 
 // 127.0.0.1, not the service name: under egress control every service shares
@@ -115,10 +108,7 @@ statement(
 );
 
 // What the failed save left behind: same placeholder, same page, but with the
-// three foreign keys unresolved. The unique key `translation` covers
-// (sys_language_uid, pid, environment, component, type, placeholder, deleted),
-// so this row does not collide with the one above — and every further save
-// attempt collides with *it*.
+// The second row, as the report describes it.
 statement(
     $db,
     "INSERT INTO tx_nrtextdb_domain_model_translation

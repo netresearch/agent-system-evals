@@ -18,6 +18,7 @@
 set -euo pipefail
 
 LOCK=/opt/case/target.lock
+RUNTIME_ENV=/opt/case/instance.env
 # shellcheck source=/dev/null
 . "$LOCK"
 
@@ -81,9 +82,9 @@ echo "=== typo3 setup"
 vendor/bin/typo3 setup \
     --driver=mysqli --host="$DB_HOST" --port=3306 --dbname="$DB_NAME" \
     --username="$DB_USER" --password="$DB_PASSWORD" \
-    --admin-username=admin --admin-user-password='Benchmark-Admin-4711!' \
+    --admin-username=admin --admin-user-password='Dev-Admin-4711!' \
     --admin-email=admin@example.com \
-    --project-name="TextDB runtime case" \
+    --project-name="${PROJECT_NAME:-$SITE_IDENTIFIER}" \
     --server-type=other --no-interaction --force
 
 echo "=== extension setup"
@@ -126,6 +127,18 @@ echo "=== rewrite rules"
 cp vendor/typo3/cms-install/Resources/Private/FolderStructureTemplateFiles/root-htaccess \
     public/.htaccess
 
+# What the ddev surface needs at run time, without the case's provenance: no
+# target repository, no pinned commit, no case identifier.
+cat > "$RUNTIME_ENV" <<ENVFILE
+SITE_IDENTIFIER=$SITE_IDENTIFIER
+SITE_HOSTNAME=$SITE_HOSTNAME
+INSTANCE_DIR=$INSTANCE_DIR
+DB_NAME=$DB_NAME
+DB_USER=$DB_USER
+DB_PASSWORD=$DB_PASSWORD
+DB_HOST=$DB_HOST
+ENVFILE
+
 echo "=== web server"
 chown -R www-data:www-data "$INSTANCE_DIR/var" "$INSTANCE_DIR/public" 2>/dev/null || true
 apache2ctl -k start
@@ -136,6 +149,22 @@ for _ in $(seq 1 30); do
     fi
     sleep 1
 done
+
+# Everything the agent must not find. The case's provenance and, where there is
+# one, the seed script naming the very mechanism the agent is asked to
+# establish: two trials were caught reading /opt/case/seed-reported-state.php,
+# whose header describes the orphaned row, the unresolved foreign keys and the
+# unique-key collision.
+#
+# Deleted here rather than guarded by a rule, and the ordering makes it
+# airtight: the agent phase does not begin until the environment healthcheck
+# passes, and the healthcheck waits for the marker written below.
+echo "=== removing the case's own files from the agent's reach"
+rm -f /opt/case/seed-reported-state.php /opt/case/target.lock \
+      /usr/local/bin/build-instance /usr/local/bin/install-instance
+# The log repeats what was seeded and names the case; the agent has no use for
+# either. What the verifier needs, it collects from the database itself.
+rm -f "$LOG"
 
 touch "$MARKER"
 echo "=== instance ready"

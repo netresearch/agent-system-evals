@@ -1,5 +1,23 @@
 # OFR-TYPO3-RUNTIME-001 — recorded results
 
+> **Withdrawn, 19 August 2026 — the environment leaked the answer.**
+>
+> The agent container held `/opt/case/seed-reported-state.php`, and that file's
+> header described the mechanism this case asks the agent to establish: the
+> orphaned row, the unresolved foreign keys, the unique-key collision on every
+> later save. It was reachable in every trial, and two agents were caught
+> reading it outright with `cat`.
+>
+> So `identified_the_mechanism` scoring the top mark in 12 of 12 trials cannot
+> be read as 12 agents working it out. The figure below is kept because
+> deleting a wrong number teaches nobody anything, but no claim in this file
+> about *how* the mechanism was reached survives it.
+>
+> The leak is closed — the case's own files are removed before the agent is
+> admitted, and `scripts/agent-surface-audit` now greps the running sandbox the
+> way the agent can rather than the repository the way we intend it. Everything
+> here will be re-measured.
+
 Five fleets, three trials each, against an installed TYPO3 13.4 instance; no
 errored trials and no errored criteria. Case, agent (claude-code on
 claude-opus-5), model, judge, rubric, environment image and trial count

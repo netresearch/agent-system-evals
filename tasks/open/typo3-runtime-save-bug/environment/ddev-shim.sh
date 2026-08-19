@@ -17,13 +17,16 @@
 set -euo pipefail
 
 INSTANCE=/instance
-LOCK=/opt/case/target.lock
+# The runtime file, not the lock: the lock carries the target repository and
+# the pinned commit, which are the case's provenance and none of the agent's
+# business. install-instance writes this one and deletes the lock.
+ENVFILE=/opt/case/instance.env
 # shellcheck source=/dev/null
-[ -f "$LOCK" ] && . "$LOCK"
+[ -f "$ENVFILE" ] && . "$ENVFILE"
 DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_NAME="${DB_NAME:-typo3}"
 DB_USER="${DB_USER:-typo3}"
-DB_PASSWORD="${DB_PASSWORD:-typo3-benchmark-password}"
+DB_PASSWORD="${DB_PASSWORD:-typo3-dev-password}"
 URL="${DDEV_PRIMARY_URL:-http://${SITE_HOSTNAME:-localhost}}"
 # From the lock, not hard-coded: the shim is shared by every case and reported
 # the first case's project name in all of them.

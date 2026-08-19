@@ -37,7 +37,7 @@ SITE_HOSTNAME=v12.nr-sync.ddev.site
 INSTANCE_DIR=/instance
 DB_NAME=${DB_NAME:-typo3}
 DB_USER=${DB_USER:-typo3}
-DB_PASSWORD=${DB_PASSWORD:-typo3-benchmark-password}
+DB_PASSWORD=${DB_PASSWORD:-typo3-dev-password}
 # Not the Compose service name: under egress control the services share one
 # network namespace and meet on localhost. Sourced, so it only defaults here —
 # task.toml decides at run time.

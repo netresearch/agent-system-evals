@@ -63,7 +63,10 @@ RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-compa
 COPY install-toolchain.sh /usr/local/bin/install-toolchain
 RUN chmod +x /usr/local/bin/install-toolchain \
     && install-toolchain \
-    && ! command -v rg > /dev/null
+    && ! command -v rg > /dev/null \
+    # Build-time only. Left in place it sits in the agent's PATH describing the
+    # apparatus that is measuring it — scripts/agent-surface-audit reports it.
+    && rm -f /usr/local/bin/install-toolchain
 
 
 # --- the instance this case runs against -------------------------------------

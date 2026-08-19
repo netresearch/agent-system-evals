@@ -15,10 +15,10 @@ services:
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: typo3-benchmark-root
+      MARIADB_ROOT_PASSWORD: typo3-dev-root
       MARIADB_DATABASE: typo3
       MARIADB_USER: typo3
-      MARIADB_PASSWORD: typo3-benchmark-password
+      MARIADB_PASSWORD: typo3-dev-password
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s

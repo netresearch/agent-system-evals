@@ -16,10 +16,10 @@ services:
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: typo3-benchmark-root
+      MARIADB_ROOT_PASSWORD: typo3-dev-root
       MARIADB_DATABASE: typo3
       MARIADB_USER: typo3
-      MARIADB_PASSWORD: typo3-benchmark-password
+      MARIADB_PASSWORD: typo3-dev-password
     # Own healthcheck as well as the environment-level one: this says the
     # server is up, the environment healthcheck says the *instance* is
     # installed. Conflating them would let the agent start against an empty

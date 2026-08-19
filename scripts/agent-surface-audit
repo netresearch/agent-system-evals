@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# Read the agent's sandbox the way the agent can, and look for what it must not
+# find.
+#
+# scripts/contamination-check reads the repository and asks whether a file that
+# should stay verifier-side is in a directory that ships to the agent. That is
+# a check on intent. This one is a check on fact: it builds the case's image,
+# starts the instance, and greps everything reachable from the agent's working
+# directory and /opt.
+#
+# It exists because the repository check passed while the agent container held
+# /opt/case/seed-reported-state.php, whose header described the orphaned row,
+# the unresolved foreign keys and the unique-key collision — the mechanism the
+# case asks the agent to establish. Two trials were caught reading it.
+#
+#   scripts/agent-surface-audit <case-dir>
+set -euo pipefail
+
+CASE_DIR="${1:?usage: agent-surface-audit <case-dir>}"
+CASE_DIR="$(cd "$CASE_DIR" && pwd)"
+ENV_DIR="$CASE_DIR/environment"
+NAME="audit-$(basename "$CASE_DIR")"
+
+# Evaluation machinery only. Deliberately *not* the case's contamination
+# markers: those name the target and its extension key, which the agent is
+# supposed to see — it is working on that extension. What must not be reachable
+# is anything belonging to the measuring apparatus.
+PATTERNS=(
+    "OFR-"
+    "known-concerns"
+    "seed-reported-state"
+    "agent-system-evals"
+    "benchmark"
+    "TARGET_COMMIT"
+    "TARGET_REPOSITORY"
+)
+
+# Third-party trees are searched by the audit only for their own sake, and a
+# vendored dependency that happens to contain the word "benchmark" is not a
+# leak of ours.
+EXCLUDE="--exclude-dir=vendor --exclude-dir=node_modules --exclude-dir=typo3-dev-companion"
+
+echo "building $NAME"
+docker build -q -t "$NAME" "$ENV_DIR" > /dev/null
+
+compose="$(mktemp -d)/audit.yaml"
+host="$(sed -n 's/^SITE_HOSTNAME=//p' "$ENV_DIR/target.lock" | head -1)"
+cat > "$compose" <<YAML
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: r
+      MARIADB_DATABASE: typo3
+      MARIADB_USER: typo3
+      MARIADB_PASSWORD: typo3-dev-password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+  main:
+    image: $NAME
+    network_mode: "service:db"
+    environment:
+      DB_HOST: 127.0.0.1
+      DB_NAME: typo3
+      DB_USER: typo3
+      DB_PASSWORD: typo3-dev-password
+      SITE_HOSTNAME: $host
+    depends_on:
+      db: { condition: service_healthy }
+    command: ["/bin/bash", "-lc", "/usr/local/bin/install-instance; tail -f /dev/null"]
+YAML
+
+cleanup() {
+    docker compose -f "$compose" down -v > /dev/null 2>&1 || true
+    docker rmi -f "$NAME" > /dev/null 2>&1 || true
+    rm -rf "$(dirname "$compose")"
+}
+trap cleanup EXIT
+
+docker compose -f "$compose" up -d > /dev/null 2>&1
+echo "waiting for the instance"
+ready=0
+for _ in $(seq 1 40); do
+    if docker compose -f "$compose" exec -T main test -f /instance/.instance-ready 2>/dev/null; then
+        ready=1
+        break
+    fi
+    sleep 10
+done
+[ "$ready" = "1" ] || { echo "instance never became ready" >&2; exit 1; }
+
+# Everything the agent can reach. /instance and the working copy are the case;
+# /opt and /usr/local/bin are where this repository's own machinery would hide.
+findings=0
+for pattern in "${PATTERNS[@]}"; do
+    hits="$(docker compose -f "$compose" exec -T main sh -lc "
+        grep -rIl $EXCLUDE -- '$pattern' /opt /usr/local/bin /instance/config /app 2>/dev/null | head -5
+    " || true)"
+    if [ -n "$hits" ]; then
+        findings=$((findings + 1))
+        echo "LEAK: '$pattern' readable in the agent sandbox:" >&2
+        echo "${hits//$'\n'/$'\n'  }" >&2
+    fi
+done
+
+if [ "$findings" -gt 0 ]; then
+    echo "$findings pattern(s) reachable by the agent" >&2
+    exit 1
+fi
+echo "agent sandbox clean for $(basename "$CASE_DIR")"

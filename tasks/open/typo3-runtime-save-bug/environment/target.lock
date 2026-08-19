@@ -41,5 +41,5 @@ INSTANCE_DIR=/instance
 # `db` into the sidecar's network namespace, so they meet on localhost.
 DB_NAME=${DB_NAME:-typo3}
 DB_USER=${DB_USER:-typo3}
-DB_PASSWORD=${DB_PASSWORD:-typo3-benchmark-password}
+DB_PASSWORD=${DB_PASSWORD:-typo3-dev-password}
 DB_HOST=${DB_HOST:-127.0.0.1}

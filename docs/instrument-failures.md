@@ -1,6 +1,6 @@
 # Instrument failures
 
-Eight ways this benchmark measured the wrong thing while looking like it was
+Nine ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -129,6 +129,28 @@ plausible numbers rather than as errors, and both would have been published as
 fleet differences by anyone reading only the metrics block. **The habit that
 catches them is the same one at the end of this file: a dimension that moves
 when nothing about the agent changed is a question about the instrument.**
+
+## 9. The environment explaining the answer
+
+The runtime case seeded its database from `seed-reported-state.php`, and the
+Dockerfile copied that file into the **agent's** container. Its header comment
+named the orphaned row, the unresolved foreign keys and the unique-key
+collision — the mechanism the case asks the agent to find. Two trials read it
+with `cat`, and every trial could have.
+
+`scripts/contamination-check` passed throughout, correctly: it asks whether a
+verifier-side file sits in a directory that ships to the agent, and this one
+was placed there deliberately, for the seeding step. The check tested intent;
+nothing tested the sandbox.
+
+**Fix:** the case's files — seed, target lock, build scripts, the toolchain
+installer — are deleted before the readiness marker is written, and the agent
+phase does not begin until that marker exists, so the window is closed by the
+ordering rather than by a rule. Credentials no longer say "benchmark".
+**Guard:** `scripts/agent-surface-audit` builds the case, starts the instance,
+and greps everything the agent can read for the measuring apparatus. It found
+two more leaks on its first run, one of them a script in the agent's own PATH
+describing the benchmark.
 
 ## What this cost, and what it teaches
 
