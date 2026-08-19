@@ -26,6 +26,10 @@ for task in "$ROOT"/tasks/*/*/task.toml; do
     case_dir="$(dirname "$task")"
     env_dir="$case_dir/environment"
     [[ -d "$env_dir" ]] || continue
+    # Contract evals have no instance and want none: they are graded pass/fail
+    # on a named condition and exist to be cheap enough to gate a merge. The
+    # shared instance scripts do not belong to them.
+    grep -q '^contract = true' "$task" && continue
     cases=$((cases + 1))
 
     for file in "${FILES[@]}"; do

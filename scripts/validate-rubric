@@ -47,19 +47,25 @@ def main() -> int:
 
     for tests_dir in sorted(ROOT.glob("tasks/*/*/tests")):
         case = tests_dir.parent.name
+        config = tests_dir.parent / "task.toml"
+        contract = config.is_file() and "contract = true" in config.read_text()
         subdirs = {
             d.name
             for d in tests_dir.iterdir()
             if d.is_dir() and not d.name.startswith((".", "__"))
         }
 
-        unknown = subdirs - DIMENSIONS
+        # A contract eval is graded pass/fail on a named condition and has no
+        # eight-dimension rubric to satisfy (ADR 0002). Demanding one would be
+        # demanding that it be an open review.
+        expected = {"contract"} if contract else DIMENSIONS
+        unknown = subdirs - expected
         if unknown:
             problems.append(
                 f"{case}: unknown reward dimension(s) {sorted(unknown)}; "
                 f"see docs/scoring.md"
             )
-        missing = DIMENSIONS - subdirs
+        missing = expected - subdirs
         if missing:
             problems.append(f"{case}: missing dimension(s) {sorted(missing)}")
 

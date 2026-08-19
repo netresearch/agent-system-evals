@@ -34,3 +34,20 @@ writing a new case.
 Contract evals stay cheap and deterministic and can gate merges. Open reviews
 are noisier, need repetition, and inform rather than gate — at least until the
 variance is characterised.
+
+## Built, 2026-08-19
+
+`tasks/contracts/` stood empty for four days while the decision was cited in
+three other documents. The first case is CON-TYPO3-EXTBASE-001: four Extbase
+properties declared `private` in a minimal synthetic extension, two `protected`
+ones beside them, and grading that is mechanical in both directions — the four
+must be named, the two must not be called broken.
+
+Cheap the way the decision requires: no judge, no instance, no network. The
+verifier image carries no agent CLI at all.
+
+The negative half earned its place immediately. Without it, an answer listing
+every property in both files scores full marks, having found nothing. Getting
+it right took a second attempt: the first version failed a *correct* answer,
+because `Category::$name is private` contains the word `category` and the
+predicate could not tell the class from the property of the same name.

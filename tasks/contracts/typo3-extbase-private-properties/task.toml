@@ -1,0 +1,32 @@
+schema_version = "1.4"
+
+artifacts = ["/logs/artifacts", "/logs/agent"]
+
+[metadata]
+case_id = "CON-TYPO3-EXTBASE-001"
+# A contract eval: the prompt names the condition, the target carries a
+# synthetic defect, and the expected result is known. Not an Open Forward
+# Review, and it may not become one by editing the prompt — see ADR 0002.
+contract = true
+# Deliberately not a runtime case. tasks/open/ models a developer's situation
+# and needs their instance; this models a check, and needs to be cheap enough
+# to gate a merge.
+runtime = false
+target_repository = "synthetic"
+target_sha = "n/a — the extension is written for this case"
+source_learning_id = "retro-20260819-contract-evals-were-decided-and-never-built"
+name = "netresearch/con-typo3-extbase-private-properties"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["contract-eval", "typo3", "extbase", "agent-system"]
+
+[agent]
+# No network: nothing here needs one, and a contract eval that reaches the
+# internet is neither cheap nor deterministic.
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 600.0
+environment_mode = "separate"
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"

@@ -203,8 +203,15 @@ def main() -> int:
                 f"config parsed. Harbor would report it as '0 tasks available'."
             )
 
+        # A contract eval may carry a synthetic defect and therefore has no
+        # upstream commit to pin (ADR 0002). It says so explicitly rather than
+        # being waved through: `target_repository = "synthetic"`.
         # Repository rules.
         raw = tomllib.loads(config_path.read_text())
+        synthetic = bool(
+            raw.get("metadata", {}).get("contract")
+            and raw.get("metadata", {}).get("target_repository") == "synthetic"
+        )
         if raw.get("schema_version") != "1.4":
             problems.append(f"{label}: schema_version is not 1.4")
 
@@ -248,7 +255,7 @@ def main() -> int:
                 problems.append(f"{label}: metadata.{field} is missing")
 
         sha = metadata.get("target_sha", "")
-        if sha and len(sha) != 40:
+        if sha and len(sha) != 40 and not synthetic:
             problems.append(
                 f"{label}: target_sha must be a full 40-character commit SHA, "
                 f"not a branch or a short form; an abbreviated pin can become "

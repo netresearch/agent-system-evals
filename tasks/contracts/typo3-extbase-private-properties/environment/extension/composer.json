@@ -1,0 +1,21 @@
+{
+    "name": "example/shop-catalogue",
+    "type": "typo3-cms-extension",
+    "description": "Minimal catalogue extension",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^8.2",
+        "typo3/cms-core": "^13.4",
+        "typo3/cms-extbase": "^13.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Example\\ShopCatalogue\\": "Classes/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "shop_catalogue"
+        }
+    }
+}
