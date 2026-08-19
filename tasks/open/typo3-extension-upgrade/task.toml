@@ -102,6 +102,17 @@ allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
 # Every hook ends in `|| true`. A failing check is a finding for the rubric to
 # read out of its recorded output, never a reason to lose the whole trial.
 
+# What the arm was actually given. Run after the agent phase because Harbor
+# hands the MCP configuration to the agent process, not to the container — so
+# this is the earliest point at which the servers can be asked to describe
+# themselves. It records provisioning only; what the agent did with it is
+# counted from the trajectory, separately, and the two must not be conflated:
+# a server that never answered makes a run void, a server that answered and
+# went unused is a result.
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /usr/local/bin/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
 [[verifier.collect]]
 command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
 

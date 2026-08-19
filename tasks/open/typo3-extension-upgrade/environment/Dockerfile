@@ -101,8 +101,9 @@ COPY target.lock /opt/case/
 COPY build-instance.sh /usr/local/bin/build-instance
 COPY install-instance.sh /usr/local/bin/install-instance
 COPY ddev-shim.sh /usr/local/bin/ddev
+COPY capability-probe.sh /usr/local/bin/capability-probe
 RUN chmod +x /usr/local/bin/build-instance /usr/local/bin/install-instance \
-        /usr/local/bin/ddev \
+        /usr/local/bin/ddev /usr/local/bin/capability-probe \
     && build-instance /opt/case/target.lock
 
 # Served, not merely installed: an extension case that cannot issue a request

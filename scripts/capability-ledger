@@ -1,0 +1,167 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""What each arm was given, what it used, and what carrying it cost.
+
+Two questions this repository kept answering together and should not:
+
+    was the capability provisioned?   → from the capability inventory, probed
+    did the agent use it?             → from the trajectory, counted
+
+A server that never answered makes a run void. A server that answered and went
+unused is a result — and one of the more interesting ones here: fifteen trials
+in which no skill and no toolchain command was touched although both were
+reachable. Conflating the two would have discarded that.
+
+The third column is the one nobody was measuring: what the offer costs whether
+or not it is taken. Skill descriptions and tool schemas sit in every request.
+
+    scripts/capability-ledger <job-dir> [<job-dir> ...]
+"""
+
+from __future__ import annotations
+
+import json
+import statistics
+import sys
+from pathlib import Path
+
+
+def trials(job_dir: Path) -> list[Path]:
+    return sorted(p for p in job_dir.glob("*__*") if (p / "agent").is_dir())
+
+
+def inventory(trial: Path) -> dict:
+    for candidate in (
+        trial / "artifacts" / "logs" / "artifacts" / "capability-inventory.json",
+        trial / "artifacts" / "capability-inventory.json",
+    ):
+        if candidate.is_file():
+            try:
+                return json.loads(candidate.read_text())
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+
+def usage(trial: Path) -> tuple[dict[str, int], int, dict]:
+    """Tool calls by capability, total calls, and the agent's own cost record."""
+    path = trial / "agent" / "trajectory.json"
+    counts: dict[str, int] = {}
+    total = 0
+    if path.is_file():
+        trajectory = json.loads(path.read_text())
+        for step in trajectory.get("steps", []):
+            for call in step.get("tool_calls") or []:
+                name = call.get("function_name", "")
+                total += 1
+                if name == "Skill":
+                    arguments = call.get("arguments")
+                    if isinstance(arguments, str):
+                        try:
+                            arguments = json.loads(arguments)
+                        except json.JSONDecodeError:
+                            arguments = {}
+                    key = f"skill:{(arguments or {}).get('skill', '?')}"
+                elif name.startswith("mcp__"):
+                    key = f"mcp:{name.split('__')[1]}"
+                elif name == "Bash":
+                    arguments = call.get("arguments")
+                    command = (
+                        arguments if isinstance(arguments, str) else str(arguments)
+                    )
+                    key = ""
+                    for tool in ("rg ", "fd ", "jq ", "yq ", "dasel", "ast-grep", "scc ", "bat "):
+                        if tool in command:
+                            key = f"cli:{tool.strip()}"
+                            break
+                    if not key:
+                        continue
+                else:
+                    continue
+                counts[key] = counts.get(key, 0) + 1
+
+    result = trial / "result.json"
+    agent_result = {}
+    if result.is_file():
+        agent_result = json.loads(result.read_text()).get("agent_result", {}) or {}
+    return counts, total, agent_result
+
+
+def report(job_dir: Path) -> None:
+    snapshot = {}
+    path = job_dir / "nr-snapshot.json"
+    if path.is_file():
+        snapshot = json.loads(path.read_text())
+
+    rows = trials(job_dir)
+    if not rows:
+        print(f"{job_dir.name}: no trials")
+        return
+
+    provided: dict[str, str] = {}
+    used: dict[str, int] = {}
+    trials_using: dict[str, int] = {}
+    calls: list[int] = []
+    costs: list[float] = []
+    inputs: list[int] = []
+
+    for trial in rows:
+        inv = inventory(trial)
+        for tool, spec in (inv.get("cli") or {}).items():
+            provided[f"cli:{tool}"] = "yes" if spec.get("present") else "no"
+        for name, spec in (inv.get("mcp") or {}).items():
+            provided[f"mcp:{name}"] = "yes" if spec.get("reachable") else "unreachable"
+        skills = inv.get("skills") or {}
+        if skills.get("count"):
+            provided["skills"] = f"{skills['count']} present"
+
+        counts, total, agent_result = usage(trial)
+        calls.append(total)
+        costs.append(agent_result.get("cost_usd", 0.0))
+        inputs.append(agent_result.get("n_input_tokens", 0))
+        for key, n in counts.items():
+            used[key] = used.get(key, 0) + n
+            trials_using[key] = trials_using.get(key, 0) + 1
+
+    fleet = snapshot.get("fleet", job_dir.name)
+    print(f"\n{fleet}  ({len(rows)} trials)")
+    print(f"  {'capability':28} {'provided':>12} {'trials used':>12} {'calls':>7}")
+    keys = sorted(set(provided) | set(used))
+    if not keys:
+        print("    (no inventory recorded — job predates the capability probe)")
+    for key in keys:
+        state = provided.get(key, "—")
+        print(
+            f"  {key:28} {state:>12} "
+            f"{f'{trials_using.get(key, 0)}/{len(rows)}':>12} {used.get(key, 0):>7}"
+        )
+
+    median = statistics.median
+    print(
+        f"  {'context tax / run':28} "
+        f"input tokens median {median(inputs):,.0f}  "
+        f"cost median ${median(costs):.2f}  "
+        f"tool calls median {median(calls):.0f}"
+    )
+
+    unreachable = [k for k, v in provided.items() if v == "unreachable"]
+    if unreachable:
+        print(
+            f"  VOID: {', '.join(unreachable)} was configured and did not answer; "
+            f"these trials measure a broken installation, not the tool.",
+            file=sys.stderr,
+        )
+
+
+def main() -> int:
+    if len(sys.argv) < 2:
+        sys.exit(__doc__)
+    for argument in sys.argv[1:]:
+        report(Path(argument))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

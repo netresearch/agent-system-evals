@@ -69,12 +69,14 @@ RUN printf '%s\n' \
     && a2enmod rewrite > /dev/null
 
 COPY ddev-shim.sh /usr/local/bin/ddev
+COPY capability-probe.sh /usr/local/bin/capability-probe
 RUN chmod +x /usr/local/bin/ddev
 
 COPY target.lock seed-reported-state.php /opt/case/
 COPY install-instance.sh /usr/local/bin/install-instance
 COPY build-instance.sh /usr/local/bin/build-instance
 RUN chmod +x /usr/local/bin/install-instance /usr/local/bin/build-instance \
+        /usr/local/bin/capability-probe \
     && build-instance /opt/case/target.lock
 
 # Environment readiness (ADR 0003): before the agent arrives, the instance must
