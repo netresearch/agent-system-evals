@@ -96,8 +96,13 @@ done
 # /opt and /usr/local/bin are where this repository's own machinery would hide.
 findings=0
 for pattern in "${PATTERNS[@]}"; do
+    # Files and the environment both. A password that announces the apparatus
+    # is a signal like any other, and it reaches the container as a variable
+    # rather than as a file: the first version of this audit greped only files
+    # and passed a container whose DB_PASSWORD said "benchmark".
     hits="$(docker compose -f "$compose" exec -T main sh -lc "
         grep -rIl $EXCLUDE -- '$pattern' /opt /usr/local/bin /instance/config /app 2>/dev/null | head -5
+        env | grep -l -- '$pattern' /dev/stdin 2>/dev/null | sed 's|/dev/stdin|(environment)|'
     " || true)"
     if [ -n "$hits" ]; then
         findings=$((findings + 1))

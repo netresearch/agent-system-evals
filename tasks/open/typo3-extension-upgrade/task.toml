@@ -74,7 +74,7 @@ retries = 5
 DB_HOST = "127.0.0.1"
 DB_NAME = "typo3"
 DB_USER = "typo3"
-DB_PASSWORD = "typo3-benchmark-password"
+DB_PASSWORD = "typo3-dev-password"
 
 [verifier]
 # Same arithmetic as the review case, plus the matrix collect hooks.

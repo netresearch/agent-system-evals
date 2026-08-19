@@ -65,7 +65,7 @@ retries = 5
 DB_HOST = "127.0.0.1"
 DB_NAME = "typo3"
 DB_USER = "typo3"
-DB_PASSWORD = "typo3-benchmark-password"
+DB_PASSWORD = "typo3-dev-password"
 
 [verifier]
 timeout_sec = 5400.0
@@ -102,7 +102,7 @@ command = "git -C /extension status --porcelain > /logs/artifacts/git-status.txt
 command = "git -C /extension diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
 
 [[verifier.collect]]
-command = "mysql --skip-ssl -h 127.0.0.1 -u typo3 -ptypo3-benchmark-password typo3 -e 'SELECT uid, pid, sys_language_uid, environment, component, type, placeholder, value FROM tx_nrtextdb_domain_model_translation ORDER BY uid;' > /logs/artifacts/translation-rows.txt 2>&1 || true"
+command = "mysql --skip-ssl -h 127.0.0.1 -u typo3 -ptypo3-dev-password typo3 -e 'SELECT uid, pid, sys_language_uid, environment, component, type, placeholder, value FROM tx_nrtextdb_domain_model_translation ORDER BY uid;' > /logs/artifacts/translation-rows.txt 2>&1 || true"
 timeout_sec = 120.0
 
 [[verifier.collect]]
