@@ -76,6 +76,12 @@ def rubric_judge(case_dir: Path) -> str:
             judges.add(name)
 
     if not judges:
+        config = case_dir / "task.toml"
+        if config.is_file() and "contract = true" in config.read_text():
+            # A contract eval is graded mechanically; having no judge is the
+            # point of the tree, not an omission (ADR 0002). Recorded as such
+            # so a result can still say what graded it.
+            return "none (mechanical)"
         sys.exit(f"{case_dir}: no judge pinned in any tests/*/judge.toml")
     if len(judges) > 1:
         # Different judges across dimensions would make the vector

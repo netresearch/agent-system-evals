@@ -20,9 +20,12 @@ authors = [{ name = "Netresearch DTT GmbH" }]
 keywords = ["contract-eval", "typo3", "extbase", "agent-system"]
 
 [agent]
-# No network: nothing here needs one, and a contract eval that reaches the
-# internet is neither cheap nor deterministic.
-network_mode = "no-network"
+# The *task* needs no network — the answer is in the source. The agent still
+# needs its own model endpoint, and "no-network" takes that away too: the first
+# run came back with the agent reporting
+# `UNKNOWN_CERTIFICATE_VERIFICATION_ERROR` as its entire answer.
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com"]
 
 [verifier]
 timeout_sec = 600.0

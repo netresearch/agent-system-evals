@@ -18,6 +18,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import nreval  # noqa: E402
 
 
+def _answered() -> bool:
+    """Is there an answer at all?
+
+    The negative criteria are the reason this matters. "Did not report `title`
+    as broken" is trivially true of an empty answer, so a trial whose agent
+    never ran scored 3 of 11 instead of 0 — a floor under failure, which is
+    exactly the shape that gets read as a partial result. One such trial
+    happened here: the agent answered
+    `API Error: Unable to connect to API`, and the contract still gave it
+    points for the things it had not said.
+    """
+    answer = nreval.final_answer().strip()
+    if len(answer) < 40:
+        return False
+    return not re.match(r"^\s*API Error", answer)
+
+
 def _claims_broken(prop: str) -> bool:
     """Is this property named in a sentence that calls something broken?
 
@@ -47,14 +64,14 @@ def _claims_broken(prop: str) -> bool:
 
 @criterion(description="Did not report `title` as broken")
 def title_not_reported(workspace) -> bool:
-    return not _claims_broken("title")
+    return _answered() and not _claims_broken("title")
 
 
 @criterion(description="Did not report `description` as broken")
 def description_not_reported(workspace) -> bool:
-    return not _claims_broken("description")
+    return _answered() and not _claims_broken("description")
 
 
 @criterion(description="Did not report `category` as broken")
 def category_not_reported(workspace) -> bool:
-    return not _claims_broken("category")
+    return _answered() and not _claims_broken("category")
