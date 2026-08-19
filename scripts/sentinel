@@ -1,0 +1,155 @@
+#!/usr/bin/env -S uv run --quiet --with pyyaml --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Run a case on a second agent, to find out what is being measured.
+
+Every published result here comes from Claude Code on claude-opus-5. That
+leaves one question open that no amount of care inside a single harness can
+answer: is this benchmark measuring the Netresearch agent system, or a
+Claude-Code-specific integration of it?
+
+The sentinel answers it by holding everything constant except the harness. Two
+outcomes, both worth having:
+
+    the fleet effect reproduces on another agent
+        → the finding is about the stack
+
+    it does not, and the capability probe shows the stack was delivered
+        → the finding is about the stack *inside Claude Code*
+
+The second is not a failure. It is a materially different claim from the one
+the results currently make, and stating it needs this run.
+
+There is a third outcome the probe exists to catch: the capabilities never
+arrived, because the harness reads them from a directory nobody wrote to. That
+is a void run and must never be read as "the stack did not help".
+
+    scripts/sentinel <case-id> --agent opencode [--fleet nr] [--trials 3]
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Adapters that both accept injected skills and can run on a credential this
+# project already has. Harbor ships around forty; most need their own API key,
+# which is a reason to leave them out of a default sweep rather than a
+# judgement about the agent.
+KNOWN_GOOD = ("opencode",)
+
+
+def run(case_id: str, agent: str, fleet: str, trials: int, env: dict) -> Path | None:
+    command = [
+        str(ROOT / "scripts" / "run-evaluation"),
+        case_id,
+        "--fleet",
+        fleet,
+        "--agent",
+        agent,
+        "--trials",
+        str(trials),
+    ]
+    print(f"  → {agent} / {fleet}: {trials} trial(s)")
+    result = subprocess.run(command, env=env, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(result.stdout[-1500:], file=sys.stderr)
+        print(result.stderr[-1500:], file=sys.stderr)
+        return None
+    jobs = sorted(
+        (ROOT / "jobs").glob(f"{case_id}-{fleet}-{agent}-*"),
+        key=lambda p: p.stat().st_mtime,
+    )
+    return jobs[-1] if jobs else None
+
+
+def delivered(job_dir: Path) -> tuple[int, str]:
+    """Did the capabilities reach this agent at all, and where."""
+    for trial in sorted(job_dir.glob("*__*")):
+        for candidate in (
+            trial / "artifacts" / "logs" / "artifacts" / "capability-inventory.json",
+            trial / "artifacts" / "capability-inventory.json",
+        ):
+            if candidate.is_file():
+                try:
+                    skills = json.loads(candidate.read_text()).get("skills", {})
+                except json.JSONDecodeError:
+                    continue
+                return skills.get("count", 0), skills.get("location", "")
+    return -1, ""
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("case_id")
+    parser.add_argument("--agent", default="opencode")
+    parser.add_argument("--fleet", default="nr")
+    parser.add_argument("--trials", type=int, default=3)
+    args = parser.parse_args()
+
+    if args.agent not in KNOWN_GOOD:
+        print(
+            f"note: {args.agent} is not in the list this project has run before "
+            f"({', '.join(KNOWN_GOOD)}). Check that it accepts injected skills "
+            f"and that its credential is available, or the run will measure "
+            f"neither.",
+            file=sys.stderr,
+        )
+
+    env = dict(os.environ)
+    if not env.get("CLAUDE_CODE_OAUTH_TOKEN") and not env.get("ANTHROPIC_API_KEY"):
+        sys.exit("no credential; see scripts/run-evaluation")
+
+    print(f"sentinel: {args.case_id} on {args.agent}")
+    jobs = {}
+    for fleet in ("control", args.fleet):
+        job = run(args.case_id, args.agent, fleet, args.trials, env)
+        if job is None:
+            sys.exit(f"the {fleet} arm did not complete; nothing to compare")
+        jobs[fleet] = job
+
+    count, location = delivered(jobs[args.fleet])
+    print()
+    if count == 0:
+        print(
+            f"VOID: no skills reached {args.agent}. The capability probe found "
+            f"none in any known location, so this run says nothing about the "
+            f"stack — only that Harbor and {args.agent} disagree about where "
+            f"skills live.",
+            file=sys.stderr,
+        )
+        return 1
+    if count < 0:
+        print(
+            "no capability inventory in the recorded trials; the probe did not "
+            "run. Treat the comparison as unverified.",
+            file=sys.stderr,
+        )
+    else:
+        print(f"{count} skill(s) delivered to {args.agent} at {location}")
+
+    print("\nCompare the two arms, and read what the difference means:")
+    for fleet, job in jobs.items():
+        print(f"  {fleet}: {job.relative_to(ROOT)}")
+    print(
+        f"\n  scripts/compare {jobs['control'].relative_to(ROOT)} "
+        f"{jobs[args.fleet].relative_to(ROOT)}"
+    )
+    print(
+        "\nA difference here that matches the Claude Code result is a finding "
+        "about the stack. One that does not, with the skills demonstrably "
+        "delivered, is a finding about the stack inside one harness — which is "
+        "a different claim from the one the published results make."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

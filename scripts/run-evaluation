@@ -455,7 +455,12 @@ def main() -> int:
     check_fleet_fits_the_case(args.fleet, case_dir)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    job_name = f"{args.case_id}-{args.fleet}-{stamp}"
+    # The agent belongs in the name as soon as it is not the recorded default.
+    # Two harnesses writing jobs/<case>-<fleet>-<stamp> are indistinguishable in
+    # a listing, and anything that picks "the newest job for this fleet" — the
+    # sentinel does — would silently take the other one's.
+    suffix = "" if args.agent == DEFAULT_AGENT else f"-{args.agent}"
+    job_name = f"{args.case_id}-{args.fleet}{suffix}-{stamp}"
 
     # `-p` is a *dataset* path, not a task path: Harbor resolves it to
     # datasets[].path and then looks for task directories inside it. Pointed

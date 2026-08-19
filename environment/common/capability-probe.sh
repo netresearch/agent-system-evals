@@ -40,14 +40,29 @@ cli_entries="${cli_entries#,}"
 # --- skills -------------------------------------------------------------------
 # Harbor copies them into the agent's config directory. Counted and digested
 # rather than listed in full: the point is whether they arrived intact.
-skill_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills"
+# Every place a harness puts them, not just Claude Code's. Harbor copies
+# skills to wherever the agent under test reads them — ~/.config/opencode/skills
+# for OpenCode, the Claude config directory for Claude Code — and a probe that
+# knows one location reports "nothing provisioned" for every other agent. That
+# is the failure this file exists to prevent, one level up.
 skill_count=0
 skill_digest=""
-if [ -d "$skill_dir" ]; then
-    skill_count="$(find "$skill_dir" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+found_dir=""
+for skill_dir in \
+        "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" \
+        "$HOME/.config/opencode/skills" \
+        "$HOME/.codex/skills" \
+        "$HOME/.gemini/skills" \
+        "$HOME/.copilot/skills"; do
+    [ -d "$skill_dir" ] || continue
+    count="$(find "$skill_dir" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+    [ "$count" -gt 0 ] || continue
+    skill_count="$count"
+    found_dir="$skill_dir"
     skill_digest="$(find "$skill_dir" -name 'SKILL.md' -exec sha256sum {} + 2>/dev/null \
         | awk '{print $1}' | sort | sha256sum | cut -c1-16)"
-fi
+    break
+done
 
 # --- MCP servers --------------------------------------------------------------
 # Asked to describe themselves over the protocol rather than assumed from the
@@ -93,7 +108,7 @@ mcp_entries="${mcp_entries#,}"
 cat > "$OUT" <<JSON
 {
   "cli": {$cli_entries},
-  "skills": {"count": $skill_count, "digest": "$skill_digest"},
+  "skills": {"count": $skill_count, "digest": "$skill_digest", "location": "$found_dir"},
   "mcp": {${mcp_entries}}
 }
 JSON

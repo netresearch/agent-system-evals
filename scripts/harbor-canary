@@ -1,0 +1,146 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Check a Harbor version against a recorded job before trusting it.
+
+Harbor is the runner, and this project pins it — `scripts/validate-tasks`
+carries `harbor==0.21.0` in its shebang. A pin is only half the protection: the
+day it moves, everything recorded under the old version becomes a claim about a
+harness nobody re-checked, and the ways it can go wrong are quiet ones. Trial
+layout, artifact paths, the lock schema, what `regrade` carries over — this
+repository has already been bitten by four of those, each time discovered from
+a wrong number rather than an error.
+
+So the upgrade gets a canary: regrade a recorded job under the new version and
+compare the scores with what the old one produced. Same trials, same rubric,
+same trajectories — the only thing that changed is the harness, so any
+difference is the harness.
+
+    scripts/harbor-canary <recorded-job-dir>
+
+Run it with the candidate version installed. It reports a verdict rather than
+a score: identical, drifted, or unable to reproduce.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+# Anything below this is noise from a stochastic judge, not harness drift.
+TOLERANCE = 0.01
+
+
+def scores(job_dir: Path) -> dict[str, float]:
+    """Mean per dimension, from the recorded result."""
+    result = job_dir / "result.json"
+    if not result.is_file():
+        return {}
+    stats = json.loads(result.read_text()).get("stats", {})
+    evaluations = list((stats.get("evals") or {}).values())
+    if not evaluations:
+        return {}
+    metrics = evaluations[0].get("metrics") or [{}]
+    return {k: v for k, v in metrics[0].items() if isinstance(v, (int, float))}
+
+
+def harbor_version() -> str:
+    try:
+        out = subprocess.run(
+            ["harbor", "--version"], capture_output=True, text=True, check=False
+        )
+        return (out.stdout or out.stderr).strip().splitlines()[0]
+    except FileNotFoundError:
+        return "harbor not on PATH"
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    source = Path(sys.argv[1]).resolve()
+    if not (source / "result.json").is_file():
+        sys.exit(f"{source} has no result.json; nothing to compare against")
+
+    before = scores(source)
+    if not before:
+        sys.exit(
+            f"{source} recorded no dimension means — an errored job cannot "
+            f"serve as a baseline, because the difference would be its errors."
+        )
+
+    # A regrade calls the judge, so it needs a credential. Without this check
+    # the run fails and the verdict reads "cannot reproduce" — blaming the
+    # harness for a missing token, which is the misattribution this whole
+    # script exists to prevent.
+    if not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN") and not os.environ.get(
+        "ANTHROPIC_API_KEY"
+    ):
+        sys.exit(
+            "no credential: a regrade calls the judge. Set "
+            "CLAUDE_CODE_OAUTH_TOKEN or ANTHROPIC_API_KEY — without one the "
+            "verdict would blame the harness for the missing token."
+        )
+
+    print(f"canary: {source.name}")
+    print(f"harbor: {harbor_version()}")
+
+    regrade = subprocess.run(
+        [str(ROOT / "scripts" / "regrade"), str(source)],
+        capture_output=True,
+        text=True,
+    )
+    if regrade.returncode != 0:
+        print(regrade.stdout[-1500:], file=sys.stderr)
+        print(regrade.stderr[-1500:], file=sys.stderr)
+        print(
+            "\nVERDICT: cannot reproduce. The recorded job does not regrade "
+            "under this version, which is itself the finding — recorded "
+            "results are not re-checkable here.",
+            file=sys.stderr,
+        )
+        return 2
+
+    regraded = ROOT / "jobs" / f"rg-{source.name}"
+    after = scores(regraded)
+    if not after:
+        print(
+            "\nVERDICT: cannot reproduce. The regrade produced no dimension "
+            "means.",
+            file=sys.stderr,
+        )
+        return 2
+
+    drift = {
+        dimension: (before.get(dimension), after.get(dimension))
+        for dimension in sorted(set(before) | set(after))
+        if abs((before.get(dimension) or 0) - (after.get(dimension) or 0)) > TOLERANCE
+    }
+
+    print(f"\n{'dimension':24} {'recorded':>10} {'regraded':>10}")
+    for dimension in sorted(set(before) | set(after)):
+        mark = "  <-- drift" if dimension in drift else ""
+        print(
+            f"{dimension:24} {before.get(dimension, float('nan')):>10.3f} "
+            f"{after.get(dimension, float('nan')):>10.3f}{mark}"
+        )
+
+    if drift:
+        print(
+            f"\nVERDICT: drifted on {len(drift)} dimension(s). The trials and "
+            f"the rubric did not change, so the harness did. Do not compare "
+            f"results across this upgrade until the cause is known.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print("\nVERDICT: identical. Recorded results remain comparable.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

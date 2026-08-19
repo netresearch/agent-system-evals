@@ -76,3 +76,22 @@ regrade sees only what was kept.
 Collected per trial: trajectory, final response, git status and diff, command
 log, test and analyser output, environment metadata, and the normalised evidence
 manifest.
+
+## Two things a single harness cannot tell you
+
+**Whether the result is about the stack or about Claude Code.** Every published
+figure here comes from one agent. `scripts/sentinel` runs a case on a second
+one with everything else held constant. If the fleet effect reproduces, the
+finding is about the stack; if it does not *and the capability probe shows the
+skills were delivered*, the finding is about the stack inside one harness —
+a materially different claim from the one the results currently make. The probe
+matters: skills land in a different directory per agent, so a harness that
+never received them would otherwise look like one the stack failed to help.
+
+**Whether an upgrade moved the numbers.** Harbor is pinned, and a pin only
+protects until it moves. `scripts/harbor-canary` regrades a recorded job under
+a candidate version and compares dimension means against what the old one
+produced: same trials, same rubric, same trajectories, so any difference is the
+harness. It answers identical, drifted, or cannot reproduce — and refuses to
+run without a credential, because a regrade calls the judge and a failed one
+would otherwise be read as harness drift.
