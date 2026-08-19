@@ -18,6 +18,7 @@ snapshot alongside the result.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -192,6 +193,64 @@ def fleet_versions(name: str) -> dict:
             f"{s['repo']}@{s.get('ref')}" for s in fleet["skills"]
         ]
     return declared
+
+
+def fingerprints(job_dir: Path) -> dict:
+    """What must be identical between two arms, and what may differ.
+
+    docs/open-forward-review.md section 8 requires target, prompt, environment,
+    agent, model, judge, rubric, resources, network policy and trial count to
+    be held constant. `scripts/compare` used to check five fields of the
+    snapshot — the four it happened to record plus the trial count — so a
+    difference in the environment image, the network policy or the harness
+    version passed unnoticed and would have been read as a fleet effect.
+
+    Harbor's own lock does most of the work: `task.digest` covers the task
+    directory, and that is the instruction, the rubric, the environment and the
+    network policy in one hash. The rest is agent, model, judge and the run's
+    own knobs.
+
+    The provision — skills, companion, MCP server, injected environment — is
+    hashed separately, because it is the one thing that is *supposed* to
+    differ.
+    """
+    locks = sorted(job_dir.glob("*/lock.json"))
+    if not locks:
+        return {}
+    lock = json.loads(locks[0].read_text())
+    agent = lock.get("agent", {}) or {}
+
+    comparison = {
+        "task_digest": (lock.get("task", {}) or {}).get("digest"),
+        "agent": agent.get("name"),
+        "model": agent.get("model_name"),
+        "environment_type": (lock.get("environment", {}) or {}).get("type"),
+        "timeout_multiplier": lock.get("timeout_multiplier"),
+        "harbor_schema": lock.get("schema_version"),
+    }
+    provision = {
+        # Resolved rather than requested: the lock records what each skill
+        # actually resolved to, which is the only version that produced the
+        # result.
+        "skills": sorted(
+            f"{s.get('name')}@{s.get('commit') or s.get('version') or s.get('source')}"
+            for s in (lock.get("skills") or [])
+        ),
+        "mcp_servers": agent.get("mcp_servers") or [],
+        "agent_env": agent.get("env") or {},
+    }
+
+    def digest(value: dict) -> str:
+        return hashlib.sha256(
+            json.dumps(value, sort_keys=True, default=str).encode()
+        ).hexdigest()[:16]
+
+    return {
+        "comparison": comparison,
+        "comparison_digest": digest(comparison),
+        "provision": provision,
+        "provision_digest": digest(provision),
+    }
 
 
 def check_fleet_fits_the_case(name: str, case_dir: Path) -> None:
@@ -517,6 +576,7 @@ def main() -> int:
             ),
             "mcp_server": mcp_server[0] if mcp_server else None,
             "fleet_declares": fleet_versions(args.fleet),
+            **fingerprints(job_dir),
             "agent_env": agent_env,
             "agent": args.agent,
             "model": args.model,

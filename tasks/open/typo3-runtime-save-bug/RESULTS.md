@@ -46,7 +46,12 @@ Both MCP servers answered in 3 of 3 trials of their arm.
 | context_discovery | 3/3 (0.90) | 3/3 (0.88) | 3/3 (0.88) | **1/3 (0.69)** | 3/3 (0.88) |
 | skill_routing | 0/3 (0.36) | 0/3 (0.36) | 0/3 (0.39) | 0/3 (0.39) | 0/3 (0.33) |
 
-`nr-full` matches `control` on every dimension, met-count for met-count.
+`nr-full` matches `control` on every dimension, met-count for met-count —
+but it is **not comparable with the other four**, and the comparison
+fingerprint introduced afterwards is what says so. The four share Harbor task
+digest `42125308`; `nr-full` ran on `009d4594`, after the toolchain layer
+changed the environment image. Only the fleet may vary between arms of one
+comparison, and here the task varied too.
 
 ## Cost — per trial, agent side
 

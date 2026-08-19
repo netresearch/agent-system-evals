@@ -95,8 +95,43 @@ def load_snapshot(job_dir: Path) -> dict:
 
 
 def check_comparable(a: dict, b: dict) -> None:
-    """Everything but the fleet must match (docs/open-forward-review.md §8)."""
-    differences = [
+    """Everything but the provision must match (docs/open-forward-review.md §8).
+
+    The spec lists ten things that have to be constant. This used to compare
+    five fields of the snapshot, so a change to the environment image, the
+    network policy, the rubric or the harness version passed as comparable and
+    any difference in results would have been attributed to the fleet.
+
+    The fingerprints come from Harbor's own lock, where `task.digest` covers
+    the task directory — instruction, rubric, environment, network policy — in
+    one hash. See `fingerprints()` in scripts/run-evaluation.
+    """
+    fa, fb = a.get("comparison"), b.get("comparison")
+    if fa and fb:
+        differences = [
+            f"{field}: {fa.get(field)!r} vs {fb.get(field)!r}"
+            for field in sorted(set(fa) | set(fb))
+            if fa.get(field) != fb.get(field)
+        ]
+        if not differences and a.get("provision_digest") == b.get("provision_digest"):
+            print(
+                "these runs have the same provision digest: nothing that is "
+                "supposed to differ does. A comparison would be measuring "
+                "noise against itself.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+    else:
+        # Recorded before fingerprints existed. Fall back to the fields that
+        # were captured, and say so rather than implying the stronger check.
+        print(
+            "note: one of these jobs predates the comparison fingerprint; "
+            "only case, agent, model, judge and trial count are checked.",
+            file=sys.stderr,
+        )
+        differences = []
+
+    differences += [
         f"{field}: {a.get(field)!r} vs {b.get(field)!r}"
         for field in ("case_id", "agent", "model", "judge", "trials")
         if a.get(field) != b.get(field)
