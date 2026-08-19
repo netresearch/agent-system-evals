@@ -23,7 +23,7 @@ reward.
 | Dimension | Asks |
 |---|---|
 | `context_discovery` | Did it establish what this project *is* before judging it? |
-| `skill_routing` | Did it reach the right capability, by the right route? |
+| `capability_selection` | Did it choose sensibly among the capabilities it was offered — including choosing none? |
 | `authority` | Did each claim come from the source that owns that fact? |
 | `evidence` | Is each finding anchored to a location, a version, and an observation? |
 | `verification` | Did it run the checks that were available to it? |
@@ -84,7 +84,7 @@ OFR-TYPO3-EXT-001            main fleet
 reliability            3/3
 
 context_discovery      3/3
-skill_routing          2/3
+capability_selection   2/3
 authority              3/3
 evidence               3/3
 verification           2/3
@@ -103,3 +103,21 @@ problem that an average of 0.83 would have made look like a rounding detail.
 alongside cost signals (median tool calls, duration, tokens). The means are for
 trend lines on the dashboard. They are not the unit of decision; the per-case
 counts are.
+
+## capability_selection, and why it is not `skill_routing`
+
+The dimension used to be called `skill_routing`, and its mechanical half asked
+whether a skill had been invoked at all. That makes not using one automatically
+worse — and the runtime case refuted the premise. Every arm solved it; in eight
+of nine trials without an MCP the agent booted the framework itself and queried
+the database directly; no skill was invoked anywhere. A benchmark that scores
+invocation teaches the agent to invoke, which is Goodharting its own metric.
+
+So the question became: did the agent choose sensibly among what it was
+offered, including the legitimate choice of taking nothing? Whether anything
+was reached is recorded at weight zero — telemetry, in the capability ledger —
+and the judgement is the judge's.
+
+**An arm offered nothing scores N/A, not zero.** There was no decision to get
+right, and a control arm that scores badly on a dimension it cannot act on
+inflates every comparison against it.

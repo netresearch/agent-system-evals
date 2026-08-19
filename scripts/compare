@@ -24,7 +24,7 @@ from pathlib import Path
 
 DIMENSIONS = [
     "context_discovery",
-    "skill_routing",
+    "capability_selection",
     "authority",
     "evidence",
     "verification",
@@ -149,6 +149,30 @@ def check_comparable(a: dict, b: dict) -> None:
         sys.exit(2)
 
 
+def offered_nothing(snapshot: dict) -> bool | None:
+    """Did this arm have any capability to choose among?
+
+    None where the snapshot cannot say. Absence of a field an older run never
+    recorded is not evidence that the arm was offered nothing — read that way,
+    it reported n/a for a fleet carrying twelve skills.
+    """
+    declares = snapshot.get("fleet_declares")
+    provision = snapshot.get("provision")
+    requested = snapshot.get("fleet_requested")
+    if declares is None and provision is None and requested is None:
+        return None
+
+    return not (
+        (declares or {}).get("skills")
+        or (declares or {}).get("package")
+        or (declares or {}).get("companion_ref")
+        or (provision or {}).get("mcp_servers")
+        or requested
+        or snapshot.get("companion")
+        or snapshot.get("mcp_server")
+    )
+
+
 def counts(trials: list[dict[str, float]], dimension: str) -> tuple[int, int]:
     met = sum(1 for t in trials if t.get(dimension, 0.0) >= MET)
     return met, len(trials)
@@ -194,6 +218,18 @@ def main() -> int:
     for dimension in DIMENSIONS:
         met_a, n_a = counts(trials_a, dimension)
         met_b, n_b = counts(trials_b, dimension)
+
+        # An arm offered nothing had no selection to get right. Scoring it zero
+        # would make every comparison against a control look like an
+        # improvement on a dimension the control could not act on.
+        if dimension == "capability_selection":
+            na_a, na_b = offered_nothing(snap_a), offered_nothing(snap_b)
+            if na_a or na_b:
+                left = "n/a" if na_a else f"{met_a}/{n_a}"
+                right = "n/a" if na_b else f"{met_b}/{n_b}"
+                print(f"{dimension:22} {left:>11} {right:>11}"
+                      "   (n/a: nothing was offered to choose among)")
+                continue
         marker = ""
         if met_a != met_b:
             marker = "  <-- moved"
