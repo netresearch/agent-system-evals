@@ -25,10 +25,21 @@ for a reason unrelated to its quality.
 
 ## How the instance is built
 
-No DDEV. DDEV supplies a web server, a database and hostnames; of those a
-runtime case needs the database, and Harbor provides it as a Compose service.
-The recipe is the target's own `ddev install-v13`, minus DDEV — see
+The recipe is the target's own `ddev install-v13`, run without DDEV — see
 [ADR 0006](../../../docs/adr/0006-runtime-fidelity.md).
+
+DDEV itself cannot run here: it drives Docker, and a trial is already inside a
+container, so using it would mean handing an autonomous agent the host's Docker
+socket. What a developer's DDEV actually gives the agent is reproduced instead:
+the instance is **served over HTTP** by Apache under the hostname
+`.ddev/config.yaml` declares, and a `ddev` command answers the subcommands an
+agent reaches for — `exec`, `mysql`, `describe`, `status`, `launch`, `logs`.
+`ddev describe` states plainly that it is a compatible surface rather than
+DDEV, so an agent that checks finds out.
+
+That is not cosmetic. The case is about a backend module, and without a web
+server the reported behaviour could only be described, never triggered. The
+backend now accepts a login, so the failure can be reproduced.
 
 Split by what needs a database:
 

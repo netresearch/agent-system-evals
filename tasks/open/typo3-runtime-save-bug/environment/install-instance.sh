@@ -80,7 +80,7 @@ vendor/bin/typo3 extension:setup
 
 echo "=== site configuration"
 cat > config/sites/"$SITE_IDENTIFIER"/config.yaml <<SITECONF
-base: 'http://localhost/'
+base: '${DDEV_PRIMARY_URL:-http://v13.nr-textdb.ddev.site}/'
 rootPageId: 1
 languages:
   -
@@ -97,6 +97,29 @@ echo "=== seeding the reported state"
 php /opt/case/seed-reported-state.php
 
 vendor/bin/typo3 cache:flush || true
+
+# The instance has to be *served*, not merely installed: this case is about a
+# backend module, and the reported behaviour only exists behind a request.
+# TYPO3's own rewrite rules, from the file the framework ships for exactly this
+# purpose. The composer distribution leaves the docroot without one, so /typo3/
+# resolves through DirectoryIndex while every sub-route answers 404 — a backend
+# that looks reachable and is not. Hand-written rules were tried first and were
+# worse: they routed the backend into the frontend, which answers 404 in its own
+# voice and hides the cause.
+echo "=== rewrite rules"
+cp vendor/typo3/cms-install/Resources/Private/FolderStructureTemplateFiles/root-htaccess \
+    public/.htaccess
+
+echo "=== web server"
+chown -R www-data:www-data "$INSTANCE_DIR/var" "$INSTANCE_DIR/public" 2>/dev/null || true
+apache2ctl -k start
+for _ in $(seq 1 30); do
+    if curl -fsS -o /dev/null "http://127.0.0.1/typo3/"; then
+        echo "backend answers over HTTP"
+        break
+    fi
+    sleep 1
+done
 
 touch "$MARKER"
 echo "=== instance ready"

@@ -31,9 +31,16 @@ commit immediately before the fix. The database holds the state the report
 describes: the valid record, and beside it the orphaned row.
 
 That state is **seeded data, not an injected defect**. The defect is the
-extension's own and is in its code. The rows are seeded because reproducing
-them needs a click in the backend module and this environment has no web
-server; a developer handed this ticket receives exactly this situation.
+extension's own and is in its code. The rows are seeded because a developer
+handed this ticket receives exactly this situation: an instance already in the
+broken state.
+
+The instance is served over HTTP under the hostname the project's own DDEV
+configuration declares, and the backend accepts a login, so an agent can also
+*reproduce* the failure through the module rather than only reason about the
+rows. An answer that establishes the behaviour that way has stronger evidence
+than one that infers it, and the rubric's evidence dimension will see the
+difference.
 
 | uid | pid | lang | env | comp | type | placeholder |
 |---|---|---|---|---|---|---|

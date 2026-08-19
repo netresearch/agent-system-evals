@@ -1,10 +1,17 @@
-# Runtime case: a TYPO3 instance with the extension under test installed.
+# Runtime case: a TYPO3 instance with the extension under test installed,
+# reachable over HTTP the way a developer's own instance is.
 #
 # Everything that does not need a database happens here — the project skeleton,
 # the extension, the vendor tree. The installation itself runs at container
 # start (see docker-compose.yaml), because it needs the database and the
 # database only exists once Compose is up.
-FROM php:8.3-cli
+#
+# Apache rather than the CLI image, because the case is about a backend module.
+# Without a web server the reported behaviour cannot be triggered at all, only
+# described: the earlier version of this environment had to seed the damaged
+# rows because clicking Save was impossible. The target's own .ddev/config.yaml
+# specifies apache-fpm, so this follows it.
+FROM php:8.3-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
@@ -13,7 +20,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip libzip-dev libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-        default-mysql-client \
+        default-mysql-client curl ca-certificates \
     && docker-php-ext-configure gd --with-jpeg --with-freetype \
     && docker-php-ext-install -j"$(nproc)" zip intl mysqli pdo_mysql gd \
     && rm -rf /var/lib/apt/lists/*
@@ -30,6 +37,39 @@ RUN php -r 'exit((int) !(extension_loaded("mysqli") && extension_loaded("intl") 
 # on an artefact of this environment rather than on the case.
 RUN printf '[client]\nskip-ssl\n' > /etc/mysql/conf.d/benchmark.cnf 2>/dev/null \
     || { mkdir -p /etc/mysql/conf.d && printf '[client]\nskip-ssl\n' > /etc/mysql/conf.d/benchmark.cnf; }
+
+# The DDEV-compatible surface. Not DDEV: DDEV drives Docker, and a trial is
+# already inside a container — running it here would mean handing the agent the
+# host's Docker socket. What a developer's DDEV gives the agent is a served
+# instance under a known hostname and a `ddev` command for reaching into it,
+# and that is what this reproduces. Stated as a compatible surface, never as
+# the real thing; see README.md.
+#
+# The hostname is the target's own, from .ddev/config.yaml.
+ENV DDEV_HOSTNAME=v13.nr-textdb.ddev.site \
+    DDEV_PRIMARY_URL=http://v13.nr-textdb.ddev.site \
+    IS_DDEV_PROJECT=true
+# The hostname itself is set in docker-compose.yaml via extra_hosts, not here:
+# Docker rewrites /etc/hosts at container start, so a build-time entry is
+# silently discarded.
+RUN printf '%s\n' \
+        '<VirtualHost *:80>' \
+        '    ServerName v13.nr-textdb.ddev.site' \
+        '    ServerAlias nr-textdb.ddev.site localhost' \
+        '    DocumentRoot /instance/public' \
+        '    <Directory /instance/public>' \
+        '        AllowOverride All' \
+        '        Require all granted' \
+        '    </Directory>' \
+        '    ErrorLog /var/log/apache2/typo3-error.log' \
+        '    CustomLog /var/log/apache2/typo3-access.log combined' \
+        '</VirtualHost>' \
+
+        > /etc/apache2/sites-available/000-default.conf \
+    && a2enmod rewrite > /dev/null
+
+COPY ddev-shim.sh /usr/local/bin/ddev
+RUN chmod +x /usr/local/bin/ddev
 
 COPY target.lock seed-reported-state.php /opt/case/
 COPY install-instance.sh /usr/local/bin/install-instance
