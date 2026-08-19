@@ -294,6 +294,74 @@ overlapping ones, and no cost claim is made from it.</p>
   unaided agent does not finish.
 </div>
 
+<h2>Case 2 — what every configuration got wrong</h2>
+
+<p class="lede">The flat columns are only half the result. The other half is a weakness all five
+share, and it is the part a maintainer would act on.</p>
+
+<p>The reported instance carries an orphaned row, and that row keeps breaking saves whatever
+happens to the code: the next attempt collides with the same unique key. Repairing the defect and
+clearing the damage it already caused are two separate jobs.</p>
+
+<p><strong>The agents see the row and do not say to remove it.</strong> Graded on whether the
+answer distinguishes the code fix from the data left behind, 7 of 15 runs scored the lowest mark
+available and only 2 reached the top one. A developer who applies what they were handed still has
+a database that fails.</p>
+
+<p>A second criterion behaves the same way in a manner worth flagging against itself: whether the
+answer accounts for <em>both</em> failure modes — the silent first save and the loud later one —
+returns the middle mark in fourteen of fifteen runs. A measure that almost never varies is not
+separating anything, and it is recorded here as an open question about the rubric rather than as a
+finding about the agents.</p>
+
+<h2>Case 2 — the cheapest route is the least grounded</h2>
+
+<p>One dimension does separate the configurations, and mechanically rather than by judgement:
+whether the agent opened the project's own documentation, its manifest and its source.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Read the project's documentation</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">dev-mcp</th><th class="num">nr-full</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Runs out of three</td><td class="num">2/3</td><td class="num">3/3</td><td class="num">2/3</td><td class="num delta-down">0/3</td><td class="num">2/3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The configuration with the fewest tool calls is the one that never read the documentation. It
+asked the running system instead — the same behaviour that produces its short trajectories. On
+this case that cost nothing measurable, because the answer was in the code and the database. It
+would cost something on a case whose answer lives in a <code>Documentation/</code> directory, and
+this benchmark does not yet have one.</p>
+
+<h2>Measuring cost when capability saturates</h2>
+
+<p>When every configuration solves the task, cost is not a consolation prize — it is the remaining
+axis, and often the only one left to improve on work a team already does well. That makes the
+instrument matter.</p>
+
+<p>Dollars are the noisiest available measure, because they carry the variance of prompt caching
+on top of the agent's own. Measured as coefficient of variation within each configuration:</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Spread within a configuration</th><th class="num">tool calls</th><th class="num">agent cost</th><th class="num">input tokens</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Range across the five (lower is steadier)</td><td class="num delta-down">0.17 – 0.34</td><td class="num">0.23 – 0.53</td><td class="num">0.31 – 0.67</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Tool calls are the steadier signal, by a wide margin in the fullest configuration (0.17 against
+0.29 for cost). Two consequences for anyone repeating this: report call counts as the primary cost
+measure and dollars as a secondary one, and run more than three trials per configuration if the
+difference of interest is smaller than about a third. Case 1 separated cleanly on three because
+its ranges did not overlap; case 2 did not, and no amount of median arithmetic fixes that.</p>
+
 <h2>What the agents actually found</h2>
 
 <p>Every configuration produced a substantive review. The leading finding in the unaided run was a
