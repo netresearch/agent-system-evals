@@ -43,16 +43,19 @@ measurement here, and it is not one.
 
 ## What this shows
 
-**The quality columns are flat, and that is the finding.** Every arm solves the
-case. Every arm reaches the top mark on the mechanism. What separates the arms
-is one trial here or there, which this repository's own comparison tool refuses
-to call a result — and it refuses correctly: an earlier control-vs-nr run
-showed `nr` ahead on two dimensions and did not reproduce when re-run.
+**The quality columns are flat, so the result is in the cost columns.** Every
+arm solves the case and every arm reaches the top mark on the mechanism; what
+separates them on quality is one trial here or there, which this repository's
+own comparison tool refuses to call a result.
 
-This is a ceiling, not a tie. A case the base agent solves completely cannot
-show what better tooling is worth, however good the tooling is. The same holds
-for the upgrade case, where `control` widened the constraints and passed 719
-tests on both TYPO3 lines at the first attempt.
+That does not make the case uninformative, and an earlier version of this file
+said it did. Once a task is solved, the tokens, the wall time and the tool
+calls it took are not a consolation measure — they are the outcome, and on
+work a team already does well they are usually the only remaining one. A tool
+that reaches the same answer in half the calls has won something real. The
+question this case answers is therefore not "does the tooling help" but "what
+does each configuration spend to get there", and the rest of this file is
+about how well that can be measured.
 
 **Cost does not separate them either, at this trial count.** The medians
 suggest it does — `dev-mcp` at 47% of control, `companion` at 61%, `nr` at
@@ -68,10 +71,17 @@ claim, and the same one-trial caution applied to every quality column has to
 apply to the cost column.
 
 What survives is weaker and worth keeping: `companion` is the only arm whose
-range is both narrow and low ($3.83–6.25), and `nr` the only one whose *whole*
-range sits above control's median. Neither is a result yet. Cost is now the
-only dimension with any headroom left on this case, which makes it the one
-worth spending trials on.
+range is both narrow and low ($3.83–6.25), and `nr` and `nr-full` separate
+completely on tool calls — 91/106/141 against 54/76/83 — which is the strongest
+signal three trials can carry (one such separation in twenty by chance).
+
+Cost is where this case still has something to give, so it is where the next
+trials belong. Two things follow for how to spend them. Tool calls are the
+steadier instrument: measured as coefficient of variation within an arm they
+run 0.17–0.34, against 0.23–0.53 for dollars and 0.31–0.67 for input tokens,
+because dollars carry caching variance on top of the agent's own. And three
+trials only settle a difference when the ranges do not overlap; anything
+smaller needs more of them.
 
 The direction against the review case still stands on its own numbers: there
 the same companion cost **three times** what control did. A tool that looks
@@ -112,10 +122,18 @@ matches `control` met-count for met-count.
 
 The remaining explanation is the one this whole case keeps producing. An agent
 that can already solve the task does not go looking for help with it. Every
-arm found the root cause with `Read`, `Grep` and a shell. Skills and tools are
-offers, and an offer is only taken up by an agent that needs it — so a
-benchmark of tooling has to be built from tasks the base agent cannot finish,
-or it measures nothing but the cost of carrying the offer.
+arm found the root cause with `Read`, `Grep` and a shell — in 8 of 9 trials
+without an MCP the agent booted TYPO3 itself and queried the database
+directly, so "ask the running application" is a capability the base agent
+reconstructs rather than one a server confers.
+
+That is a statement about capability, not about worth. What an unused offer
+still costs, and what a used one saves, is exactly what the cost columns
+measure: in case 1 a single skill was reached — `typo3-conformance`, in all
+three trials — and those runs are the cheapest of that case by a margin whose
+ranges do not overlap. A procedure the agent adopts is a procedure that ends.
+The open question is how much of that is available here, and it is answered
+with trials, not with harder cases alone.
 
 ## The shared weakness
 

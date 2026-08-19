@@ -297,13 +297,19 @@ to $8.21 on identical inputs. Where case 1 showed non-overlapping ranges, this c
 overlapping ones, and no cost claim is made from it.</p>
 
 <div class="note">
-  <strong>What follows from this.</strong> An agent that can already finish a task does not go
-  looking for help with it; skills and tools are offers, and an offer is taken up by an agent that
-  needs it. Both of these cases sit at the ceiling — in the upgrade case the unaided agent widened
-  the version constraints and passed 719 tests on both framework lines at the first attempt. That
-  makes them poor instruments for what tooling is worth and good instruments for something else:
-  what carrying the tooling costs when it goes unused. Measuring the benefit needs tasks the
-  unaided agent does not finish.
+  <strong>What follows from this.</strong> Every configuration finishing the task does not make the
+  comparison empty. Once the answer is the same, what it cost to reach — tokens, wall time, tool
+  calls — is the result, and on work a team already does well it is usually the only one left to
+  improve. A configuration that reaches the same diagnosis in half the calls has won something
+  real, and case 1 shows that margin can be large and clean: a factor of six between cheapest and
+  dearest, with ranges that do not overlap.
+  <br><br>
+  What the saturation does change is the second question — what tooling adds in <em>capability</em>.
+  In 8 of 9 runs without an MCP the agent booted the framework itself and queried the database
+  directly, so "ask the running application" is something the unaided agent reconstructs rather
+  than something a server confers. Measuring a capability difference needs tasks the unaided agent
+  does not finish. Measuring the efficiency difference needs only more runs, and better instruments
+  than dollars.
 </div>
 
 <h2>Case 2 — what every configuration got wrong</h2>
