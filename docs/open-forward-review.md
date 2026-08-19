@@ -144,3 +144,29 @@ The generalisation that reaches a skill **MUST** be free of case-specific
 detail. "Determine installed versions from the lockfile before reading
 constraints" is a learning. "When reviewing t3x-sync, check
 DumpFileTrait.php" is contamination wearing a learning's clothes.
+
+## 9. Trials are interleaved, and three of them are not a measurement
+
+Two rules that come from this repository's own results rather than from theory.
+
+**Interleave the arms.** Every comparison recorded before August 2026 ran one
+arm to completion and the other hours later. A model update, a caching change
+or a backend migration in between arrives as a difference between arms and
+cannot be told apart from one. `scripts/run-comparison` runs them in rounds
+with the order shuffled, so a drift across the session spreads over both arms.
+
+**Three trials answer one question: is anything obviously happening.** They
+cannot establish that something is. On the runtime case the spread inside a
+single arm covered the whole gap between arms, and a median difference was
+published as a 53% saving before anyone looked at the per-trial figures.
+
+So a comparison starts at three per arm and continues only where a dimension
+*separates completely* — no overlap between the two samples. That is the
+strongest statement three trials can make, and it corresponds to one chance in
+twenty; it is a reason to spend more trials, never a result on its own.
+Deliberately not reported as a p-value, because with three per side the only
+distinguishable outcomes are "separated" and "not", and a p-value would dress
+that up as more.
+
+Report counts and per-trial values. A median of three, standing alone, reads
+as a measurement and is not one.

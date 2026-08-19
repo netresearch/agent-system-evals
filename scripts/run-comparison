@@ -1,0 +1,171 @@
+#!/usr/bin/env -S uv run --quiet --with pyyaml --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Run an A/B properly: interleaved, and only as deep as the answer needs.
+
+Two problems this fixes, both found in this repository's own results.
+
+**Order.** Every comparison so far ran one arm to completion and then the
+other, hours apart. A model update, a caching change or a quiet backend
+migration in between arrives as a difference between arms and is
+indistinguishable from one. Trials are interleaved here — A B, B A, A B — so a
+drift over the session spreads across both arms instead of landing on one.
+
+**Depth.** Three trials per arm was treated as the measurement. It is not: on
+the runtime case the spread inside one arm covered the gap between arms, and a
+median difference got published as a 53% saving before the per-trial figures
+were looked at. Three trials answer "is anything obviously happening"; nothing
+more. So the run starts at three, and continues only where the result is close
+enough that more trials could settle it.
+
+    scripts/run-comparison <case-id> --arms control,nr [--max-trials 12]
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import random
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+MET = 0.75
+
+# Three is enough to notice a difference and never enough to establish one.
+DISCOVERY = 3
+# Complete separation of two groups of three happens by chance one time in
+# twenty. That is the most three trials can say, so anything that separates
+# cleanly is worth spending more on; anything that overlaps heavily is not.
+STAGES = (3, 4, 5)
+
+
+def trials_of(job_dir: Path) -> list[dict]:
+    rows = []
+    for trial in sorted(job_dir.glob("*__*")):
+        result = trial / "result.json"
+        if result.is_file():
+            rows.append(json.loads(result.read_text()))
+    return rows
+
+
+def dimension_scores(job_dir: Path) -> dict[str, list[float]]:
+    scores: dict[str, list[float]] = {}
+    for trial in sorted(job_dir.glob("*__*")):
+        details = trial / "verifier" / "reward-details.json"
+        if not details.is_file():
+            continue
+        for dimension, block in json.loads(details.read_text()).items():
+            block = block if isinstance(block, dict) else (block or [{}])[0]
+            if isinstance(block, dict) and "score" in block:
+                scores.setdefault(dimension, []).append(block["score"])
+    return scores
+
+
+def separated(a: list[float], b: list[float]) -> bool:
+    """Do the two samples not overlap at all?
+
+    The strongest statement small samples can make, and the trigger for
+    spending more of them. Deliberately not a p-value: with three per side the
+    only distinguishable outcomes are "completely separated" and "not", and
+    dressing that up as significance would overstate it.
+    """
+    return bool(a) and bool(b) and (max(a) < min(b) or max(b) < min(a))
+
+
+def run_arm(case_id: str, fleet: str, trials: int, env: dict) -> Path | None:
+    command = [
+        str(ROOT / "scripts" / "run-evaluation"),
+        case_id,
+        "--fleet",
+        fleet,
+        "--trials",
+        str(trials),
+    ]
+    print(f"  → {fleet}: {trials} trial(s)")
+    result = subprocess.run(command, env=env, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(result.stdout[-2000:], file=sys.stderr)
+        print(result.stderr[-2000:], file=sys.stderr)
+        return None
+    jobs = sorted(
+        (ROOT / "jobs").glob(f"{case_id}-{fleet}-*"), key=lambda p: p.stat().st_mtime
+    )
+    return jobs[-1] if jobs else None
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("case_id")
+    parser.add_argument("--arms", required=True, help="comma-separated fleets")
+    parser.add_argument("--max-trials", type=int, default=12)
+    parser.add_argument("--seed", type=int, default=None,
+                        help="fix the interleaving order, for reproduction")
+    args = parser.parse_args()
+
+    arms = [a.strip() for a in args.arms.split(",") if a.strip()]
+    if len(arms) < 2:
+        sys.exit("--arms needs at least two fleets")
+
+    rng = random.Random(args.seed)
+    env = dict(os.environ)
+    if not env.get("CLAUDE_CODE_OAUTH_TOKEN") and not env.get("ANTHROPIC_API_KEY"):
+        sys.exit("no credential; see scripts/run-evaluation")
+
+    collected: dict[str, list[Path]] = {arm: [] for arm in arms}
+    spent = 0
+
+    for stage, size in enumerate(STAGES, start=1):
+        if spent >= args.max_trials:
+            break
+        # Interleaved rather than arm-by-arm, and shuffled within the round so
+        # a systematic drift does not always favour the same side.
+        order = list(arms)
+        rng.shuffle(order)
+        print(f"\nstage {stage}: {size} trial(s) per arm, order {' '.join(order)}")
+        for fleet in order:
+            job = run_arm(args.case_id, fleet, size, env)
+            if job:
+                collected[fleet].append(job)
+            spent += size
+
+        if stage == 1:
+            # Stop unless something looks like it is happening. A dimension
+            # that already separates completely is worth more trials; one that
+            # overlaps is not going to be settled by them either.
+            interesting = False
+            first, second = arms[0], arms[1]
+            scores_a = merged(collected[first])
+            scores_b = merged(collected[second])
+            for dimension in sorted(set(scores_a) | set(scores_b)):
+                if separated(scores_a.get(dimension, []), scores_b.get(dimension, [])):
+                    print(f"  {dimension} separates completely — continuing")
+                    interesting = True
+            if not interesting:
+                print("\nnothing separates after the discovery stage; stopping.")
+                print("Three trials per arm cannot establish a difference, and "
+                      "nothing here suggests one is there to establish.")
+                break
+
+    print("\njobs:")
+    for fleet, jobs in collected.items():
+        for job in jobs:
+            print(f"  {fleet}: {job.relative_to(ROOT)}")
+    print("\nCompare them with scripts/compare, and read the per-trial figures "
+          "before any median.")
+    return 0
+
+
+def merged(jobs: list[Path]) -> dict[str, list[float]]:
+    out: dict[str, list[float]] = {}
+    for job in jobs:
+        for dimension, values in dimension_scores(job).items():
+            out.setdefault(dimension, []).extend(values)
+    return out
+
+
+if __name__ == "__main__":
+    sys.exit(main())
