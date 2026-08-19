@@ -48,6 +48,10 @@ def companion_pin() -> str | None:
     return (yaml.safe_load(fleet.read_text()) or {}).get("companion", {}).get("ref")
 
 
+def _line_tuple(line: str) -> tuple[int, ...]:
+    return tuple(int(p) for p in line.split(".") if p.isdigit())
+
+
 def check_runtime_mcp_servers(
     case_dir: Path, label: Path, config: dict, problems: list[str]
 ) -> None:
@@ -64,6 +68,14 @@ def check_runtime_mcp_servers(
     if not config.get("metadata", {}).get("runtime"):
         return
 
+    # What the instance runs, from the case's own lock file.
+    lock = case_dir / "environment" / "target.lock"
+    line = ""
+    if lock.exists():
+        for row in lock.read_text().splitlines():
+            if row.startswith("TYPO3_LINE="):
+                line = row.split("=", 1)[1].strip()
+
     dockerfile = case_dir / "environment" / "Dockerfile"
     if not dockerfile.exists():
         return
@@ -71,7 +83,13 @@ def check_runtime_mcp_servers(
 
     for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
         fleet = yaml.safe_load(fleet_path.read_text()) or {}
-        if fleet.get("requires") != "runtime":
+        floor = fleet.get("min_typo3_line")
+        if not floor:
+            continue
+        # A fleet whose own requirements the case cannot meet is not a gap in
+        # the case. The review target declares TYPO3 ^12.4, so its developer's
+        # instance is v12.4, and a server requiring ^13.4 has no place there.
+        if line and _line_tuple(line) < _line_tuple(str(floor)):
             continue
         package = fleet.get("package")
         if not package:

@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Copy the shared environment into every case, or check that it is in sync.
+#
+# Every case starts from the same environment — extension checked out, TYPO3
+# installed and served with that extension active — because that is what a
+# developer has. See environment/common/README.md.
+#
+# Copied rather than shared through a base image: Harbor builds each case from
+# its own directory, so a common `FROM` would introduce a build-ordering
+# dependency that surfaces much later as "image not found".
+#
+#   scripts/sync-environment            copy
+#   scripts/sync-environment --check    report drift, change nothing
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+COMMON="$ROOT/environment/common"
+CHECK=0
+[[ "${1:-}" == "--check" ]] && CHECK=1
+
+FILES=(build-instance.sh install-instance.sh ddev-shim.sh install-toolchain.sh)
+
+drift=0
+cases=0
+for task in "$ROOT"/tasks/*/*/task.toml; do
+    case_dir="$(dirname "$task")"
+    env_dir="$case_dir/environment"
+    [[ -d "$env_dir" ]] || continue
+    cases=$((cases + 1))
+
+    for file in "${FILES[@]}"; do
+        if [[ ! -f "$env_dir/$file" ]] || ! cmp -s "$COMMON/$file" "$env_dir/$file"; then
+            drift=$((drift + 1))
+            rel="${case_dir#"$ROOT"/}"
+            if [[ "$CHECK" == "1" ]]; then
+                echo "drift: $rel/environment/$file" >&2
+            else
+                cp "$COMMON/$file" "$env_dir/$file"
+                chmod +x "$env_dir/$file"
+                echo "updated $rel/environment/$file"
+            fi
+        fi
+    done
+done
+
+if [[ "$CHECK" == "1" ]]; then
+    if [[ "$drift" -gt 0 ]]; then
+        echo "$drift file(s) differ from environment/common" >&2
+        exit 1
+    fi
+    echo "environment in sync across $cases case(s)"
+else
+    echo "environment synced into $cases case(s)"
+fi

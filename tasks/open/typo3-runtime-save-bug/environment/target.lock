@@ -27,6 +27,7 @@ TYPO3_LINE=13.4
 # rather than invented, so the installation under test is the one its
 # developers work against — see docs/adr/0006-runtime-fidelity.md.
 SITE_IDENTIFIER=textdb
+SITE_HOSTNAME=v13.nr-textdb.ddev.site
 INSTANCE_DIR=/instance
 # The database settings are declared in task.toml and only defaulted here,
 # because this file is *sourced* — a plain assignment would silently overwrite

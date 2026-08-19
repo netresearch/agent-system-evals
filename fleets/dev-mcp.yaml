@@ -11,11 +11,16 @@ skills: []
 # per fleet. `scripts/validate-tasks` requires every runtime case to install
 # the package at the pin below.
 #
-# Runtime cases only. The package requires typo3/cms-core and answers by
-# querying a booted TYPO3; in a repository-level case there is nothing for it
-# to read, and scoring it there would produce a bad number for a reason that
-# has nothing to do with its quality.
-requires: runtime
+# Every case now runs against an installed, served instance, so the old
+# `requires: runtime` no longer excludes anything. What does exclude something
+# is the package's own constraint: it requires typo3/cms-core ^13.4 || ^14.0.
+# A target that supports only v12.4 gets a v12.4 instance — that is the
+# instance its developer has — and this server cannot be installed there.
+#
+# Stated as a version floor rather than left to fail at build time, so a case
+# on an older line reports "not applicable" instead of an image that does not
+# build.
+min_typo3_line: "13.4"
 
 package: balatd/typo3-dev-mcp:v0.1.0-alpha.8
 

@@ -29,7 +29,9 @@ target_package = "netresearch/contexts"
 target_sha = "0b8d0091004db19c3799ab4eaa27a89496846b6b"
 # Repository-level only. Nothing here claims anything about runtime behaviour;
 # see docs/adr/0006-runtime-fidelity.md.
-runtime = false
+# Every case runs against an installed, served instance — that is what a
+# developer has. See environment/common/README.md.
+runtime = true
 # A writing task. Unlike the review case this one has a partly knowable correct
 # outcome — it must resolve and test on the line the agent targets — so it sits
 # closer to the contract end of the spectrum. The prompt stays open: it names
@@ -56,6 +58,23 @@ allowed_hosts = [
     "packagist.org",
     "repo.packagist.org",
 ]
+
+
+[environment.healthcheck]
+# The agent must never start against a half-installed instance. Checked by
+# consequence rather than status: a 200 on /typo3/ is reachable with every
+# sub-route broken, so the login route is what gets asked.
+command = "test -f /instance/.instance-ready && cd /instance && vendor/bin/typo3 site:list >/dev/null && curl -fsS -o /dev/null http://v13.contexts.ddev.site/typo3/login"
+timeout_sec = 30.0
+start_period_sec = 300.0
+start_interval_sec = 10.0
+retries = 5
+
+[environment.env]
+DB_HOST = "127.0.0.1"
+DB_NAME = "typo3"
+DB_USER = "typo3"
+DB_PASSWORD = "typo3-benchmark-password"
 
 [verifier]
 # Same arithmetic as the review case, plus the matrix collect hooks.

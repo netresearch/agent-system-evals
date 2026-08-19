@@ -31,13 +31,6 @@ services:
       retries: 30
 
   main:
-    # The instance answers under the hostname the target's own .ddev/config.yaml
-    # declares, so an agent following DDEV conventions reaches it. Set here
-    # rather than in the image: Docker rewrites /etc/hosts at container start
-    # and a build-time entry would vanish without a word.
-    extra_hosts:
-      - "v13.nr-textdb.ddev.site:127.0.0.1"
-      - "nr-textdb.ddev.site:127.0.0.1"
     # The installation cannot happen at build time: it needs the database, and
     # the database only exists once Compose has started. So it runs here, then
     # the container stays alive for the agent. The environment healthcheck in

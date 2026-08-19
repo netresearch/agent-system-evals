@@ -1,0 +1,35 @@
+# The database the instance needs, and the hostname it answers under.
+#
+# Every case starts from a running instance, so every case has this — see
+# environment/common/README.md. DDEV is not used: it drives Docker and a trial
+# is already a container, which would mean handing an autonomous agent the
+# host's Docker socket.
+#
+# Neither service declares `networks` or `network_mode`, deliberately: under
+# egress control Harbor moves exactly those services into the sidecar's network
+# namespace, which is what gives `main` its allowlist. The database comes along
+# and the two meet on localhost. Adding a network here would take `db` out of
+# `main`'s reach.
+
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: typo3-benchmark-root
+      MARIADB_DATABASE: typo3
+      MARIADB_USER: typo3
+      MARIADB_PASSWORD: typo3-benchmark-password
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  main:
+    # The installation needs the database, which exists only once Compose is up,
+    # so it runs here and the container then stays alive for the agent. The
+    # environment healthcheck in task.toml holds the agent back until it is done.
+    command: ["/bin/bash", "-lc", "/usr/local/bin/install-instance; tail -f /dev/null"]
+    depends_on:
+      db:
+        condition: service_healthy

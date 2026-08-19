@@ -1,6 +1,6 @@
-# ADR 0006 — Runtime cases run a real installation, built without DDEV
+# ADR 0006 — Every case runs against a real installation, built without DDEV
 
-- Status: accepted — supersedes the original decision of 2026-08-15
+- Status: accepted — revised twice; the second revision is at the end and is the one in force
 - Date: 2026-08-17
 
 ## Context
@@ -73,3 +73,36 @@ The claim that DDEV fidelity is the blocker is retired. The remaining fidelity
 question is narrower and honest: an instance built by this recipe is the one the
 target's developers build, but it is not their laptop. Where that difference
 matters for a finding, the case says so.
+
+
+## Second revision, 2026-08-19
+
+The first revision fixed the wrong half. It established that a case *may* run
+against an instance, and then treated the instance as a property of the case:
+the runtime case got one because its defect is invisible without it, and the
+review and upgrade cases stayed bare checkouts.
+
+That silently changed what the benchmark asks. A developer working on a TYPO3
+extension has the repository checked out **and** an instance running with that
+extension installed — not sometimes, always, because they cannot see what they
+are doing otherwise. Measuring against a bare checkout does not measure how
+much a tool helps that developer. It measures how much it helps someone working
+in an environment nobody has, and it makes any tool that reads a running
+application look inapplicable when it is merely starved.
+
+We are not measuring how good a development environment is. We are measuring
+what skills and MCP servers add **inside a proper one**.
+
+So the instance is now part of the environment, not of the case. All three
+cases build and serve one; `environment/common/` holds the shared scripts and
+`scripts/sync-environment` keeps them identical. `runtime` is `true` everywhere
+and no longer distinguishes anything.
+
+One exclusion survives, and it is a fact about the world rather than a choice:
+`balatd/typo3-dev-mcp` requires TYPO3 ^13.4, and the review target declares
+^12.4, so its developer's instance is a v12.4 one. The fleet states that as a
+version floor and the case reports "not applicable" instead of failing to
+build.
+
+Every result recorded before this revision measured the earlier arrangement and
+is not comparable across it.

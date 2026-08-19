@@ -36,3 +36,19 @@ MATRIX_NEW=14.3
 #     deliberately easier here, so the two cases do not test the same thing.
 #   - full toolchain: PHPStan, php-cs-fixer, Fractor, PHPUnit with functional
 #     tests, PHPat, Infection.
+
+# --- the instance every case runs against -----------------------------------
+# A developer working on this extension has it installed in a running TYPO3,
+# always. See environment/common/README.md.
+TARGET_EXTENSION_KEY=contexts
+TYPO3_LINE=13.4
+SITE_IDENTIFIER=contexts
+SITE_HOSTNAME=v13.contexts.ddev.site
+INSTANCE_DIR=/instance
+DB_NAME=${DB_NAME:-typo3}
+DB_USER=${DB_USER:-typo3}
+DB_PASSWORD=${DB_PASSWORD:-typo3-benchmark-password}
+# Not the Compose service name: under egress control the services share one
+# network namespace and meet on localhost. Sourced, so it only defaults here —
+# task.toml decides at run time.
+DB_HOST=${DB_HOST:-127.0.0.1}

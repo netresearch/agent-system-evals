@@ -1,7 +1,7 @@
 # PHP 8.3. Both matrix legs declare `php ^8.2` — checked against Packagist
 # rather than assumed, because a wrong floor here would silently make one leg
 # unresolvable and look like an agent failure.
-FROM php:8.3-cli
+FROM php:8.3-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip libzip-dev libicu-dev libsqlite3-dev \
-    && docker-php-ext-install -j"$(nproc)" zip intl pdo pdo_sqlite \
+    && docker-php-ext-install -j"$(nproc)" zip intl pdo pdo_sqlite mysqli pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -79,6 +79,62 @@ COPY install-toolchain.sh /usr/local/bin/install-toolchain
 RUN chmod +x /usr/local/bin/install-toolchain \
     && install-toolchain \
     && ! command -v rg > /dev/null
+
+
+# --- the instance this case runs against -------------------------------------
+#
+# Every case starts from what a developer has: the repository checked out and a
+# TYPO3 instance running with that extension installed. See
+# environment/common/README.md. The heavy half happens here; `typo3 setup` and
+# the rest need a database and run at container start.
+# Verified here rather than discovered during `typo3 setup`, which answers a
+# missing driver with "The connection type \"mysqli\" does not exist" and then
+# lists mysqli among the valid ones — a message that points at the argument
+# instead of at the absent extension.
+RUN php -r 'exit((int) !(extension_loaded("mysqli") && extension_loaded("intl")));'
+
+ENV EXTENSION_DIR=/app
+COPY target.lock /opt/case/
+COPY build-instance.sh /usr/local/bin/build-instance
+COPY install-instance.sh /usr/local/bin/install-instance
+COPY ddev-shim.sh /usr/local/bin/ddev
+RUN chmod +x /usr/local/bin/build-instance /usr/local/bin/install-instance \
+        /usr/local/bin/ddev \
+    && build-instance /opt/case/target.lock
+
+# Served, not merely installed: an extension case that cannot issue a request
+# cannot reproduce what a user reported, and a server that introspects a
+# running application has nothing to introspect. The vhost matches the hostname
+# target.lock declares; the hostname itself is set in docker-compose.yaml,
+# because Docker rewrites /etc/hosts at container start.
+RUN printf '%s\n' \
+        '<VirtualHost *:80>' \
+        '    ServerName v13.contexts.ddev.site' \
+        '    ServerAlias localhost' \
+        '    DocumentRoot /instance/public' \
+        '    <Directory /instance/public>' \
+        '        AllowOverride All' \
+        '        Require all granted' \
+        '    </Directory>' \
+        '    ErrorLog /var/log/apache2/typo3-error.log' \
+        '    CustomLog /var/log/apache2/typo3-access.log combined' \
+        '</VirtualHost>' \
+        > /etc/apache2/sites-available/000-default.conf \
+    && a2enmod rewrite > /dev/null
+ENV DDEV_HOSTNAME=v13.contexts.ddev.site \
+    DDEV_PRIMARY_URL=http://v13.contexts.ddev.site \
+    IS_DDEV_PROJECT=true
+
+# balatd/typo3-dev-mcp, for the fleet that registers it. A TYPO3 extension, so
+# it is installed into the instance rather than beside it and is present for
+# every fleet — only the MCP config varies. It ships no TCA, no ext_tables.sql
+# and no ext_localconf.php, so the data model and request chain are unchanged;
+# what every arm sees is one more dev extension in the list.
+ARG DEV_MCP_VERSION=v0.1.0-alpha.8
+RUN cd /instance \
+    && composer require --dev --no-interaction --no-progress --no-ansi \
+        "balatd/typo3-dev-mcp:$DEV_MCP_VERSION" \
+    && test -f /instance/vendor/balatd/typo3-dev-mcp/composer.json
 
 RUN mkdir -p /logs/artifacts
 
