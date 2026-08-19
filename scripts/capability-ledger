@@ -32,6 +32,25 @@ def trials(job_dir: Path) -> list[Path]:
     return sorted(p for p in job_dir.glob("*__*") if (p / "agent").is_dir())
 
 
+def delivered_skills(trial: Path) -> int | None:
+    """Skills actually present in the container, read from the artifacts.
+
+    A second, independent view of the same fact. The probe reads the container
+    while it runs; this reads what was collected from it. They disagreed once —
+    the probe looked in the Claude default config directory while Harbor sets
+    CLAUDE_CONFIG_DIR to /logs/agent/sessions — and the ledger reported "no
+    skills" for a fleet that had twelve. One source of truth for a number this
+    load-bearing was one too few.
+    """
+    for candidate in (
+        trial / "agent" / "sessions" / "skills",
+        trial / "artifacts" / "logs" / "agent" / "sessions" / "skills",
+    ):
+        if candidate.is_dir():
+            return len([p for p in candidate.iterdir() if p.is_dir()])
+    return None
+
+
 def inventory(trial: Path) -> dict:
     for candidate in (
         trial / "artifacts" / "logs" / "artifacts" / "capability-inventory.json",
@@ -113,8 +132,11 @@ def report(job_dir: Path) -> None:
             provided[f"cli:{tool}"] = "yes" if spec.get("present") else "no"
         for name, spec in (inv.get("mcp") or {}).items():
             provided[f"mcp:{name}"] = "yes" if spec.get("reachable") else "unreachable"
+        collected = delivered_skills(trial)
+        if collected is not None:
+            provided["skills"] = f"{collected} present" if collected else "none"
         skills = inv.get("skills")
-        if skills is not None:
+        if skills is not None and collected is None:
             # Recorded even at zero. "no skills" and "not probed" are different
             # facts and an absent row cannot tell them apart — which is the
             # confusion this whole ledger exists to remove.

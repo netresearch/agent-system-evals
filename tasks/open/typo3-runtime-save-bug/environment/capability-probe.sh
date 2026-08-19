@@ -40,6 +40,7 @@ skill_digest=""
 found_dir=""
 for skill_dir in \
         "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" \
+        /logs/agent/sessions/skills \
         "$HOME/.config/opencode/skills" \
         "$HOME/.codex/skills" \
         "$HOME/.gemini/skills" \
@@ -59,7 +60,7 @@ done
 # config: a config entry pointing at a missing binary looks identical to a
 # working one until something calls it.
 mcp_entries=""
-for config in "${MCP_CONFIG:-}" /tmp/mcp.json; do
+for config in "${MCP_CONFIG:-}" /logs/agent/sessions/.claude.json /tmp/mcp.json; do
     [ -n "$config" ] && [ -f "$config" ] || continue
     # shellcheck disable=SC2086  # args is a pre-split argument list from the
     # MCP config and must word-split; quoting it would pass "devmcp:serve" and
