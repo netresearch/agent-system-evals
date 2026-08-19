@@ -177,6 +177,18 @@ $2.26. The ranges do not overlap — the dearest run of the cheaper configuratio
 than the cheapest run of the other. The companion's runs, $4.07 to $6.17, sit entirely above
 both.</p>
 
+<h2>Case 1 — one skill of eight was reached</h2>
+
+<p>The configurations differ by what they offer, not by what gets used, so the trajectories were
+counted. In every one of the three Netresearch runs the agent invoked exactly one skill —
+<code>typo3-conformance</code> — and none of the other seven. The companion runs likewise reached
+exactly one, its own <code>typo3-extension-conformance</code>, in all three.</p>
+
+<p>So the cheaper, shorter route in case 1 came from a single skill being reached and followed. A
+procedure the agent adopts is a procedure that ends; that is a plausible reason for the shorter
+trajectories, and it is worth separating from the eleven skills that were carried and never
+opened.</p>
+
 <h2>Case 1 — the eight quality dimensions</h2>
 
 <p>Counts are runs in which the dimension was met, out of three, with the mean in brackets.
@@ -313,6 +325,40 @@ answer accounts for <em>both</em> failure modes — the silent first save and th
 returns the middle mark in fourteen of fifteen runs. A measure that almost never varies is not
 separating anything, and it is recorded here as an open question about the rubric rather than as a
 finding about the agents.</p>
+
+<h2>Case 2 — an unexplained gap between two Netresearch configurations</h2>
+
+<p>If neither configuration invoked a skill or a command, the two Netresearch arms should behave
+alike. They do not, and the difference is in how long the agent worked rather than in what it
+produced.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Per run</th><th class="num">tool calls</th><th class="num">agent cost</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>control</td><td class="num">47 / 93 / 96</td><td class="num">$2.99 / $8.21 / $6.76</td></tr>
+    <tr><td>nr — eight skills</td><td class="num">91 / 106 / 141</td><td class="num">$7.17 / $8.33 / $19.11</td></tr>
+    <tr><td>nr-full — twelve skills and the toolchain</td><td class="num delta-down">54 / 76 / 83</td><td class="num delta-down">$3.46 / $5.56 / $7.39</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Cost tracks call count almost exactly, in every configuration: the price of a run is how long
+the agent kept going. And <code>nr</code> kept going longer in every run than <code>nr-full</code>
+did in any — 91 at its shortest against 83 at its longest.</p>
+
+<p><strong>The obvious explanation is wrong.</strong> Carrying skill descriptions that are never
+opened would make the larger set the dearer one, and here the larger set is the cheaper one:
+twelve descriptions plus a toolchain, and shorter runs. Whatever separates them, it is not the
+weight of the offer.</p>
+
+<p>No mechanism is claimed. What can be said about the strength of the signal is exact: two groups
+of three separate completely by chance one time in twenty. That is the strongest result three runs
+per configuration can produce, and it is the same standing as case 1's cost result — worth acting
+on as a hypothesis, not worth reporting as established. Both need more runs, and this is where
+they should be spent.</p>
 
 <h2>Case 2 — the cheapest route is the least grounded</h2>
 
