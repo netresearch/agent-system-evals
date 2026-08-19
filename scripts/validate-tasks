@@ -93,6 +93,44 @@ def check_runtime_mcp_servers(
             )
 
 
+def check_fleet_toolchain(case_dir: Path, label: Path, problems: list[str]) -> None:
+    """A fleet that puts a directory on PATH needs a case that fills it.
+
+    The toolchain arrives through `--agent-env PATH=…`, and a PATH entry that
+    does not exist is not an error on any system: the shell skips it. So a case
+    missing the layer produces an arm labelled as the deployed stack, running
+    with none of its tools, with nothing failing anywhere — the exact shape this
+    repository keeps having to defend against.
+    """
+    import yaml
+
+    env_dir = case_dir / "environment"
+    if not env_dir.is_dir():
+        return
+    # The whole environment, not the Dockerfile alone: the directory is created
+    # by a script the Dockerfile calls, so the path appears there rather than in
+    # the build file. Checking only the Dockerfile reported all three cases as
+    # broken, including the one that demonstrably has the toolchain.
+    text = "\n".join(
+        p.read_text()
+        for p in sorted(env_dir.iterdir())
+        if p.is_file() and p.suffix in ("", ".sh") or p.name == "Dockerfile"
+    )
+
+    for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
+        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        path_value = (fleet.get("env") or {}).get("PATH")
+        if not path_value:
+            continue
+        for entry in str(path_value).split(":"):
+            if entry.startswith("/opt/") and entry not in text:
+                problems.append(
+                    f"{label}: fleets/{fleet_path.name} puts {entry} on PATH "
+                    f"and environment/Dockerfile does not create it; that arm "
+                    f"would run with none of its tools"
+                )
+
+
 def check_companion_server(case_dir: Path, label: Path, problems: list[str]) -> None:
     """Every case must be able to host the companion, at the fleet's commit.
 
@@ -138,6 +176,7 @@ def main() -> int:
         checked += 1
         paths = TaskPaths(case_dir)
         check_companion_server(case_dir, label, problems)
+        check_fleet_toolchain(case_dir, label, problems)
 
         # Harbor's own validation, with the error surfaced instead of hidden.
         try:

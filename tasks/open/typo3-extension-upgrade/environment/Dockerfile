@@ -70,6 +70,16 @@ RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-compa
     && composer install --no-interaction --no-progress --no-ansi --quiet \
     && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
 
+# The Netresearch command-line toolchain, installed off the default PATH. Only
+# a fleet that declares it in `env:` can reach it. Without this layer the
+# nr-full fleet would carry a PATH pointing at a directory that does not exist,
+# and a missing PATH entry is not an error anywhere: the arm would be labelled
+# as the deployed stack and run with none of its tools.
+COPY install-toolchain.sh /usr/local/bin/install-toolchain
+RUN chmod +x /usr/local/bin/install-toolchain \
+    && install-toolchain \
+    && ! command -v rg > /dev/null
+
 RUN mkdir -p /logs/artifacts
 
 # Build-time input only. Leaving it in the image would put the target's forge

@@ -54,6 +54,17 @@ RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-compa
     && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
 
 # Harbor collects everything written here.
+# The Netresearch command-line toolchain, installed off the default PATH. Only
+# a fleet that declares it in `env:` can reach it — an arm without it sees an
+# image where these commands do not resolve, which is the state the comparison
+# needs. Without this layer the nr-full fleet would carry a PATH pointing at a
+# directory that does not exist: an arm labelled as the deployed stack, running
+# with none of its tools and nothing failing anywhere.
+COPY install-toolchain.sh /usr/local/bin/install-toolchain
+RUN chmod +x /usr/local/bin/install-toolchain \
+    && install-toolchain \
+    && ! command -v rg > /dev/null
+
 RUN mkdir -p /logs/artifacts
 
 # Build-time input only. Leaving it in the image would put the target's forge

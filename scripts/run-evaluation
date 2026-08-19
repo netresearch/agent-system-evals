@@ -194,6 +194,30 @@ def fleet_versions(name: str) -> dict:
     return declared
 
 
+def check_fleet_fits_the_case(name: str, case_dir: Path) -> None:
+    """Refuse a fleet the case cannot host, instead of running it hollow.
+
+    `fleets/dev-mcp.yaml` declares `requires: runtime` because its server
+    answers by querying a booted TYPO3 and has nothing to read in a checkout.
+    Nothing stopped it being pointed at a repository-level case, where it would
+    have produced three trials indistinguishable from a control run and a table
+    entry claiming otherwise.
+    """
+    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    if fleet.get("requires") != "runtime":
+        return
+
+    config = tomllib.loads((case_dir / "task.toml").read_text())
+    if config.get("metadata", {}).get("runtime"):
+        return
+
+    sys.exit(
+        f"fleets/{name}.yaml requires a runtime case and "
+        f"{case_dir.name} is repository-level. Its server would answer nothing "
+        f"there, and the arm would score as a control run under another name."
+    )
+
+
 def load_mcp_server(name: str) -> tuple[str, Path] | None:
     """An MCP server that lives in the environment image, if the fleet has one.
 
@@ -369,6 +393,7 @@ def main() -> int:
         )
 
     check_token_outlives_the_run(oauth_token, args)
+    check_fleet_fits_the_case(args.fleet, case_dir)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     job_name = f"{args.case_id}-{args.fleet}-{stamp}"
