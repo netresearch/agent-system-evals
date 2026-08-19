@@ -171,6 +171,29 @@ def load_agent_env(name: str) -> list[str]:
     return [f"{key}={value}" for key, value in env.items()]
 
 
+def fleet_versions(name: str) -> dict:
+    """What the fleet declares it is, in a form a reader can check.
+
+    Harbor's job lock pins the environment image by digest, which is exact and
+    unreadable: it cannot answer "which version of the MCP server did this
+    result test?" without rebuilding. The companion's commit happens to be
+    legible because it sits in its cache path; the dev-mcp package version did
+    not appear in a result at all. A recorded number has to be able to say what
+    it measured.
+    """
+    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    declared = {}
+    if fleet.get("package"):
+        declared["package"] = fleet["package"]
+    if fleet.get("companion", {}).get("ref"):
+        declared["companion_ref"] = fleet["companion"]["ref"]
+    if fleet.get("skills"):
+        declared["skills"] = [
+            f"{s['repo']}@{s.get('ref')}" for s in fleet["skills"]
+        ]
+    return declared
+
+
 def load_mcp_server(name: str) -> tuple[str, Path] | None:
     """An MCP server that lives in the environment image, if the fleet has one.
 
@@ -468,6 +491,7 @@ def main() -> int:
                 else None
             ),
             "mcp_server": mcp_server[0] if mcp_server else None,
+            "fleet_declares": fleet_versions(args.fleet),
             "agent_env": agent_env,
             "agent": args.agent,
             "model": args.model,
