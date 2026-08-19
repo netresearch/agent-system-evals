@@ -1,19 +1,9 @@
 #!/usr/bin/env bash
-# What the arm was actually given, measured before the agent is admitted.
+# Inventory of the tools, skills and MCP servers available in this container.
 #
-# Two states that look identical in a result and are not the same thing at all:
-#
-#   the server was never registered, or its binary is missing → void run
-#   the server answered and the agent did not call it        → measurement
-#
-# The second is one of the more interesting findings this benchmark has
-# produced — fifteen trials in which no skill and no toolchain command was used
-# although both were reachable. Reporting it as "possibly broken, do not use"
-# would have thrown away the result.
-#
-# So provisioning is established here, deterministically, and usage is counted
-# separately from the trajectory. This writes what was *provided*; nothing in
-# it says anything about what the agent did with it.
+# Written before anything reads it, so that "the tool was not there" and "the
+# tool was there and unused" can be told apart afterwards. Nothing here records
+# or judges what was done with any of it.
 #
 # Output: /logs/artifacts/capability-inventory.json
 set -euo pipefail

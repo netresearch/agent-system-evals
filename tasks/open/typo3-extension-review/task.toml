@@ -133,7 +133,7 @@ allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
 # a server that never answered makes a run void, a server that answered and
 # went unused is a result.
 [[verifier.collect]]
-command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /usr/local/bin/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
 timeout_sec = 180.0
 
 [[verifier.collect]]

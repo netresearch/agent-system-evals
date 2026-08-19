@@ -24,7 +24,12 @@ RUN php -r 'exit((int) !(extension_loaded("pdo") && extension_loaded("intl")));'
 COPY matrix-lib.sh /usr/local/lib/matrix-lib.sh
 COPY target.lock /tmp/target/target.lock
 COPY prepare-target.sh /usr/local/bin/prepare-target
-RUN chmod +x /usr/local/bin/prepare-target && prepare-target /tmp/target/target.lock /app
+RUN chmod +x /usr/local/bin/prepare-target \
+    && prepare-target /tmp/target/target.lock /app \
+    # Build-time only. Left in the agent's PATH it carries the target
+    # repository and the pinned commit — the case's provenance, which
+    # scripts/agent-surface-audit reports as a leak and rightly so.
+    && rm -f /usr/local/bin/prepare-target
 
 # Environment readiness (ADR 0003): the commands a competent developer would
 # reach for must work before the agent arrives. A failure here is a broken
@@ -84,9 +89,9 @@ COPY target.lock /opt/case/
 COPY build-instance.sh /usr/local/bin/build-instance
 COPY install-instance.sh /usr/local/bin/install-instance
 COPY ddev-shim.sh /usr/local/bin/ddev
-COPY capability-probe.sh /usr/local/bin/capability-probe
+COPY capability-probe.sh /opt/probe/capability-probe
 RUN chmod +x /usr/local/bin/build-instance /usr/local/bin/install-instance \
-        /usr/local/bin/ddev /usr/local/bin/capability-probe \
+        /usr/local/bin/ddev /opt/probe/capability-probe \
     && build-instance /opt/case/target.lock
 
 # Served, not merely installed: an extension case that cannot issue a request
