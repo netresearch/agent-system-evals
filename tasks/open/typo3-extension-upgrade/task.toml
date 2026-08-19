@@ -75,6 +75,12 @@ DB_HOST = "127.0.0.1"
 DB_NAME = "typo3"
 DB_USER = "typo3"
 DB_PASSWORD = "typo3-dev-password"
+# What this arm installs into the instance, resolved from the host environment
+# the way the credentials are. Empty for an arm that provisions nothing, which
+# is what control has to mean: the products are not baked into the image for
+# every fleet.
+PROVISION_PACKAGES = "${PROVISION_PACKAGES}"
+PROVISION_COMPANION_REF = "${PROVISION_COMPANION_REF}"
 
 [verifier]
 # Same arithmetic as the review case, plus the matrix collect hooks.

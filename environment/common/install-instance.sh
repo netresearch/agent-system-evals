@@ -103,17 +103,39 @@ vendor/bin/typo3 extension:setup
 # nothing gets nothing, which is what "control" has to mean.
 # The companion's server is a standalone PHP tool rather than a package, so it
 # is cloned rather than required. Same principle: only for the arm that asks.
+# A record that survives the cleanup below. The install log is deleted because
+# it names the case; this file names only what an arm was given and whether it
+# worked. Without it a failed provision is invisible: the companion arm came
+# back VOID and nothing said why, because the diagnosis had been deleted along
+# with the leak.
+PROVISION_LOG=/logs/artifacts/provisioning.txt
+mkdir -p /logs/artifacts
+{
+    echo "companion_ref=${PROVISION_COMPANION_REF:-<none>}"
+    echo "packages=${PROVISION_PACKAGES:-<none>}"
+} > "$PROVISION_LOG"
+
 if [ -n "${PROVISION_COMPANION_REF:-}" ] && [ ! -d /opt/typo3-dev-companion ]; then
     echo "=== provisioning: TYPO3 Dev Companion at ${PROVISION_COMPANION_REF:0:12}"
-    git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion
-    git -C /opt/typo3-dev-companion checkout -q "$PROVISION_COMPANION_REF"
-    (cd /opt/typo3-dev-companion && composer install --no-interaction --no-progress --no-ansi --quiet)
+    if git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion 2>>"$PROVISION_LOG" \
+        && git -C /opt/typo3-dev-companion checkout -q "$PROVISION_COMPANION_REF" 2>>"$PROVISION_LOG" \
+        && (cd /opt/typo3-dev-companion \
+            && composer install --no-interaction --no-progress --no-ansi --quiet 2>>"$PROVISION_LOG"); then
+        echo "companion=installed" >> "$PROVISION_LOG"
+    else
+        echo "companion=FAILED" >> "$PROVISION_LOG"
+    fi
 fi
 
 if [ -n "${PROVISION_PACKAGES:-}" ]; then
     echo "=== provisioning: $PROVISION_PACKAGES"
     for package in $PROVISION_PACKAGES; do
-        composer require --dev --no-interaction --no-progress --no-ansi "$package"
+        if composer require --dev --no-interaction --no-progress --no-ansi \
+            "$package" 2>>"$PROVISION_LOG"; then
+            echo "package=$package installed" >> "$PROVISION_LOG"
+        else
+            echo "package=$package FAILED" >> "$PROVISION_LOG"
+        fi
     done
 fi
 

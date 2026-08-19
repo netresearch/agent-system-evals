@@ -39,6 +39,35 @@ REQUIRED_METADATA = (
 
 
 
+def check_provision_declared(case_dir: Path, label: Path, raw: dict, problems: list[str]) -> None:
+    """The case has to declare the variables its fleets provision through.
+
+    They travel as ${VAR} in [environment.env], resolved against the host. A
+    case that does not name them gets nothing, silently: the fleet passes the
+    value, run-evaluation exports it, and the container never sees it. Every
+    companion and dev-mcp arm ran that way for a full measurement round — the
+    servers were configured and absent, and the arms scored as bad tools.
+
+    The guard exists because the edit that was supposed to add them was a
+    string replacement that matched nothing and reported success.
+    """
+    import yaml
+
+    if not raw.get("metadata", {}).get("runtime"):
+        return
+    declared = set((raw.get("environment", {}) or {}).get("env", {}) or {})
+    needed = set()
+    for fleet_path in (ROOT / "fleets").glob("*.yaml"):
+        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        needed |= {k for k in (fleet.get("env") or {}) if k.startswith("PROVISION_")}
+    for key in sorted(needed - declared):
+        problems.append(
+            f"{label}: a fleet provisions through {key} and "
+            f"[environment.env] does not declare it, so the container would "
+            f"never receive it"
+        )
+
+
 def check_fleet_provisioning(case_dir: Path, label: Path, problems: list[str]) -> None:
     """A fleet's own products must be installable by the shared provisioner.
 
@@ -208,6 +237,7 @@ def main() -> int:
         # being waved through: `target_repository = "synthetic"`.
         # Repository rules.
         raw = tomllib.loads(config_path.read_text())
+        check_provision_declared(case_dir, label, raw, problems)
         synthetic = bool(
             raw.get("metadata", {}).get("contract")
             and raw.get("metadata", {}).get("target_repository") == "synthetic"
