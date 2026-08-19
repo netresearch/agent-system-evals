@@ -38,14 +38,37 @@ REQUIRED_METADATA = (
 )
 
 
-def companion_pin() -> str | None:
-    """The commit the companion fleets are pinned to, if that fleet exists."""
+
+def check_fleet_provisioning(case_dir: Path, label: Path, problems: list[str]) -> None:
+    """A fleet's own products must be installable by the shared provisioner.
+
+    The products used to be baked into every image — the companion's server in
+    /opt, typo3-dev-mcp installed and activated inside the instance — with only
+    the registration varying per fleet. That left no clean control: its
+    instance carried an extra dev extension and loaded its services like every
+    other arm. They are installed per arm now, at container start, from
+    PROVISION_* variables the fleet passes.
+
+    So the check moved with them. It no longer asks whether a case's Dockerfile
+    contains a product; it asks whether the shared installer honours every
+    PROVISION_ key any fleet declares, which is the thing that can now break.
+    """
     import yaml
 
-    fleet = ROOT / "fleets" / "companion.yaml"
-    if not fleet.exists():
-        return None
-    return (yaml.safe_load(fleet.read_text()) or {}).get("companion", {}).get("ref")
+    installer = case_dir / "environment" / "install-instance.sh"
+    if not installer.exists():
+        return
+    text = installer.read_text()
+
+    for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
+        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        for key in (fleet.get("env") or {}):
+            if key.startswith("PROVISION_") and key not in text:
+                problems.append(
+                    f"{label}: fleets/{fleet_path.name} passes {key} and "
+                    f"environment/install-instance.sh does not read it, so "
+                    f"that arm would run without its own product"
+                )
 
 
 def _line_tuple(line: str) -> tuple[int, ...]:
@@ -149,40 +172,6 @@ def check_fleet_toolchain(case_dir: Path, label: Path, problems: list[str]) -> N
                 )
 
 
-def check_companion_server(case_dir: Path, label: Path, problems: list[str]) -> None:
-    """Every case must be able to host the companion, at the fleet's commit.
-
-    The companion's MCP server is a PHP process the client starts over stdio, so
-    it lives in the agent image while only the config pointing at it varies per
-    fleet. A case that omits it still *runs* the companion fleets: they get the
-    skills and a config aimed at a path that does not exist, and the result is
-    an arm labelled `companion` that measured companion-without-a-server.
-
-    Nothing failed when this happened — the trials completed and produced
-    scores. So it is checked here rather than discovered in a results table.
-    """
-    ref = companion_pin()
-    if ref is None:
-        return
-
-    dockerfile = case_dir / "environment" / "Dockerfile"
-    if not dockerfile.exists():
-        return
-    text = dockerfile.read_text()
-
-    if "typo3-dev-companion" not in text:
-        problems.append(
-            f"{label}: environment/Dockerfile does not install the companion's "
-            f"MCP server, but fleets/companion.yaml exists — the companion "
-            f"fleets would run against a server that is not there"
-        )
-    elif ref not in text:
-        problems.append(
-            f"{label}: the companion server in environment/Dockerfile is not "
-            f"pinned to {ref[:12]}, the commit fleets/companion.yaml pins its "
-            f"skills to; skills and server would come from different versions"
-        )
-
 
 def main() -> int:
     problems: list[str] = []
@@ -193,8 +182,8 @@ def main() -> int:
         label = case_dir.relative_to(ROOT)
         checked += 1
         paths = TaskPaths(case_dir)
-        check_companion_server(case_dir, label, problems)
         check_fleet_toolchain(case_dir, label, problems)
+        check_fleet_provisioning(case_dir, label, problems)
 
         # Harbor's own validation, with the error surfaced instead of hidden.
         try:
@@ -216,7 +205,6 @@ def main() -> int:
 
         # Repository rules.
         raw = tomllib.loads(config_path.read_text())
-        check_runtime_mcp_servers(case_dir, label, raw, problems)
         if raw.get("schema_version") != "1.4":
             problems.append(f"{label}: schema_version is not 1.4")
 

@@ -53,23 +53,6 @@ RUN chmod +x /usr/local/bin/check-matrix && check-matrix /tmp/target/target.lock
 COPY run-matrix-leg.sh /usr/local/bin/run-matrix-leg
 RUN chmod +x /usr/local/bin/run-matrix-leg
 
-# The TYPO3 Dev Companion's MCP server, for the fleets that use it. It is a PHP
-# process the client launches over stdio, so it has to live inside the
-# container; only the MCP config that points at it varies per fleet. The code
-# therefore sits in the image for every fleet, including the ones that never
-# reach it — the same small confound the other cases state. Nothing registers
-# it, no skill mentions it, and no path leads to it from /app.
-#
-# Without this the companion fleets would receive their skills and a config
-# pointing at a file that does not exist, and the arm would silently measure
-# companion-skills-without-a-server. `scripts/validate-tasks` checks for it.
-ARG COMPANION_REF=845c0c633ae921962387f38b8e941ede4d26d1a3
-RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion \
-    && git -C /opt/typo3-dev-companion checkout -q "$COMPANION_REF" \
-    && cd /opt/typo3-dev-companion \
-    && composer install --no-interaction --no-progress --no-ansi --quiet \
-    && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
-
 # The Netresearch command-line toolchain, installed off the default PATH. Only
 # a fleet that declares it in `env:` can reach it. Without this layer the
 # nr-full fleet would carry a PATH pointing at a directory that does not exist,
@@ -129,16 +112,6 @@ ENV DDEV_HOSTNAME=v13.contexts.ddev.site \
     DDEV_PRIMARY_URL=http://v13.contexts.ddev.site \
     IS_DDEV_PROJECT=true
 
-# balatd/typo3-dev-mcp, for the fleet that registers it. A TYPO3 extension, so
-# it is installed into the instance rather than beside it and is present for
-# every fleet — only the MCP config varies. It ships no TCA, no ext_tables.sql
-# and no ext_localconf.php, so the data model and request chain are unchanged;
-# what every arm sees is one more dev extension in the list.
-ARG DEV_MCP_VERSION=v0.1.0-alpha.8
-RUN cd /instance \
-    && composer require --dev --no-interaction --no-progress --no-ansi \
-        "balatd/typo3-dev-mcp:$DEV_MCP_VERSION" \
-    && test -f /instance/vendor/balatd/typo3-dev-mcp/composer.json
 
 RUN mkdir -p /logs/artifacts
 

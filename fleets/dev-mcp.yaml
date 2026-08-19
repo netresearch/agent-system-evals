@@ -24,6 +24,14 @@ min_typo3_line: "13.4"
 
 package: balatd/typo3-dev-mcp:v0.1.0-alpha.8
 
+# Installed into the instance when this arm runs, not baked into the image for
+# every arm. The image used to carry it for all of them — installed *and*
+# activated — with only the MCP registration varying, so the control instance
+# listed an extra dev extension and loaded its services too. That is not a
+# control.
+env:
+  PROVISION_PACKAGES: "balatd/typo3-dev-mcp:v0.1.0-alpha.8"
+
 mcp:
   name: typo3-dev-mcp
   command: /instance/vendor/bin/typo3

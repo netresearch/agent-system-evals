@@ -90,6 +90,33 @@ vendor/bin/typo3 setup \
 echo "=== extension setup"
 vendor/bin/typo3 extension:setup
 
+# --- what this arm was provisioned with --------------------------------------
+#
+# Installed here, at container start, rather than baked into the image for
+# everyone. The image used to carry both products for every fleet — the
+# companion's server in /opt and typo3-dev-mcp installed *and activated* inside
+# the instance — with only the MCP registration varying. That is not a control
+# arm: the control instance listed an extra dev extension and loaded its
+# service configuration like every other.
+#
+# PROVISION_PACKAGES is set by the fleet through --agent-env. An arm that names
+# nothing gets nothing, which is what "control" has to mean.
+# The companion's server is a standalone PHP tool rather than a package, so it
+# is cloned rather than required. Same principle: only for the arm that asks.
+if [ -n "${PROVISION_COMPANION_REF:-}" ] && [ ! -d /opt/typo3-dev-companion ]; then
+    echo "=== provisioning: TYPO3 Dev Companion at ${PROVISION_COMPANION_REF:0:12}"
+    git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion
+    git -C /opt/typo3-dev-companion checkout -q "$PROVISION_COMPANION_REF"
+    (cd /opt/typo3-dev-companion && composer install --no-interaction --no-progress --no-ansi --quiet)
+fi
+
+if [ -n "${PROVISION_PACKAGES:-}" ]; then
+    echo "=== provisioning: $PROVISION_PACKAGES"
+    for package in $PROVISION_PACKAGES; do
+        composer require --dev --no-interaction --no-progress --no-ansi "$package"
+    done
+fi
+
 echo "=== site configuration"
 cat > config/sites/"$SITE_IDENTIFIER"/config.yaml <<SITECONF
 base: '${DDEV_PRIMARY_URL:-http://$SITE_HOSTNAME}/'

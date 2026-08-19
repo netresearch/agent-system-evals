@@ -508,7 +508,13 @@ def main() -> int:
         command += ["--skill", str(skills_dir), "--mcp-config", str(mcp_config)]
     if mcp_server:
         command += ["--mcp-config", str(mcp_server[1])]
+    # Two destinations, and the difference matters. PATH belongs to the agent
+    # process; PROVISION_* has to reach the container's start command, which
+    # runs before the agent exists. Harbor resolves ${VAR} in [environment.env]
+    # against the host environment, so those travel that way instead.
     for entry in agent_env:
+        if entry.startswith("PROVISION_"):
+            continue
         command += ["--agent-env", entry]
 
     using_subscription = bool(oauth_token) and not api_key
@@ -535,8 +541,21 @@ def main() -> int:
     # and TOML cannot declare one credential or the other conditionally. So the
     # unused one is passed as an empty string, which both RewardKit and the
     # Claude Code CLI treat as absent.
+    provision_env = {
+        key: value
+        for entry in agent_env
+        if entry.startswith("PROVISION_")
+        for key, _, value in [entry.partition("=")]
+    }
+    # Declared empty rather than absent: Harbor resolves every name in
+    # [environment.env] against the host and aborts on an unset one, so an arm
+    # that provisions nothing still has to name the variables.
+    for key in ("PROVISION_PACKAGES", "PROVISION_COMPANION_REF"):
+        provision_env.setdefault(key, "")
+
     env = dict(
         os.environ,
+        **provision_env,
 
         ANTHROPIC_API_KEY=api_key,
         CLAUDE_CODE_OAUTH_TOKEN=oauth_token,

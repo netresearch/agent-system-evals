@@ -23,3 +23,9 @@ skills: []
 companion:
   repo: TYPO3/dev-companion
   ref: 845c0c633ae921962387f38b8e941ede4d26d1a3
+
+# The server is installed when this arm runs, not baked into every image. It
+# used to sit in /opt for all fleets — a documented confound that no longer has
+# to be documented, because it no longer exists.
+env:
+  PROVISION_COMPANION_REF: "845c0c633ae921962387f38b8e941ede4d26d1a3"

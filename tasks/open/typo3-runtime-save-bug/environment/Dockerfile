@@ -87,43 +87,6 @@ RUN test -x vendor/bin/typo3 \
     && test -d vendor/netresearch/nr-textdb \
     && composer show netresearch/nr-textdb >/dev/null
 
-# The TYPO3 Dev Companion's MCP server, for the fleets that use it. It is a PHP
-# process the client launches over stdio, so it has to live inside the
-# container; only the MCP config that points at it varies per fleet. The code
-# therefore sits in the image for every fleet, including the ones that never
-# reach it — the same small confound the review case states, kept identical here
-# so the two cases are read the same way. Nothing registers it, no skill
-# mentions it, and no path leads to it from the instance.
-#
-# Without this the companion fleets would receive their skills and an MCP config
-# pointing at a file that does not exist: an arm that looks like "companion" and
-# measures companion-skills-without-a-server. `scripts/run-evaluation` counts
-# `typo3_` tool calls per trial for exactly that reason.
-ARG COMPANION_REF=845c0c633ae921962387f38b8e941ede4d26d1a3
-RUN git clone -q https://github.com/TYPO3/dev-companion.git /opt/typo3-dev-companion \
-    && git -C /opt/typo3-dev-companion checkout -q "$COMPANION_REF" \
-    && cd /opt/typo3-dev-companion \
-    && composer install --no-interaction --no-progress --no-ansi --quiet \
-    && php /opt/typo3-dev-companion/bin/typo3-dev-companion help >/dev/null
-
-# balatD/typo3-dev-mcp, for the fleet that uses it. Unlike the companion this
-# is a TYPO3 extension: it answers by querying the booted instance, so it has
-# to be installed *into* the instance rather than beside it, and it is
-# therefore present in the instance for every fleet — only the MCP config that
-# registers its server varies. `extension:setup` at container start activates
-# it along with everything else.
-#
-# What that costs in fidelity is bounded and worth stating: the package ships
-# no TCA, no ext_tables.sql and no ext_localconf.php, so the data model, the
-# schema and the request chain of the instance under diagnosis are unchanged.
-# What every arm does see is one additional dev extension in the extension
-# list. Keeping it out of the other arms would be worse — then the fleets would
-# differ by the instance as well as by the tooling.
-ARG DEV_MCP_VERSION=v0.1.0-alpha.8
-RUN composer require --dev --no-interaction --no-progress --no-ansi \
-        "balatd/typo3-dev-mcp:$DEV_MCP_VERSION" \
-    && test -f /instance/vendor/balatd/typo3-dev-mcp/composer.json
-
 # The Netresearch command-line toolchain, installed off the default PATH. Only
 # a fleet that declares it in `env:` can reach it; see the script's header and
 # fleets/nr-full.yaml. An arm without it sees an image where these commands do
