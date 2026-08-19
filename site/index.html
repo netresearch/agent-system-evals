@@ -113,9 +113,12 @@
 <section class="hero">
   <div class="wrap">
     <h1>Open Forward Reviews</h1>
-    <p>Four configurations, one realistic request that does not say what to do.
-       What changes — the answer, or what it costs to reach it?</p>
+    <p>Realistic requests that do not say what to do, put to the same agent with and without
+       its tooling. What changes — the answer, or what it costs to reach it?</p>
     <div class="prompt">Review this TYPO3 extension and tell me what needs attention.</div>
+    <div class="prompt">Editors report that saving a translation in the TextDb backend module
+       does nothing — the dialog closes, but the old value is still there. Please find out what
+       is going on.</div>
   </div>
 </section>
 
@@ -145,7 +148,7 @@ findings anchored to a place and a consequence; were the available checks actual
 most important thing first; did it assert anything it never established; and could a developer
 act on the result.</p>
 
-<h2>Result: same output quality, less work</h2>
+<h2>Case 1 — a review. Result: same output quality, less work</h2>
 
 <p>The clearest difference is not in what the agent produced. It is in what producing it cost.
 Figures are per trial, agent side only, median of three runs.</p>
@@ -168,7 +171,13 @@ Figures are per trial, agent side only, median of three runs.</p>
 nearly four in wall time. The Netresearch stack is the cheapest of the four: 2.4× cheaper than
 the unaided agent and 5.4× cheaper than the companion.</p>
 
-<h2>Result: the eight quality dimensions</h2>
+<p>Medians of three are a weak instrument, so the individual runs decide whether this holds. Here
+they do: the Netresearch runs cost $0.81, $0.91 and $2.04, the unaided runs $2.15, $2.16 and
+$2.26. The ranges do not overlap — the dearest run of the cheaper configuration is still cheaper
+than the cheapest run of the other. The companion's runs, $4.07 to $6.17, sit entirely above
+both.</p>
+
+<h2>Case 1 — the eight quality dimensions</h2>
 
 <p>Counts are runs in which the dimension was met, out of three, with the mean in brackets.
 Counts rather than averages: three samples do not support two decimal places.</p>
@@ -226,6 +235,65 @@ dimension it does not, apart from unsupported claims.</p>
   are within noise, which is why counts are reported instead of averages.
 </div>
 
+<h2>Case 2 — a runtime bug. Result: nothing the tooling offered was taken up</h2>
+
+<p class="lede">The second case does not review a checkout. It runs an installed TYPO3 13.4 with
+the extension active and a database in the state a real production report described: saving a
+translation silently writes an orphaned row instead of updating, and every later save then
+collides with a unique key. The first failed save shows no error at all.</p>
+
+<p>Five configurations this time, three runs each, everything else held constant. The fifth is the
+Netresearch setup as actually deployed — twelve skills <em>and</em> the command-line toolchain
+those skills instruct (ripgrep, fd, jq, yq, dasel, ast-grep and more), installed where only that
+configuration can reach them.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Per trial</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">dev-mcp</th><th class="num">nr-full</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Tool calls (median)</td><td class="num">93</td><td class="num">106</td><td class="num">68</td><td class="num">49</td><td class="num">76</td></tr>
+    <tr><td>Cost, each run</td><td class="num">2.99 / 6.76 / 8.21</td><td class="num">7.17 / 8.33 / 19.11</td><td class="num">3.83 / 4.10 / 6.25</td><td class="num">2.72 / 3.18 / 8.22</td><td class="num">3.46 / 5.56 / 7.39</td></tr>
+    <tr><td>Skills invoked</td><td class="num">—</td><td class="num">0</td><td class="num">0</td><td class="num">—</td><td class="num">0</td></tr>
+    <tr><td>Toolchain commands used</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Every configuration solved the case, and every one solved it the same way.</strong> All
+fifteen runs reached the top mark for identifying the mechanism: the extension's domain models
+declare their persisted properties <code>private</code>, which Extbase cannot reach from the
+parent class, so the references a save should carry are never resolved. The agents did not read
+that off the source — they ran the repository call inside the framework's bootstrap, produced the
+error, applied the change provisionally, re-ran the save path, read the written row back out of
+the database and reverted. The fix that shipped changes exactly those properties.</p>
+
+<p>The fullest configuration scores identically to the bare agent on all eight dimensions,
+met-count for met-count. And across all fifteen runs <strong>not one skill was invoked</strong> —
+with eight available, with twelve, with twelve plus a toolchain. In the <code>nr-full</code> runs
+not one of the nine installed commands was used either, in 54 to 83 tool calls apiece.</p>
+
+<p>A configuration nobody used and one nobody could reach produce the same zero, so the mechanism
+was checked before the behaviour was reported: in a container with that configuration's own
+<code>PATH</code>, inside the agent's shell, <code>command -v rg</code> answers
+<code>/opt/nr-toolchain/bin/rg</code>. The tools were reachable.</p>
+
+<p>Unlike case 1, the cost figures here do <em>not</em> separate the configurations. The spread
+inside each one swallows the difference between them — the unaided agent alone ranges from $2.99
+to $8.21 on identical inputs. Where case 1 showed non-overlapping ranges, this case shows
+overlapping ones, and no cost claim is made from it.</p>
+
+<div class="note">
+  <strong>What follows from this.</strong> An agent that can already finish a task does not go
+  looking for help with it; skills and tools are offers, and an offer is taken up by an agent that
+  needs it. Both of these cases sit at the ceiling — in the upgrade case the unaided agent widened
+  the version constraints and passed 719 tests on both framework lines at the first attempt. That
+  makes them poor instruments for what tooling is worth and good instruments for something else:
+  what carrying the tooling costs when it goes unused. Measuring the benefit needs tasks the
+  unaided agent does not finish.
+</div>
+
 <h2>What the agents actually found</h2>
 
 <p>Every configuration produced a substantive review. The leading finding in the unaided run was a
@@ -240,7 +308,7 @@ the case distinguish an agent that reads a green result as reassurance from one 
 produced it.</p>
 
 <div class="note">
-  <strong>Correction, 17 August 2026.</strong> An earlier version of this page reported that the
+  <strong>Correction, 17 August 2026 — case 1.</strong> An earlier version of this page reported that the
   Netresearch stack improved prioritization from 0.61 to 0.94 and called the difference real. It
   was not. Nine grading criteria had hit a judge timeout, and the grading harness records a
   timed-out judge as zero. Re-scored without the timeout, the control configuration reaches 0.94
@@ -253,9 +321,9 @@ produced it.</p>
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">4 × 3</span><span class="lbl">runs, one fleet apart</span></div>
+  <div class="card"><span class="big">27</span><span class="lbl">graded runs across two cases</span></div>
   <div class="card"><span class="big">8</span><span class="lbl">graded dimensions per run</span></div>
-  <div class="card"><span class="big">15/15</span><span class="lbl">harness acceptance criteria met</span></div>
+  <div class="card"><span class="big">8</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
