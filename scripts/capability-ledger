@@ -113,9 +113,13 @@ def report(job_dir: Path) -> None:
             provided[f"cli:{tool}"] = "yes" if spec.get("present") else "no"
         for name, spec in (inv.get("mcp") or {}).items():
             provided[f"mcp:{name}"] = "yes" if spec.get("reachable") else "unreachable"
-        skills = inv.get("skills") or {}
-        if skills.get("count"):
-            provided["skills"] = f"{skills['count']} present"
+        skills = inv.get("skills")
+        if skills is not None:
+            # Recorded even at zero. "no skills" and "not probed" are different
+            # facts and an absent row cannot tell them apart — which is the
+            # confusion this whole ledger exists to remove.
+            count = skills.get("count", 0)
+            provided["skills"] = f"{count} present" if count else "none"
 
         counts, total, agent_result = usage(trial)
         calls.append(total)
