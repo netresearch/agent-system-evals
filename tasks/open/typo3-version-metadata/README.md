@@ -39,6 +39,12 @@ first.
 - The change is confined to the metadata — this is not a licence to alter the
   extension's behaviour.
 
+## Status
+
+**Run.** Three trials per arm on `claude-haiku-4-5-20251001`, 20 August 2026 —
+see [RESULTS.md](RESULTS.md). Nothing separated, and nine delivered skills were
+invoked zero times.
+
 ## A second variant of this case exists
 
 `typo3-version-metadata-bare` is the same request against the same commit with

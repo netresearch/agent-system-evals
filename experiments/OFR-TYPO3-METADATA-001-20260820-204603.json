@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-METADATA-001-20260820-204603",
+  "case": "OFR-TYPO3-METADATA-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "consistency",
+  "secondary_endpoints": [],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 11,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-20T20:46:03+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-METADATA-001-control-20260820-204603",
+        "nr": "jobs/OFR-TYPO3-METADATA-001-nr-20260820-204946"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-METADATA-001-control-20260820-205329",
+        "nr": "jobs/OFR-TYPO3-METADATA-001-nr-20260820-205645"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-METADATA-001-control-20260820-210036",
+        "nr": "jobs/OFR-TYPO3-METADATA-001-nr-20260820-210355"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "consistency did not move after the discovery round (overlaps, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-METADATA-001-control-20260820-204603",
+      "jobs/OFR-TYPO3-METADATA-001-control-20260820-205329",
+      "jobs/OFR-TYPO3-METADATA-001-control-20260820-210036"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-METADATA-001-nr-20260820-204946",
+      "jobs/OFR-TYPO3-METADATA-001-nr-20260820-205645",
+      "jobs/OFR-TYPO3-METADATA-001-nr-20260820-210355"
+    ]
+  },
+  "finished_at": "2026-08-20T21:07:50+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
