@@ -164,7 +164,12 @@ def test_trajectory_is_searched_across_candidate_paths(tmp_path, monkeypatch):
     monkeypatch.setattr(nreval, "TRAJECTORY_PATH", "")
     present = tmp_path / "second" / "trajectory.json"
     present.parent.mkdir(parents=True)
-    present.write_text('{"schema_version": "ATIF-v1.7", "steps": []}')
+    # A minimal *valid* trajectory: an empty `steps` list is now refused,
+    # because an agent phase that recorded nothing is a broken run and grading
+    # it reports a perfect zero.
+    present.write_text(
+        '{"schema_version": "ATIF-v1.7", "steps": [{"step_id": 1}]}'
+    )
 
     monkeypatch.setattr(
         nreval,
@@ -263,3 +268,123 @@ def test_manifest_is_complete_and_written(use_fixture, tmp_path):
     out = nreval.write_evidence_manifest(tmp_path / "evidence-manifest.json")
     assert out.exists()
     assert "What needs attention" in out.read_text()
+
+
+# --------------------------------------------------------------------------
+# schema guard
+#
+# Every extractor in nreval ends in `.get("steps") or []`, so any shape this
+# reader does not understand degrades to an empty trajectory: no commands, no
+# reads, no skills, no final answer. That scores as an agent that did nothing —
+# a complete, well-formed, entirely wrong vector, and the failure mode nothing
+# downstream can detect. These are the shapes that used to pass silently.
+# --------------------------------------------------------------------------
+
+
+def test_a_future_schema_version_is_refused_not_read_as_idleness():
+    with pytest.raises(nreval.MissingEvidence) as excinfo:
+        nreval.validate_trajectory({"schema_version": "ATIF-v2.0", "steps": []})
+    assert "ATIF-v2.0" in str(excinfo.value)
+
+
+def test_the_current_schema_version_is_accepted():
+    traj = {"schema_version": "ATIF-v1.7", "steps": [{"step_id": 1}]}
+    assert nreval.validate_trajectory(traj) is traj
+
+
+def test_a_renamed_steps_key_is_refused():
+    """What a format change looks like: everything else intact."""
+    with pytest.raises(nreval.MissingEvidence):
+        nreval.validate_trajectory({"schema_version": "ATIF-v1.7", "events": []})
+
+
+def test_a_trajectory_with_no_steps_is_refused():
+    with pytest.raises(nreval.MissingEvidence):
+        nreval.validate_trajectory({"schema_version": "ATIF-v1.7", "steps": []})
+
+
+def test_a_list_at_the_top_level_is_refused():
+    with pytest.raises(nreval.MissingEvidence):
+        nreval.validate_trajectory([{"step_id": 1}])
+
+
+def test_a_step_that_is_not_an_object_is_refused():
+    with pytest.raises(nreval.MissingEvidence):
+        nreval.validate_trajectory(
+            {"schema_version": "ATIF-v1.7", "steps": ["step one"]}
+        )
+
+
+def test_restructured_tool_calls_are_refused():
+    with pytest.raises(nreval.MissingEvidence):
+        nreval.validate_trajectory(
+            {
+                "schema_version": "ATIF-v1.7",
+                "steps": [{"step_id": 1, "tool_calls": {"0": {}}}],
+            }
+        )
+
+
+def test_a_trajectory_without_a_declared_version_is_still_read():
+    """Fixtures predate the field; refusing them would gate on the wrong thing."""
+    traj = {"steps": [{"step_id": 1}]}
+    assert nreval.validate_trajectory(traj) is traj
+
+
+# --------------------------------------------------------------------------
+# ran versus worked
+# --------------------------------------------------------------------------
+
+
+def _with_result(command, *, is_error=False, content=""):
+    return {
+        "schema_version": "ATIF-v1.7",
+        "steps": [
+            {
+                "step_id": 1,
+                "tool_calls": [
+                    {
+                        "tool_call_id": "c1",
+                        "function_name": "Bash",
+                        "arguments": {"command": command},
+                    }
+                ],
+                "observation": {
+                    "results": [
+                        {
+                            "source_call_id": "c1",
+                            "content": content,
+                            "extra": {"tool_result_is_error": is_error},
+                        }
+                    ]
+                },
+            }
+        ],
+    }
+
+
+def test_a_command_that_ran_is_not_a_command_that_worked():
+    """`ran_command` is True either way; the dimension's question is not."""
+    failed = _with_result("vendor/bin/phpstan analyse", is_error=True)
+    assert nreval.ran_command("phpstan", failed)
+    assert not nreval.ran_command_successfully("phpstan", failed)
+
+
+def test_a_successful_command_is_reported_as_such():
+    ok = _with_result("vendor/bin/phpstan analyse", content="No errors")
+    assert nreval.ran_command_successfully("phpstan", ok)
+    assert nreval.failed_commands(ok) == []
+
+
+def test_an_exit_code_in_the_output_counts_as_failure():
+    """The harness prefixes non-zero shell output with `Exit code N`."""
+    traj = _with_result("composer update", content="Exit code 2\nconflict")
+    assert nreval.command_results(traj)[0]["exit_code"] == 2
+    assert not nreval.ran_command_successfully("composer", traj)
+
+
+def test_an_unrecorded_exit_code_is_none_never_zero():
+    """Absence of a status must not be read as success."""
+    traj = _with_result("ls", content="a\nb")
+    assert nreval.command_results(traj)[0]["exit_code"] is None
+    assert nreval.command_results(traj)[0]["failed"] is False

@@ -103,14 +103,74 @@ def resolve_trajectory_path() -> Path:
     )
 
 
+# The trajectory schema this file knows how to read. A new major version may
+# rename `steps` or restructure `tool_calls`, and every extractor below would
+# then find nothing — which scores as an agent that did nothing rather than as
+# a reader that cannot read.
+SUPPORTED_ATIF_MAJOR = 1
+
+
+def validate_trajectory(traj: Any, where: str = "trajectory") -> dict[str, Any]:
+    """Refuse a shape this file cannot read, instead of extracting nothing.
+
+    Every extractor here ends in `.get("steps") or []`, so any change to the
+    recorded format degrades to an empty trajectory: no commands, no reads, no
+    skills, no final answer. That is a complete, well-formed, entirely wrong
+    vector — the failure mode this repository keeps finding and the one no
+    number reveals. So the shape is checked once, loudly, up front.
+
+    Deliberately structural rather than a full schema: this asserts what the
+    extractors actually depend on, so it cannot pass while they fail.
+    """
+    if not isinstance(traj, dict):
+        raise MissingEvidence(
+            f"{where} is a {type(traj).__name__}, not an object; this reader "
+            f"expects an ATIF trajectory"
+        )
+
+    declared = str(traj.get("schema_version") or "")
+    match = re.match(r"ATIF-v(\d+)", declared)
+    if match and int(match.group(1)) != SUPPORTED_ATIF_MAJOR:
+        raise MissingEvidence(
+            f"{where} declares {declared}; this reader understands ATIF-v"
+            f"{SUPPORTED_ATIF_MAJOR}.x. Read the new format before grading "
+            f"against it — an unreadable trajectory scores as an idle agent."
+        )
+
+    recorded = traj.get("steps")
+    if not isinstance(recorded, list):
+        raise MissingEvidence(
+            f"{where} has no `steps` list (found "
+            f"{type(recorded).__name__}); every extractor in this file reads it"
+        )
+    if not recorded:
+        raise MissingEvidence(
+            f"{where} records no steps. An agent phase that produced nothing is "
+            f"a broken run, and grading it would report a perfect zero."
+        )
+    for index, step in enumerate(recorded):
+        if not isinstance(step, dict):
+            raise MissingEvidence(
+                f"{where} step {index} is a {type(step).__name__}, not an object"
+            )
+        calls = step.get("tool_calls")
+        if calls is not None and not isinstance(calls, list):
+            raise MissingEvidence(
+                f"{where} step {index} has non-list `tool_calls` "
+                f"({type(calls).__name__})"
+            )
+    return traj
+
+
 def load_trajectory(path: str | Path | None = None) -> dict[str, Any]:
     p = Path(path) if path is not None else resolve_trajectory_path()
     if not p.exists():
         raise MissingEvidence(f"no trajectory at {p}")
     try:
-        return json.loads(p.read_text())
+        loaded = json.loads(p.read_text())
     except json.JSONDecodeError as exc:
         raise MissingEvidence(f"trajectory at {p} is not valid JSON: {exc}") from exc
+    return validate_trajectory(loaded, where=f"trajectory at {p}")
 
 
 def steps(traj: dict[str, Any] | None = None) -> list[dict[str, Any]]:
@@ -198,9 +258,81 @@ def commands(traj: dict[str, Any] | None = None) -> list[str]:
 
 
 def ran_command(pattern: str, traj: dict[str, Any] | None = None) -> bool:
-    """Whether any executed command matches *pattern* (a regex)."""
+    """Whether any executed command matches *pattern* (a regex).
+
+    Says nothing about whether it worked. See `ran_command_successfully`.
+    """
     rx = re.compile(pattern)
     return any(rx.search(c) for c in commands(traj))
+
+
+def _results_by_call(traj: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    for step in steps(traj):
+        for result in ((step.get("observation") or {}).get("results") or []):
+            if isinstance(result, dict) and result.get("source_call_id"):
+                out[result["source_call_id"]] = result
+    return out
+
+
+def command_results(traj: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Each command with what happened to it: `{command, failed, exit_code}`.
+
+    A command that ran is not a command that worked, and until this existed the
+    rubric could not tell the difference — `ran_command("phpstan")` is True for
+    a run where PHPStan was installed and for one where the invocation died on
+    a missing binary. "Verification was attempted" and "verification happened"
+    are different findings and one of them is the dimension's whole question.
+
+    Two independent signals, because neither is always present: the recorded
+    result carries `extra.tool_result_is_error`, and shell output from this
+    harness begins with `Exit code N` when it is not zero. `exit_code` is None
+    where the trajectory does not say — never 0, which would claim success from
+    an absence.
+    """
+    results = _results_by_call(traj)
+    out: list[dict[str, Any]] = []
+    for call in tool_calls(traj):
+        args = call.get("arguments") or {}
+        command = next(
+            (
+                args[key].strip()
+                for key in _COMMAND_KEYS
+                if isinstance(args.get(key), str) and args[key].strip()
+            ),
+            None,
+        )
+        if command is None:
+            continue
+        result = results.get(call.get("tool_call_id")) or {}
+        extra = result.get("extra") or {}
+        content = result.get("content") or ""
+        exit_match = re.match(r"\s*Exit code (\d+)", content if isinstance(content, str) else "")
+        exit_code = int(exit_match.group(1)) if exit_match else None
+        out.append(
+            {
+                "command": command,
+                "failed": bool(extra.get("tool_result_is_error"))
+                or bool(exit_code),
+                "exit_code": exit_code,
+            }
+        )
+    return out
+
+
+def ran_command_successfully(
+    pattern: str, traj: dict[str, Any] | None = None
+) -> bool:
+    """Whether a command matching *pattern* ran and did not report failure."""
+    rx = re.compile(pattern)
+    return any(
+        rx.search(entry["command"]) and not entry["failed"]
+        for entry in command_results(traj)
+    )
+
+
+def failed_commands(traj: dict[str, Any] | None = None) -> list[str]:
+    return [entry["command"] for entry in command_results(traj) if entry["failed"]]
 
 
 def read_paths(traj: dict[str, Any] | None = None) -> list[str]:
