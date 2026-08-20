@@ -1,0 +1,130 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Gate the recorded judge calibration. Runs in CI; calls no judge.
+
+Three questions, in the order that matters:
+
+1. **Is there a calibration at all?** Until 20 August 2026 there was not, and
+   `scripts/verifier-selftest` said there was. Absence is reported as a gap
+   rather than as a pass.
+2. **Does it still describe this rubric?** A calibration measured against an
+   earlier rubric says nothing about the current one, and inheriting it quietly
+   is how a repository ends up believing its judges are checked.
+3. **Is any criterion too noisy to carry a finding?** A dimension that answers
+   3, 1, 2 on identical input cannot support a 2/3-against-3/3 difference: the
+   difference is smaller than the instrument's own step.
+
+    scripts/check-calibration [--require]
+
+`--require` turns a missing calibration into a failure. Without it, a missing
+calibration is loudly reported and does not fail the build — because the
+alternative is a red main until someone spends judge calls, and a gate people
+route around teaches them to route around gates.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+REPORT = ROOT / "calibration" / "report.json"
+LABELS = ROOT / "calibration" / "gold" / "labels.toml"
+
+
+def rubric_digest(case_dir: Path) -> str:
+    tests = case_dir / "tests"
+    digest = hashlib.sha256()
+    for path in sorted(tests.rglob("*")):
+        if path.is_file() and "__pycache__" not in path.parts:
+            digest.update(str(path.relative_to(tests)).encode())
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:16]
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--require", action="store_true")
+    args = parser.parse_args()
+
+    if not LABELS.is_file():
+        sys.exit(f"no gold labels at {LABELS.relative_to(ROOT)}")
+    labels = tomllib.loads(LABELS.read_text())
+
+    for name, spec in labels.get("fixture", {}).items():
+        if not (ROOT / spec["fixture"]).is_dir():
+            sys.exit(f"gold fixture {name} points at {spec['fixture']}, which is missing")
+
+    if not REPORT.is_file():
+        message = (
+            "No judge calibration has been recorded.\n"
+            "  Nothing measures how far these judges disagree with themselves, so "
+            "every per-dimension count they produce rests on an instrument of "
+            "unknown repeatability.\n"
+            "  Run `scripts/calibrate-judges --dry-run` for the cost, then without "
+            "the flag to record one."
+        )
+        if args.require:
+            sys.exit(message)
+        print(f"GAP: {message}", file=sys.stderr)
+        print("gold set present; no calibration recorded (not failing)")
+        return 0
+
+    report = json.loads(REPORT.read_text())
+    case = ROOT / "tasks" / "open" / report.get("case", "")
+    problems: list[str] = []
+
+    if case.is_dir():
+        current = rubric_digest(case)
+        if current != report.get("rubric_digest"):
+            problems.append(
+                f"calibration was measured against rubric {report.get('rubric_digest')} "
+                f"and the rubric is now {current}. Re-run scripts/calibrate-judges: "
+                f"an inherited calibration describes a rubric that no longer exists."
+            )
+
+    thresholds = labels.get("thresholds", {})
+    max_spread = float(thresholds.get("max_spread", 0.34))
+    max_deviation = float(thresholds.get("max_deviation", 0.2))
+
+    for fixture, dimensions in (report.get("fixtures") or {}).items():
+        for dimension, measured in dimensions.items():
+            spread = measured.get("spread")
+            if spread is not None and spread > max_spread:
+                problems.append(
+                    f"{fixture}/{dimension}: spread {spread:.2f} over "
+                    f"{report.get('repeats')} repeats of identical input exceeds "
+                    f"{max_spread:.2f}. This criterion cannot carry a one-trial "
+                    f"difference."
+                )
+            expected = measured.get("expected")
+            if expected is not None:
+                deviation = abs(measured.get("median", 0.0) - expected)
+                if deviation > max_deviation:
+                    problems.append(
+                        f"{fixture}/{dimension}: median {measured.get('median'):.2f} "
+                        f"against a human band of {expected:.2f} — off by "
+                        f"{deviation:.2f}, over {max_deviation:.2f}"
+                    )
+
+    if problems:
+        print(f"{len(problems)} calibration problem(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+
+    print(
+        f"calibration valid: {len(report.get('fixtures') or {})} fixture(s), "
+        f"{report.get('repeats')} repeats, rubric {report.get('rubric_digest')}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

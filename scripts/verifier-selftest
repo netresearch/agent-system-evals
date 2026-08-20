@@ -11,11 +11,11 @@
 # free and deterministic, so it runs on every pull request.
 #
 # This comment used to say they were "calibrated separately by
-# scripts/calibrate-judges". No such script has ever existed, and the judges
-# are not calibrated at all: nothing measures how far one disagrees with itself
-# on a re-run, or with a human, and no acceptance threshold is written down.
-# Tracked in issue #9. The sentence read as coverage and was the reason nobody
-# looked.
+# scripts/calibrate-judges" while no such script existed — a sentence that read
+# as coverage and was the reason nobody looked. The script exists now, and
+# `scripts/check-calibration` gates its recorded output. Until that output
+# exists, the judges' repeatability is unmeasured and the gate says so on every
+# run rather than passing quietly.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

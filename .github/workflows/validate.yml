@@ -46,6 +46,13 @@ jobs:
       - name: Cases are valid tasks and follow repository rules
         run: ./scripts/validate-tasks
 
+      # Calls no judge: it reads the recorded calibration and checks it still
+      # describes this rubric. A missing calibration is reported as a gap and
+      # does not fail the build — a gate that reddens main until someone spends
+      # judge calls is a gate people route around.
+      - name: Judge calibration is current
+        run: ./scripts/check-calibration
+
       # Was a bare executability check that fed the metric `skill_routing` —
       # the name the dimension had stopped having — and asserted nothing about
       # the output. It passed for weeks while the metric aggregated a dimension

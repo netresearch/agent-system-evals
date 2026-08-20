@@ -1,0 +1,182 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Measure how far a judge disagrees with itself, and with a human.
+
+Nothing measured the judges until now. `scripts/verifier-selftest` claimed they
+were "calibrated separately by scripts/calibrate-judges" and no such script had
+ever existed — a sentence that read as coverage and was the reason nobody
+looked. Every published dimension rests on an instrument whose repeatability was
+unknown.
+
+Two numbers per criterion, both of which need judge calls, so this is never run
+in CI:
+
+**Test-retest.** Grade the same recorded fixture several times. The spread
+across repeats is the criterion's own noise. A criterion that answers 3, 1, 2 on
+identical input cannot support a 2/3-against-3/3 finding, and until it is
+measured nobody can say which criteria those are.
+
+**Agreement with the label.** `calibration/gold/labels.toml` records what a
+human says each fixture deserves. Where the judge and the human disagree
+systematically, the criterion is measuring something other than what it says.
+
+The report goes to `calibration/report.json`, stamped with the rubric digest it
+was measured against. `scripts/check-calibration` — which does run in CI —
+refuses a report that no longer matches the rubric, so a rubric edit cannot
+quietly inherit the old calibration.
+
+    scripts/calibrate-judges [case-dir] [--repeats 5] [--dimension evidence]
+
+Costs one judge call per criterion per fixture per repeat. Read
+`calibration/gold/labels.toml` for what that multiplies out to before running.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import statistics
+import subprocess
+import sys
+import tempfile
+import tomllib
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+GOLD = ROOT / "calibration" / "gold"
+REPORT = ROOT / "calibration" / "report.json"
+
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+
+def rubric_digest(case_dir: Path) -> str:
+    import hashlib
+
+    tests = case_dir / "tests"
+    digest = hashlib.sha256()
+    for path in sorted(tests.rglob("*")):
+        if path.is_file() and "__pycache__" not in path.parts:
+            digest.update(str(path.relative_to(tests)).encode())
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:16]
+
+
+def labels() -> dict:
+    path = GOLD / "labels.toml"
+    if not path.is_file():
+        sys.exit(f"no gold labels at {path}")
+    return tomllib.loads(path.read_text())
+
+
+def grade(case_dir: Path, fixture: Path, work: Path, dimension: str | None) -> dict:
+    """Run the real rubric — judges included — over one recorded fixture."""
+    tests = work / "tests"
+    if tests.exists():
+        shutil.rmtree(tests)
+    shutil.copytree(case_dir / "tests", tests, ignore=shutil.ignore_patterns("__pycache__"))
+    if dimension:
+        for child in tests.iterdir():
+            if child.is_dir() and child.name != dimension:
+                shutil.rmtree(child)
+
+    out = work / "reward.json"
+    env = dict(os.environ)
+    env["NREVAL_TRAJECTORY"] = str(fixture / "logs" / "trajectory.json")
+    env["NREVAL_ARTIFACTS"] = str(fixture / "logs" / "artifacts")
+    result = subprocess.run(
+        [
+            "uvx", "--quiet", "--python", "3.12",
+            "--from", "harbor-rewardkit==0.1.7", "rewardkit", str(tests),
+            "--workspace", str(work),
+            "--output", str(out),
+            "--max-concurrent-agent", "2",
+        ],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not out.is_file():
+        print(result.stdout[-1500:], file=sys.stderr)
+        print(result.stderr[-1500:], file=sys.stderr)
+        sys.exit(f"rewardkit failed on {fixture.name}")
+    return json.loads(out.read_text())
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("case", nargs="?", type=Path,
+                        default=ROOT / "tasks/open/typo3-extension-review")
+    parser.add_argument("--repeats", type=int, default=5)
+    parser.add_argument("--dimension", help="calibrate one dimension only")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="print what it would cost and stop")
+    args = parser.parse_args()
+
+    gold = labels()
+    fixtures = {
+        name: (ROOT / spec["fixture"])
+        for name, spec in gold.get("fixture", {}).items()
+    }
+    missing = [n for n, p in fixtures.items() if not p.is_dir()]
+    if missing:
+        sys.exit(f"gold fixtures missing: {missing}")
+
+    calls = len(fixtures) * args.repeats
+    print(f"case      {args.case.name}")
+    print(f"fixtures  {', '.join(sorted(fixtures))}")
+    print(f"repeats   {args.repeats}")
+    print(f"grading runs: {calls} (each one judge call per criterion)")
+    if args.dry_run:
+        print("\ndry run: nothing was graded.")
+        return 0
+
+    if not (os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+            or os.environ.get("ANTHROPIC_API_KEY")):
+        sys.exit("no credential; calibration calls real judges")
+
+    observed: dict[str, dict[str, list[float]]] = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        for name, fixture in sorted(fixtures.items()):
+            for repeat in range(args.repeats):
+                rewards = grade(args.case, fixture, work, args.dimension)
+                print(f"  {name} repeat {repeat + 1}: "
+                      + " ".join(f"{k}={v:.2f}" for k, v in sorted(rewards.items())))
+                for dimension, value in rewards.items():
+                    observed.setdefault(name, {}).setdefault(dimension, []).append(value)
+
+    report = {
+        "measured_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "case": args.case.name,
+        "rubric_digest": rubric_digest(args.case),
+        "repeats": args.repeats,
+        "thresholds": gold.get("thresholds", {}),
+        "fixtures": {},
+    }
+    for name, dimensions in observed.items():
+        expected = gold["fixture"][name].get("expect", {})
+        report["fixtures"][name] = {
+            dimension: {
+                "values": values,
+                "median": statistics.median(values),
+                "spread": max(values) - min(values),
+                "expected": expected.get(dimension),
+            }
+            for dimension, values in sorted(dimensions.items())
+        }
+
+    REPORT.parent.mkdir(exist_ok=True)
+    REPORT.write_text(json.dumps(report, indent=2))
+    print(f"\nwrote {REPORT.relative_to(ROOT)}")
+    print("Now run scripts/check-calibration — it is the gate, and it fails on "
+          "a spread wider than the criterion can support.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

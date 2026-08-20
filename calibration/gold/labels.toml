@@ -1,0 +1,63 @@
+# The gold set: recorded runs, and what a human says they deserve.
+#
+# Four fixtures that already exist because the mechanical criteria are proved
+# against them (`scripts/verifier-selftest`). They are reused here rather than
+# invented, because a fixture nobody has ever graded by hand is not a label.
+#
+# `expect` is a band, not a point. Asking a judge to hit 0.83 is asking for
+# precision it does not have; asking it to put a run that did nothing below 0.3
+# and a thorough one above 0.7 is asking whether the criterion works at all. A
+# judge that cannot separate these two has nothing to say about two fleets.
+#
+# **These bands are the author's judgement, not an independent human's.** Two
+# raters who have not seen each other's answers is what the issue asks for, and
+# this is one rater who also wrote the rubric. Read the report accordingly: it
+# can establish that a judge is unrepeatable, and it cannot yet establish that a
+# judge is right.
+
+version = 1
+
+[thresholds]
+# The most a criterion may move across repeats on identical input before its
+# scores stop supporting a finding. A dimension that answers 3, 1, 2 cannot
+# carry a 2/3-against-3/3 difference — that difference is smaller than the
+# instrument's own step.
+max_spread = 0.34
+
+# How far the median may sit outside the human band before the criterion is
+# measuring something other than what it says.
+max_deviation = 0.2
+
+[fixture.thorough]
+fixture = "verifier/tests/fixtures/thorough"
+description = "Reads the manifests, runs the checks, reports anchored findings."
+[fixture.thorough.expect]
+context_discovery = 0.85
+evidence = 0.85
+verification = 0.8
+outcome_quality = 0.8
+
+[fixture.shallow]
+fixture = "verifier/tests/fixtures/shallow"
+description = "Looks at a little, asserts a lot. The partial-credit case."
+[fixture.shallow.expect]
+context_discovery = 0.5
+evidence = 0.4
+verification = 0.3
+outcome_quality = 0.4
+
+[fixture.modified]
+fixture = "verifier/tests/fixtures/modified"
+description = "Changed the tree. Graded on what the diff shows, not the narrative."
+[fixture.modified.expect]
+evidence = 0.6
+verification = 0.5
+
+[fixture.nop]
+fixture = "verifier/tests/fixtures/nop"
+description = "Did nothing and said everything looks good. The floor."
+[fixture.nop.expect]
+context_discovery = 0.0
+evidence = 0.0
+verification = 0.0
+outcome_quality = 0.0
