@@ -184,6 +184,8 @@ def totals(field: str, arms: dict[str, dict[str, Arm]]) -> str:
         return str(len(arms))
     if field == "runs":
         return str(sum(len(a.valid) for case in arms.values() for a in case.values()))
+    if field == "version":
+        return (ROOT / "VERSION").read_text().strip()
     if field == "failures":
         # Counted from the document rather than typed: the two disagreed once,
         # and the page was the one that was wrong.
@@ -208,7 +210,7 @@ def lint() -> int:
     for key in PLACEHOLDER.findall(TEMPLATE.read_text()):
         parts = key.split(".")
         if parts[0] == "totals":
-            if parts[1] not in {"cases", "runs", "failures"}:
+            if parts[1] not in {"cases", "runs", "failures", "version"}:
                 problems.append(f"{key}: unknown total")
             continue
         if len(parts) < 3 or parts[2] not in KNOWN_FIELDS:

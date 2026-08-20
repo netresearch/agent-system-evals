@@ -59,3 +59,12 @@ benchmark that only contains cases the stack passes is not measuring anything.
 Rubric changes should be applied to recorded trials with `harbor job regrade`
 rather than by re-running agents. Three regrades were needed to get the judge
 configuration right for this case, and none of them cost an agent run.
+
+## Reviewed by
+
+Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
+did not write it; this repository has been written by one person, so the field
+is empty rather than filled in by its author. What such a review checks is the
+four questions in CONTRIBUTING.md — whether the agent can reach the answers,
+whether the prompt is still open, whether the rubric grades behaviour rather
+than wording, and whether a failure here would mean anything.

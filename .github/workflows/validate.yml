@@ -58,6 +58,14 @@ jobs:
       # the output. It passed for weeks while the metric aggregated a dimension
       # no case emits, ignored the one every case does, and scored missing
       # dimensions as zero against its own docstring.
+      # Advisory by design: it names the files and the part to bump rather
+      # than blocking, because a gate that fires on documentation edits gets
+      # disabled within a week. `continue-on-error` keeps the annotation
+      # visible without reddening a pull request that only moved prose.
+      - name: Version moves when a score can
+        continue-on-error: true
+        run: ./scripts/benchmark-version --check --against origin/main
+
       # The page is rendered from recorded jobs, which are not on this runner.
       # What is checkable without them: every placeholder names a field the
       # generator can resolve, and the committed page has none left in it.

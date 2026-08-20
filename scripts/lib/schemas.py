@@ -60,6 +60,7 @@ class Snapshot:
 
     case_id: str | None = None
     fleet: str | None = None
+    benchmark_version: str | None = None
     agent: str | None = None
     model: str | None = None
     judge: str | None = None

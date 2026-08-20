@@ -99,3 +99,63 @@ def test_every_recorded_snapshot_on_this_machine_still_loads():
 def test_experiment_and_calibration_versions_exist():
     assert schemas.EXPERIMENT_VERSION >= 1
     assert schemas.CALIBRATION_VERSION >= 1
+
+
+# --------------------------------------------------------------------------
+# benchmark version
+# --------------------------------------------------------------------------
+
+
+def load_script(name: str):
+    import importlib.machinery
+    import importlib.util
+
+    spec = importlib.util.spec_from_loader(
+        name,
+        importlib.machinery.SourceFileLoader(name, str(ROOT / "scripts" / name)),
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+version_script = load_script("benchmark-version")
+
+
+def test_the_version_file_parses_as_three_parts():
+    parts = (ROOT / "VERSION").read_text().strip().split(".")
+    assert len(parts) == 3 and all(p.isdigit() for p in parts)
+
+
+def test_a_rubric_change_asks_for_a_minor_bump():
+    """The rule that gets skipped.
+
+    A rubric edit is cheap to make and changes what every future number means.
+    The first version of this predicate compared a glob literally with
+    `str.startswith`, so `tasks/*/*/tests/` matched nothing and the check
+    reported "nothing changed that moves a score" for exactly this input.
+    """
+    hits = version_script.demanded(
+        ["tasks/open/typo3-extension-review/tests/evidence/judge.toml"]
+    )
+    assert [part for _, part, _ in hits] == ["minor"]
+
+
+def test_a_case_definition_change_asks_for_a_major_bump():
+    hits = version_script.demanded(["tasks/open/typo3-extension-review/task.toml"])
+    assert [part for _, part, _ in hits] == ["major"]
+
+
+def test_the_dimension_registry_is_a_major_bump():
+    hits = version_script.demanded(["dimensions.toml"])
+    assert [part for _, part, _ in hits] == ["major"]
+
+
+def test_documentation_moves_no_score():
+    assert version_script.demanded(["docs/governance.md", "README.md"]) == []
+
+
+def test_expectations_are_a_patch_because_no_judge_reads_them():
+    hits = version_script.demanded(["expectations/OFR-TYPO3-EXT-001.md.enc"])
+    assert [part for _, part, _ in hits] == ["patch"]

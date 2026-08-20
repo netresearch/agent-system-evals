@@ -25,3 +25,12 @@ gate a merge; an open review cannot.
 That is also why it does not run against a served TYPO3 instance the way
 `tasks/open/` does. A developer's situation is what an open case models. A
 contract eval models a check.
+
+## Reviewed by
+
+Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
+did not write it; this repository has been written by one person, so the field
+is empty rather than filled in by its author. What such a review checks is the
+four questions in CONTRIBUTING.md — whether the agent can reach the answers,
+whether the prompt is still open, whether the rubric grades behaviour rather
+than wording, and whether a failure here would mean anything.

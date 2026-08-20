@@ -72,3 +72,12 @@ See [RESULTS.md](RESULTS.md). In short: every agent in every fleet found the
 root cause and established it against the running instance, no tool stack made
 a difference beyond noise, and all of them left the same gap — they see the
 orphaned row and never tell the developer to remove it.
+
+## Reviewed by
+
+Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
+did not write it; this repository has been written by one person, so the field
+is empty rather than filled in by its author. What such a review checks is the
+four questions in CONTRIBUTING.md — whether the agent can reach the answers,
+whether the prompt is still open, whether the rubric grades behaviour rather
+than wording, and whether a failure here would mean anything.

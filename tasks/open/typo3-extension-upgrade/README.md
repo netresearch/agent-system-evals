@@ -68,3 +68,12 @@ Not yet run. Nothing is recorded here until it is.
 ./scripts/run-evaluation OFR-TYPO3-UPGRADE-001 --fleet nr
 ./scripts/compare jobs/<control-job> jobs/<nr-job>
 ```
+
+## Reviewed by
+
+Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
+did not write it; this repository has been written by one person, so the field
+is empty rather than filled in by its author. What such a review checks is the
+four questions in CONTRIBUTING.md — whether the agent can reach the answers,
+whether the prompt is still open, whether the rubric grades behaviour rather
+than wording, and whether a failure here would mean anything.

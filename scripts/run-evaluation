@@ -666,6 +666,10 @@ def main() -> int:
             # First key on purpose: a reader must be able to say "I do not
             # understand this record" before it starts reading fields.
             "schema_version": SNAPSHOT_VERSION,
+            # Which benchmark produced this. Two results with different
+            # versions are not comparable without saying what moved between
+            # them, and before 20 August 2026 there was nothing to name.
+            "benchmark_version": (ROOT / "VERSION").read_text().strip(),
             "case_id": args.case_id,
             "variant_of": case_meta.get("variant_of"),
             "variant": case_meta.get("variant"),

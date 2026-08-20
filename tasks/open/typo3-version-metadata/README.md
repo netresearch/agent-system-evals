@@ -49,3 +49,12 @@ The variable there is not the fleet but the **repository's readiness**. It asks
 what the conventions written into a repository are worth to an agent working in
 it — and whether the results this benchmark records for a bare control arm are
 partly the repository doing the work.
+
+## Reviewed by
+
+Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
+did not write it; this repository has been written by one person, so the field
+is empty rather than filled in by its author. What such a review checks is the
+four questions in CONTRIBUTING.md — whether the agent can reach the answers,
+whether the prompt is still open, whether the rubric grades behaviour rather
+than wording, and whether a failure here would mean anything.

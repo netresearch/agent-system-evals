@@ -1,0 +1,121 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""The benchmark's own version, and whether the tree deserves a bump.
+
+A result names it. Two results with different versions are not comparable
+without saying what moved between them, and until 20 August 2026 there was no
+version to name — so "measured in August" was the only provenance a figure
+carried, and a rubric edit between two runs left no trace at all.
+
+What each part means is in docs/governance.md. The one that gets skipped is the
+middle: a rubric edit is cheap to make, changes what every future number means,
+and is repaired by a regrade that costs judge calls and no agent time.
+
+    scripts/benchmark-version
+    scripts/benchmark-version --check [--against origin/main]
+
+`--check` compares the working tree against a ref and refuses when something
+changed that should have moved the version. Advisory by design: it names the
+files and the part to bump rather than blocking a commit, because a gate that
+fires on documentation edits gets disabled within a week.
+"""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+VERSION_FILE = ROOT / "VERSION"
+
+# Which part a change to a path demands. First match wins, most specific first.
+RULES: list[tuple[str, str, str]] = [
+    ("tasks/retired/", "major", "a case was retired"),
+    ("dimensions.toml", "major", "the dimension registry changed"),
+    ("tasks/*/*/task.toml", "major", "a case's definition changed"),
+    ("tasks/*/*/instruction.md", "major", "a case's prompt changed"),
+    ("tasks/*/*/tests/", "minor", "a rubric changed"),
+    ("verifier/common/nreval.py", "minor", "the evidence the judge reads changed"),
+    ("expectations/", "patch", "expectations changed; they reach no judge"),
+]
+
+
+def current() -> str:
+    if not VERSION_FILE.is_file():
+        sys.exit("no VERSION file")
+    return VERSION_FILE.read_text().strip()
+
+
+def changed(against: str) -> list[str]:
+    result = subprocess.run(
+        ["git", "diff", "--name-only", against],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        sys.exit(f"cannot diff against {against}: {result.stderr.strip()}")
+    return [line for line in result.stdout.splitlines() if line.strip()]
+
+
+def demanded(paths: list[str]) -> list[tuple[str, str, str]]:
+    from fnmatch import fnmatch
+
+    found: list[tuple[str, str, str]] = []
+    for path in paths:
+        for pattern, part, why in RULES:
+            # A directory rule matches everything beneath it. The first version
+            # wrote `path.startswith(pattern)`, which compares a glob
+            # literally — so `tasks/*/*/tests/` matched nothing at all and the
+            # check reported "nothing changed that moves a score" for a rubric
+            # edit. It passed its own counter-probe by doing nothing.
+            candidate = pattern + "*" if pattern.endswith("/") else pattern
+            if fnmatch(path, candidate):
+                found.append((path, part, why))
+                break
+    return found
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--against", default="origin/main")
+    args = parser.parse_args()
+
+    version = current()
+    if not args.check:
+        print(version)
+        return 0
+
+    paths = changed(args.against)
+    hits = demanded(paths)
+    bumped = "VERSION" in paths
+
+    if not hits:
+        print(f"{version}: nothing changed that moves a score")
+        return 0
+
+    order = {"major": 0, "minor": 1, "patch": 2}
+    part = min((p for _, p, _ in hits), key=lambda p: order[p])
+    reasons = sorted({f"{why} ({path})" for path, _, why in hits})
+
+    print(f"{version}: this tree asks for a {part} bump")
+    for reason in reasons[:8]:
+        print(f"  - {reason}")
+    if bumped:
+        print("VERSION is part of the change; assuming it was bumped deliberately.")
+        return 0
+    print(
+        "\nVERSION is unchanged. A recorded result cannot then say which "
+        "benchmark produced it, and two runs either side of this change will "
+        "look comparable when they are not. See docs/governance.md."
+    )
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
