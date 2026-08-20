@@ -61,7 +61,14 @@ done
 # working one until something calls it.
 mcp_entries=""
 for config in "${MCP_CONFIG:-}" /logs/agent/sessions/.claude.json /tmp/mcp.json; do
-    [ -n "$config" ] && [ -f "$config" ] || continue
+    # Written as an if rather than `A && B || continue`: that form is not
+    # if-then-else — C runs whenever the conjunction is false, which here is
+    # harmless and in the next edit might not be. ShellCheck 0.10 says so
+    # (SC2015) and 0.11 does not, so the local run was green while CI was red
+    # for days.
+    if [ -z "$config" ] || [ ! -f "$config" ]; then
+        continue
+    fi
     # shellcheck disable=SC2086  # args is a pre-split argument list from the
     # MCP config and must word-split; quoting it would pass "devmcp:serve" and
     # any further argument as one.

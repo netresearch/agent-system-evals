@@ -54,10 +54,24 @@ jobs:
       - name: Analysis core behaves as specified
         run: uv run --with pytest python -m pytest tests -q
 
+      # Version-pinned and checksummed. `apt-get install shellcheck` installs
+      # whatever the runner image carries, which was not the version anyone had
+      # locally: SC2015 fires in 0.10 and not in 0.11, so `capability-probe.sh`
+      # was green on every developer machine and red in CI for days without
+      # anything in the repository changing. An unpinned linter fails on the
+      # calendar rather than on the diff.
       - name: Shell scripts lint clean
+        env:
+          SHELLCHECK_SHA256: 8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          shellcheck scripts/bootstrap scripts/sync-verifier-lib \
+          curl -fsSL -o /tmp/sc.tar.xz \
+            https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz
+          echo "${SHELLCHECK_SHA256}  /tmp/sc.tar.xz" | sha256sum -c -
+          tar -xJf /tmp/sc.tar.xz -C /tmp
+          sudo install /tmp/shellcheck-v0.11.0/shellcheck /usr/local/bin/shellcheck
+          shellcheck --version
+          shellcheck --severity=style \
+            scripts/bootstrap scripts/sync-verifier-lib \
             scripts/verifier-selftest scripts/run-smoke \
             scripts/refresh-target-lock scripts/regrade scripts/sync-environment \
             scripts/prepare-companion scripts/agent-surface-audit \

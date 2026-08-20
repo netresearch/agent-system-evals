@@ -63,6 +63,28 @@ def fleet_skills(name: str) -> list[tuple[str, str]]:
     return [(s["repo"], s["ref"]) for s in (fleet.get("skills") or [])]
 
 
+def distinctive(marker: str) -> bool:
+    """Could this string only appear because someone knew the case?
+
+    A marker is evidence when it is unlikely to occur by accident. One *all
+    lowercase* word with no separator and no digit is not: `synthetic` matched
+    twelve times across four skills, and `contexts` — the last segment of
+    `netresearch/contexts` — is one edit away from doing the same.
+
+    Everything else stays: a multi-word sentence from the instruction, anything
+    hyphenated or namespaced, and any identifier carrying a capital.
+    `DumpFileTrait` is one word of thirteen lowercase-ish characters and is a
+    declared marker of the review case — the first version of this predicate
+    dropped it, which would have widened the check's blind spot while reporting
+    that it had narrowed it.
+    """
+    if len(marker.split()) > 1:
+        return True
+    if marker != marker.lower():
+        return True
+    return bool(re.search(r"[-_/.\d]", marker)) or len(marker) >= 16
+
+
 def case_markers() -> dict[str, list[str]]:
     """Strings that must not appear in any skill, grouped by case."""
     markers: dict[str, list[str]] = {}
@@ -78,7 +100,13 @@ def case_markers() -> dict[str, list[str]]:
         found = [case_id]
 
         repository = metadata.get("target_repository", "")
-        if repository:
+        # A contract eval writes its own extension and declares
+        # `target_repository = "synthetic"`. That is a sentinel, not a slug, and
+        # deriving markers from it made the ordinary English word "synthetic"
+        # a contamination marker: twelve hits across four skills, on sentences
+        # like "synthetic fixtures excluded from coverage". The check failed on
+        # every run for days and the failure said nothing.
+        if repository and repository != "synthetic":
             slug = re.sub(r"^https?://[^/]+/|\.git$", "", repository)
             found.append(slug)
             found.append(slug.split("/")[-1])
@@ -131,9 +159,23 @@ def case_markers() -> dict[str, list[str]]:
                     file=sys.stderr,
                 )
 
-        markers[case_id] = [
-            m for m in dict.fromkeys(found) if m and m.lower() not in STOPWORDS
-        ]
+        kept, dropped = [], []
+        for marker in dict.fromkeys(found):
+            if not marker or marker.lower() in STOPWORDS:
+                continue
+            (dropped if not distinctive(marker) else kept).append(marker)
+        if dropped:
+            # Said out loud rather than filtered silently: a marker that cannot
+            # indicate contamination is a gap in the case's coverage, and a
+            # gap nobody is told about is how a check keeps passing.
+            print(
+                f"note: {case_id} drops non-distinctive marker(s) "
+                f"{sorted(dropped)} — a single lowercase word matches ordinary "
+                f"prose and cannot be evidence. Declare a specific marker in "
+                f"tests/known-concerns.md instead.",
+                file=sys.stderr,
+            )
+        markers[case_id] = kept
 
     if not markers:
         sys.exit("no cases found; nothing to check")
