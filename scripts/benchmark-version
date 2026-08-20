@@ -38,8 +38,17 @@ RULES: list[tuple[str, str, str]] = [
     ("dimensions.toml", "major", "the dimension registry changed"),
     ("tasks/*/*/task.toml", "major", "a case's definition changed"),
     ("tasks/*/*/instruction.md", "major", "a case's prompt changed"),
+    # Before the rubric rule, because it lives under tests/ and is not one. A
+    # recorded contamination decision changes what the contamination check
+    # accepts and nothing a judge scores.
+    ("tasks/*/*/tests/contamination-decisions.yaml", "patch",
+     "a contamination decision changed; no judge reads it"),
     ("tasks/*/*/tests/", "minor", "a rubric changed"),
     ("verifier/common/nreval.py", "minor", "the evidence the judge reads changed"),
+    # A fleet is what an arm *is*. Moving one to a new skill version does not
+    # invalidate earlier results by changing how they were graded — it changes
+    # what was measured, and no regrade repairs that. Only new trials do.
+    ("fleets/", "minor", "a fleet moved; earlier results measured a different arm"),
     ("expectations/", "patch", "expectations changed; they reach no judge"),
 ]
 

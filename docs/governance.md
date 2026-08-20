@@ -19,6 +19,7 @@ The three parts mean different things:
 |---|---|---|
 | **major** | a case is added, retired or replaced; a dimension is added or removed | earlier results measure a different benchmark and are not comparable |
 | **minor** | a rubric changes; the judge, its prompt or its input changes | earlier results are comparable only after a regrade |
+| **minor** | a fleet moves to a new skill version | earlier results measured a different arm; no regrade repairs that, only new trials |
 | **patch** | tooling, documentation, anything that cannot move a score | comparable |
 
 The middle row is the one that gets skipped. A rubric edit is cheap to make and
