@@ -65,6 +65,30 @@ def dimension_scores(job_dir: Path) -> dict[str, list[float]]:
     return scores
 
 
+def mechanical_outcome(job_dir: Path) -> list[float] | None:
+    """Pass/fail per trial where the case has ground truth, else None.
+
+    The separation test reads graded dimensions, and on the upgrade case that
+    missed the thing worth watching: `verification` separated once and not
+    again — noise — while the matrix outcome, which the framework itself
+    decides, reproduced exactly across two independent runs. A dimension a
+    judge scored moved the deepening; the fact that repeated did not.
+    """
+    outcomes = []
+    for trial in sorted(job_dir.glob("*__*")):
+        artifacts = trial / "artifacts" / "logs" / "artifacts"
+        legs = sorted(artifacts.glob("matrix-*.txt"))
+        if not legs:
+            return None
+        complete = all(
+            "resolve: ok" in leg.read_text(errors="ignore")
+            and "\nOK (" in leg.read_text(errors="ignore")
+            for leg in legs
+        )
+        outcomes.append(1.0 if complete else 0.0)
+    return outcomes or None
+
+
 def separated(a: list[float], b: list[float]) -> bool:
     """Do the two samples not overlap at all?
 
@@ -140,6 +164,24 @@ def main() -> int:
             first, second = arms[0], arms[1]
             scores_a = merged(collected[first])
             scores_b = merged(collected[second])
+
+            # Ground truth first, where the case has any, and judged by a
+            # different rule. Complete separation is meaningless for a pass/fail
+            # outcome — [0,1,1] against [1,1,1] can never separate, though the
+            # difference is exactly the finding. Any gap in the pass rate is
+            # worth more trials, because it is the one number no judge decided.
+            def outcome_of(jobs):
+                runs = [o for o in (mechanical_outcome(j) for j in jobs) if o]
+                return [v for run in runs for v in run]
+
+            out_a, out_b = outcome_of(collected[first]), outcome_of(collected[second])
+            if out_a and out_b and sum(out_a) / len(out_a) != sum(out_b) / len(out_b):
+                print(
+                    f"  mechanical outcome differs — {sum(out_a):.0f}/{len(out_a)} "
+                    f"against {sum(out_b):.0f}/{len(out_b)} — continuing"
+                )
+                interesting = True
+
             for dimension in sorted(set(scores_a) | set(scores_b)):
                 if separated(scores_a.get(dimension, []), scores_b.get(dimension, [])):
                     print(f"  {dimension} separates completely — continuing")

@@ -22,8 +22,21 @@ passes on both lines, or it did not.
 Both Netresearch arms completed the upgrade in every trial. The unaided agent
 managed two of three. That is the first result in this repository where a
 difference rests on something the framework itself decides rather than on a
-rubric — and with three trials it is a signal to spend more on, not a finished
-claim.
+rubric.
+
+**It reproduced.** A second, independent run of `control` against `nr` — three
+fresh trials each, days apart, same task digest — returned the same counts:
+2/3 and 3/3. Pooled, that is 6 of 6 against 4 of 6.
+
+And it is still not established. Fisher's exact test on those pooled counts
+gives a one-sided p of 0.23: the direction is consistent across two runs and
+the sample is too small to carry it. What is worth saying is exactly that much,
+which is why it is written here rather than on the front page as a headline.
+
+The comparison script did not notice the reproduction, and that is a gap in the
+script rather than in the result. Its separation test reads the graded
+dimensions; the matrix outcome is the case's most valuable signal and does not
+appear among them in a form the test can see.
 
 ## What was used
 
@@ -58,13 +71,17 @@ at $1.23 is the one that produced a tree which would not resolve — cheap
 because it stopped, which is why cost is only readable beside the outcome
 column.
 
-## The deepening did not finish
+## The deepening
 
 `verification` separated completely in the discovery stage, so the comparison
 moved to four trials per arm as designed. That stage died on the subscription's
-rate limit — four errored trials in each of four arms — and is not reported
-here. The three-trial figures above stand on their own; the question that
-triggered the deepening is still open.
+rate limit and is not reported.
+
+The re-run that replaced it — `control` against `nr`, three trials each — found
+that `verification` no longer separates, while the mechanical outcome
+reproduced exactly. Both facts belong in the same paragraph: a rubric dimension
+that separates once and not again was noise, and an outcome that repeats across
+independent runs is not.
 
 ## Reproducing
 
