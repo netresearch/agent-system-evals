@@ -436,6 +436,11 @@ def workspace_modified() -> bool:
 # --------------------------------------------------------------------------
 
 
+# This file's own record version, not the trajectory's. Bump when a consumer
+# would read an old manifest wrongly, not when a field is added.
+MANIFEST_VERSION = 1
+
+
 def evidence_manifest() -> dict[str, Any]:
     """A Netresearch-shaped summary of one trial.
 
@@ -446,6 +451,10 @@ def evidence_manifest() -> dict[str, Any]:
     traj = load_trajectory()
     executed = commands(traj)
     return {
+        # First key: a consumer must be able to say "I do not understand this
+        # record" before it starts reading fields. The trajectory's own ATIF
+        # version is a different thing and stays where it is.
+        "schema_version": MANIFEST_VERSION,
         "trajectory": {
             "schema_version": traj.get("schema_version"),
             "agent": (traj.get("agent") or {}).get("name"),

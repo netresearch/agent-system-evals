@@ -55,7 +55,7 @@ class Arm:
         self.case_id: str | None = None
 
         for job in jobs:
-            snapshot = validity.read_json(job / "nr-snapshot.json") or {}
+            snapshot = validity.read_snapshot(job)
             self.snapshot = self.snapshot or snapshot
             self.case_id = self.case_id or snapshot.get("case_id")
             valid, verdicts = validity.gate(

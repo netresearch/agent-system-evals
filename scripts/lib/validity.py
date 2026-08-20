@@ -58,6 +58,27 @@ class Verdict:
         return self.state if self.valid else f"{self.state}: {self.reason}"
 
 
+def read_snapshot(job_dir: Path) -> dict:
+    """A job's snapshot, version-checked and migrated.
+
+    Goes through `schemas` rather than `json.loads` so that a record from a
+    future writer raises instead of being read field by field until something
+    is missing — which is how `offered_nothing` once reported "nothing was
+    provisioned" for a fleet carrying twelve skills. Returns `{}` where there is
+    no snapshot at all, because plenty of paths legitimately ask about a
+    directory that has none.
+    """
+    from schemas import Snapshot
+
+    path = job_dir / "nr-snapshot.json"
+    if not path.is_file():
+        return {}
+    # No try/except: an `UnreadableRecord` must reach the caller. Swallowing it
+    # here would put this function back where it started, returning an empty
+    # dict that every consumer reads as "nothing was provisioned".
+    return Snapshot.load(path).raw
+
+
 def read_json(path: Path):
     try:
         return json.loads(path.read_text())
@@ -230,7 +251,7 @@ def gate(
     required_artifacts: list[str] | None = None,
 ) -> tuple[list[Path], dict[Path, Verdict]]:
     """Every trial of a job, split into the valid ones and the rest."""
-    snapshot = read_json(job_dir / "nr-snapshot.json") or {}
+    snapshot = read_snapshot(job_dir)
     verdicts = {
         trial: classify(trial, expected_dimensions, snapshot, required_artifacts)
         for trial in trial_dirs(job_dir)

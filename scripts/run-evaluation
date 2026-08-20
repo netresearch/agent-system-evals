@@ -30,6 +30,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+from schemas import SNAPSHOT_VERSION  # noqa: E402
 
 # Recorded defaults. Overridable, but a change to any of them means results are
 # not comparable with earlier ones — see docs/reproducibility.md.
@@ -661,6 +663,9 @@ def main() -> int:
     job_dir = Path(args.jobs_dir) / job_name
     if job_dir.exists():
         snapshot = {
+            # First key on purpose: a reader must be able to say "I do not
+            # understand this record" before it starts reading fields.
+            "schema_version": SNAPSHOT_VERSION,
             "case_id": args.case_id,
             "variant_of": case_meta.get("variant_of"),
             "variant": case_meta.get("variant"),

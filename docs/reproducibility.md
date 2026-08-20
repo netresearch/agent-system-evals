@@ -27,6 +27,14 @@ the judge's own binary came from `curl … install.sh | bash`, which always
 fetches the newest release. This page listed reproducibility as a property of
 the project while three of its layers floated.
 
+Every artefact this repository writes now carries a `schema_version` as its
+first key — the job snapshot, the experiment record, the calibration report and
+the evidence manifest — and `scripts/lib/schemas.py` is where a record is read
+rather than each consumer picking fields out of a dictionary. A version from a
+future writer raises; a record from before 20 August 2026 migrates. All 86
+recorded snapshots on the machine that produced them still load, and a test
+asserts it.
+
 The last row is a different repair: what was run and how it was judged used to
 be one record, so a regrade carried the original rubric's identity forward and
 a comparison could not tell that one side had been re-scored.

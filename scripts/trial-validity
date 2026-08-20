@@ -28,7 +28,7 @@ import validity  # noqa: E402
 
 
 def report(job: Path, quiet: bool) -> tuple[int, int]:
-    snapshot = validity.read_json(job / "nr-snapshot.json") or {}
+    snapshot = validity.read_snapshot(job)
     case_id = snapshot.get("case_id")
     valid, verdicts = validity.gate(
         job,

@@ -54,7 +54,7 @@ def load_trials(job_dir: Path) -> tuple[list[dict[str, float]], list[str]]:
     The gate lives in `scripts/lib/validity.py` and is the same one
     `scripts/trial-validity` prints.
     """
-    snapshot = validity.read_json(job_dir / "nr-snapshot.json") or {}
+    snapshot = validity.read_snapshot(job_dir)
     case_id = snapshot.get("case_id")
     valid, verdicts = validity.gate(
         job_dir,

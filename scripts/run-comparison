@@ -53,6 +53,7 @@ import cases  # noqa: E402
 import stats  # noqa: E402
 import validity  # noqa: E402
 from dimensions import ids_for  # noqa: E402
+from schemas import EXPERIMENT_VERSION  # noqa: E402
 
 # Blocks per round. Three is enough to notice a difference and never enough to
 # establish one: complete separation of two groups of three happens by chance
@@ -197,6 +198,7 @@ def main() -> int:
 
     collected: dict[str, list[Path]] = {arm: [] for arm in arms}
     record: dict = {
+        "schema_version": EXPERIMENT_VERSION,
         "experiment_id": f"{args.case_id}-{stamp}",
         "case": args.case_id,
         "arms": arms,

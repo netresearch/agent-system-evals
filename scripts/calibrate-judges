@@ -53,6 +53,8 @@ REPORT = ROOT / "calibration" / "report.json"
 
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
+from schemas import CALIBRATION_VERSION  # noqa: E402
+
 
 def rubric_digest(case_dir: Path) -> str:
     import hashlib
@@ -151,6 +153,7 @@ def main() -> int:
                     observed.setdefault(name, {}).setdefault(dimension, []).append(value)
 
     report = {
+        "schema_version": CALIBRATION_VERSION,
         "measured_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "case": args.case.name,
         "rubric_digest": rubric_digest(args.case),
