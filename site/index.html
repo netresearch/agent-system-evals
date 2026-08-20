@@ -114,7 +114,8 @@
   <div class="wrap">
     <h1>Open Forward Reviews</h1>
     <p>Realistic requests that do not say what to do, put to the same agent with and without
-       its tooling. What changes — the answer, or what it costs to reach it?</p>
+       its tooling. Four cases, five configurations, everything re-measured after the
+       environment was found to be leaking the answers.</p>
     <div class="prompt">Review this TYPO3 extension and tell me what needs attention.</div>
     <div class="prompt">Editors report that saving a translation in the TextDb backend module
        does nothing — the dialog closes, but the old value is still there. Please find out what
@@ -124,344 +125,179 @@
 
 <main class="wrap">
 
-<h2>The setup</h2>
+<h2>What is being measured</h2>
 
-<p class="lede">A real TYPO3 extension, frozen at one historical commit. The agent receives the
-single sentence above and nothing else: no framework version, no tool to run, no file to open,
-no category of finding to produce. Working that out is what is being measured.</p>
+<p class="lede">Whether an agent equipped with the Netresearch engineering stack takes a
+realistic, deliberately underspecified request and works out for itself what the job is —
+and what that equipment costs when it goes unused.</p>
 
-<p>Four configurations, three runs each. Everything is held constant except the skills:
-same repository, same commit, same model (Claude Code on <code>claude-opus-5</code>), same
-grader, same environment, same trial count.</p>
+<p>Every case starts from what a developer actually has: the extension repository checked out
+<em>and</em> a TYPO3 instance running with that extension installed, served over HTTP, reachable
+under the hostname the project's own DDEV configuration declares. Not a bare checkout. A tool that
+reads a running application has nothing to read in one, and a benchmark built on one measures how
+much a tool helps someone working in an environment nobody has.</p>
 
 <table>
-  <tr><th>control</th><td>Claude Code on its own</td></tr>
-  <tr><th>nr</th><td>plus eight Netresearch skills, pinned to released versions</td></tr>
-  <tr><th>companion</th><td>plus the TYPO3 Dev Companion: twelve skills and its MCP server</td></tr>
-  <tr><th>nr&nbsp;+&nbsp;companion</th><td>both stacks at once</td></tr>
+  <tr><th>control</th><td>Claude Code on its own, provisioned with nothing</td></tr>
+  <tr><th>nr</th><td>the Netresearch skill set — nine skills delivered</td></tr>
+  <tr><th>companion</th><td>the TYPO3 Dev Companion: twelve skills and its MCP server</td></tr>
+  <tr><th>dev-mcp</th><td>balatD/typo3-dev-mcp: its MCP server, no skills</td></tr>
+  <tr><th>nr-full</th><td>the deployed Netresearch setup, thirteen skills plus its command-line toolchain</td></tr>
 </table>
-
-<p>Grading does not ask "did it find the expected bugs" — an open question has no fixed answer
-key. It asks how the work was done, across eight aspects: did it establish what the project is;
-did it reach a systematic route; did each claim come from the source that owns that fact; are
-findings anchored to a place and a consequence; were the available checks actually run; is the
-most important thing first; did it assert anything it never established; and could a developer
-act on the result.</p>
-
-<h2>Case 1 — a review. Result: same output quality, less work</h2>
-
-<p>The clearest difference is not in what the agent produced. It is in what producing it cost.
-Figures are per trial, agent side only, median of three runs.</p>
-
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Per trial</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">nr + comp.</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Tool calls</td><td class="num">27</td><td class="num delta-down">18</td><td class="num">58</td><td class="num">70</td></tr>
-    <tr><td>Agent wall time</td><td class="num">260 s</td><td class="num delta-down">156 s</td><td class="num">576 s</td><td class="num">579 s</td></tr>
-    <tr><td>Input tokens</td><td class="num">1,304,269</td><td class="num delta-down">517,883</td><td class="num">4,052,407</td><td class="num">4,823,265</td></tr>
-    <tr><td>Agent cost</td><td class="num">$2.16</td><td class="num delta-down">$0.91</td><td class="num">$4.95</td><td class="num">$5.59</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p><strong>A factor of six separates the cheapest configuration from the dearest</strong>, and
-nearly four in wall time. The Netresearch stack is the cheapest of the four: 2.4× cheaper than
-the unaided agent and 5.4× cheaper than the companion.</p>
-
-<p>Medians of three are a weak instrument, so the individual runs decide whether this holds. Here
-they do: the Netresearch runs cost $0.81, $0.91 and $2.04, the unaided runs $2.15, $2.16 and
-$2.26. The ranges do not overlap — the dearest run of the cheaper configuration is still cheaper
-than the cheapest run of the other. The companion's runs, $4.07 to $6.17, sit entirely above
-both.</p>
-
-<h2>Case 1 — one skill of eight was reached</h2>
-
-<p>The configurations differ by what they offer, not by what gets used, so the trajectories were
-counted. In every one of the three Netresearch runs the agent invoked exactly one skill —
-<code>typo3-conformance</code> — and none of the other seven. The companion runs likewise reached
-exactly one, its own <code>typo3-extension-conformance</code>, in all three.</p>
-
-<p>So the cheaper, shorter route in case 1 came from a single skill being reached and followed. A
-procedure the agent adopts is a procedure that ends; that is a plausible reason for the shorter
-trajectories, and it is worth separating from the eleven skills that were carried and never
-opened.</p>
-
-<h2>Case 1 — the eight quality dimensions</h2>
-
-<p>Counts are runs in which the dimension was met, out of three, with the mean in brackets.
-Counts rather than averages: three samples do not support two decimal places.</p>
-
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Dimension</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">nr + comp.</th></tr>
-  </thead>
-  <tbody>
-    <tr class="moved"><td>Skill routing</td><td class="num">0/3 (0.33)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
-    <tr><td>Prioritization</td><td class="num">3/3 (0.94)</td><td class="num">3/3 (0.94)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
-    <tr><td>Context discovery</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (0.92)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
-    <tr><td>Outcome quality</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
-    <tr><td>Evidence quality</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (1.00)</td><td class="num">3/3 (1.00)</td></tr>
-    <tr><td>Verification</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.79)</td><td class="num">3/3 (0.88)</td><td class="num">3/3 (0.88)</td></tr>
-    <tr class="moved"><td>Unsupported claims</td><td class="num">1/3 (0.72)</td><td class="num">0/3 (0.61)</td><td class="num">2/3 (0.78)</td><td class="num">2/3 (0.89)</td></tr>
-    <tr class="moved"><td>Source authority</td><td class="num">0/3 (0.50)</td><td class="num">0/3 (0.36)</td><td class="num">1/3 (0.53)</td><td class="num">0/3 (0.53)</td></tr>
-  </tbody>
-</table>
-</div>
-
-<h3>All four produce equally usable reviews</h3>
-
-<p>Outcome quality is 3/3 everywhere, and six of the eight dimensions are flat across the four
-configurations. On this case, what a developer receives does not depend on which stack produced
-it. What differs is the effort spent reaching it.</p>
-
-<h3>Routing separates, but partly by construction</h3>
-
-<p>Skill routing is the one large gap, and the weakest evidence in the table: <code>control</code>
-has no injected skills, so there is less to route to. It is not entirely definitional — the
-grader counted Claude Code's own entry points as available and scored their non-use as a routing
-failure — but it should not be read as a quality difference.</p>
-
-<h3>Two dimensions stay weak everywhere</h3>
-
-<p>No configuration reaches source authority reliably. In all twelve runs the mechanical evidence
-says the same thing: no external canonical source consulted, the resolved dependency state never
-read. Every statement about framework version support rests on recollection rather than a lookup,
-and a version constraint states what is permitted, not what is installed or tested.</p>
-
-<p>Unsupported claims is weakest with the Netresearch stack alone (0/3) and strongest with both
-stacks together (2/3, 0.89) — better than either alone. On this case the two compose rather than
-collide.</p>
-
-<h3>The most expensive configuration buys the least</h3>
-
-<p>Both stacks together cost six times what the Netresearch stack alone costs, and reach no
-dimension it does not, apart from unsupported claims.</p>
 
 <div class="note">
-  <strong>What this does not show.</strong> One case, one agent, one model, three runs per
-  configuration. This is one measurement, not a verdict on any stack. Differences of a single run
-  are within noise, which is why counts are reported instead of averages.
+  <strong>Everything published before 19 August 2026 has been withdrawn.</strong> The agent's
+  container held the case's own seed script, whose header described the mechanism the agent was
+  being asked to find — and two trials were caught reading it. Both tool products were installed
+  for every configuration, so there was no clean control. The comparison checked five parts of the
+  configuration where the method requires ten. Those numbers described a different experiment;
+  everything below was measured again from a rebuilt environment whose sandbox is audited for
+  traces of the apparatus before any trial runs.
 </div>
 
-<h2>Case 2 — a runtime bug. Result: nothing the tooling offered was taken up</h2>
+<h2>Case 1 — a review: same answers, half the cost</h2>
 
-<p class="lede">The second case does not review a checkout. It runs an installed TYPO3 13.4 with
-the extension active and a database in the state a real production report described: saving a
-translation silently writes an orphaned row instead of updating, and every later save then
-collides with a unique key. The first failed save shows no error at all.</p>
+<div class="prompt">Review this TYPO3 extension and tell me what needs attention.</div>
 
-<p>Five configurations this time, three runs each, everything else held constant. The fifth is the
-Netresearch setup as actually deployed — twelve skills <em>and</em> the command-line toolchain
-those skills instruct (ripgrep, fd, jq, yq, dasel, ast-grep and more), installed where only that
-configuration can reach them.</p>
+<p>Four configurations, three runs each, no errored trials. Quality is flat — every configuration
+produces a substantive review and nothing separates. The cost does separate, and cleanly.</p>
 
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>Per trial</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">dev-mcp</th><th class="num">nr-full</th></tr>
+    <tr><th>Per run</th><th class="num">control</th><th class="num">nr</th><th class="num">nr-full</th><th class="num">companion</th></tr>
   </thead>
   <tbody>
-    <tr><td>Tool calls (median)</td><td class="num">93</td><td class="num">106</td><td class="num">68</td><td class="num">49</td><td class="num">76</td></tr>
-    <tr><td>Cost, each run</td><td class="num">2.99 / 6.76 / 8.21</td><td class="num">7.17 / 8.33 / 19.11</td><td class="num">3.83 / 4.10 / 6.25</td><td class="num">2.72 / 3.18 / 8.22</td><td class="num">3.46 / 5.56 / 7.39</td></tr>
-    <tr><td>Skills invoked</td><td class="num">—</td><td class="num">0</td><td class="num">0</td><td class="num">—</td><td class="num">0</td></tr>
-    <tr><td>Toolchain commands used</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">0</td></tr>
+    <tr><td>Agent cost</td><td class="num">2.21 / 2.80 / 3.54</td><td class="num delta-down">1.27 / 1.40 / 1.55</td><td class="num delta-down">1.08 / 1.34 / 1.43</td><td class="num">4.52 / 5.83 / 9.26</td></tr>
+    <tr><td>Input tokens (M)</td><td class="num">1.39 / 1.79 / 3.29</td><td class="num delta-down">0.80 / 0.93 / 1.11</td><td class="num delta-down">0.73 / 0.88 / 1.00</td><td class="num">3.77 / 5.95 / 10.60</td></tr>
+    <tr><td>Tool calls</td><td class="num">32 / 34 / 41</td><td class="num">24 / 31 / 34</td><td class="num">27 / 27 / 35</td><td class="num">52 / 63 / 69</td></tr>
   </tbody>
 </table>
 </div>
 
-<p><strong>Every configuration solved the case, and every one solved it the same way.</strong> All
-fifteen runs reached the top mark for identifying the mechanism: the extension's domain models
-declare their persisted properties <code>private</code>, which Extbase cannot reach from the
-parent class, so the references a save should carry are never resolved. The agents did not read
-that off the source — they ran the repository call inside the framework's bootstrap, produced the
-error, applied the change provisionally, re-ran the save path, read the written row back out of
-the database and reverted. The fix that shipped changes exactly those properties.</p>
+<p><strong>The ranges do not overlap.</strong> The dearest Netresearch run costs less than the
+cheapest unaided one — $1.55 against $2.21. Two groups of three separate completely by chance one
+time in twenty: enough to act on, not enough to call established, which is why the comparison
+deepens where it sees one.</p>
 
-<p>The fullest configuration scores identically to the bare agent on all eight dimensions,
-met-count for met-count. And across all fifteen runs <strong>not one skill was invoked</strong> —
-with eight available, with twelve, with twelve plus a toolchain. In the <code>nr-full</code> runs
-not one of the nine installed commands was used either, in 54 to 83 tool calls apiece.</p>
+<p><strong>The saving is not in doing less.</strong> Tool call counts overlap; input tokens do not.
+The agent takes a similar number of steps and carries roughly half the context through them. In
+all three runs it reached exactly one skill of the nine — the conformance skill — and never opened
+the rest. A procedure that has been adopted is one that does not have to be reconstructed.</p>
 
-<p>A configuration nobody used and one nobody could reach produce the same zero, so the mechanism
-was checked before the behaviour was reported: in a container with that configuration's own
-<code>PATH</code>, inside the agent's shell, <code>command -v rg</code> answers
-<code>/opt/nr-toolchain/bin/rg</code>. The tools were reachable.</p>
+<h2>Case 2 — a runtime bug: nothing offered was taken up</h2>
 
-<p>Unlike case 1, the cost figures here do <em>not</em> separate the configurations. The spread
-inside each one swallows the difference between them — the unaided agent alone ranges from $2.99
-to $8.21 on identical inputs. Where case 1 showed non-overlapping ranges, this case shows
-overlapping ones, and no cost claim is made from it.</p>
+<div class="prompt">Editors report that saving a translation in the TextDb backend module does
+nothing — the dialog closes, but the old value is still there. Please find out what is going
+on.</div>
+
+<p>Five configurations against an installed TYPO3 13.4 whose database is in the state a real
+production report described. Every configuration solves it. Nothing separates — not quality, not
+cost, where the unaided agent alone spans $4.20 to $10.46 on identical inputs.</p>
+
+<p><strong>Across all fifteen runs, not one skill was invoked</strong> — with nine available, with
+twelve, with thirteen. Both MCP configurations did reach their servers, so the capabilities were
+demonstrably present. The skills simply went untouched: no procedure on offer fits a runtime
+diagnosis, and the agent boots the framework itself instead.</p>
+
+<h2>Case 3 — an upgrade: the first result a judge did not decide</h2>
+
+<div class="prompt">We need this extension to work with the current TYPO3 LTS. Can you take care
+of that?</div>
+
+<p>This case has mechanical ground truth. The verifier takes the tree the agent left, pins the
+dependency matrix to each TYPO3 line, resolves it and runs the extension's own test suite. An arm
+either produced something that installs and passes on both lines, or it did not.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Upgrade completed</th><th class="num">control</th><th class="num">nr</th><th class="num">nr-full</th><th class="num">dev-mcp</th><th class="num">companion</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Runs out of three</td><td class="num">2/3</td><td class="num delta-down">3/3</td><td class="num delta-down">3/3</td><td class="num">1/3</td><td class="num">0/3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Both Netresearch configurations completed the upgrade in every run; the unaided agent in two of
+three; the companion in none, one of its trees failing to resolve at all. Three runs make that a
+reason to spend more, not a finished claim — and the deepening stage that was spending them died
+on the subscription's rate limit.</p>
+
+<p>Cost separates nothing here and is an order of magnitude above the other cases. The companion's
+cheapest run, at $1.23, is the one that produced the unresolvable tree: cheap because it stopped,
+which is why a cost column is only readable beside an outcome column.</p>
+
+<h2>Case 4 — a contract eval: does the check fire</h2>
+
+<p>A deliberately different kind of case, and the cheap one. Four Extbase properties declared
+<code>private</code> in a minimal extension, two <code>protected</code> ones beside them, the
+expected answer known. No judge, no instance, no network beyond the model endpoint — it runs in
+seconds and can gate a merge, which an open review cannot.</p>
+
+<p>Graded in both directions: the four must be named and the two must not be called broken.
+Control scores 0.97, the Netresearch configuration 1.00.</p>
+
+<h2>What the four cases say together</h2>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th></th><th class="num">review</th><th class="num">runtime</th><th class="num">upgrade</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Skills invoked</td><td class="num">one, every run</td><td class="num">none, any run</td><td class="num">one, every run</td></tr>
+    <tr><td>Cost against control</td><td class="num delta-down">separates, halved</td><td class="num">overlaps</td><td class="num">overlaps</td></tr>
+    <tr><td>Outcome against control</td><td class="num">equal</td><td class="num">equal</td><td class="num delta-down">3/3 against 2/3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>The same configuration is the cheapest arm on one case and the dearest on another.</strong>
+<code>nr-full</code> runs the review for $1.34 and the runtime diagnosis for $7.43, against an
+unaided $2.80 and $5.03. What a stack is worth is a property of the task it meets, and a benchmark
+that reports one number for it is answering a question nobody asked.</p>
 
 <div class="note">
-  <strong>What follows from this.</strong> Every configuration finishing the task does not make the
-  comparison empty. Once the answer is the same, what it cost to reach — tokens, wall time, tool
-  calls — is the result, and on work a team already does well it is usually the only one left to
-  improve. A configuration that reaches the same diagnosis in half the calls has won something
-  real, and case 1 shows that margin can be large and clean: a factor of six between cheapest and
-  dearest, with ranges that do not overlap.
-  <br><br>
-  What the saturation does change is the second question — what tooling adds in <em>capability</em>.
-  In 8 of 9 runs without an MCP the agent booted the framework itself and queried the database
-  directly, so "ask the running application" is something the unaided agent reconstructs rather
-  than something a server confers. Measuring a capability difference needs tasks the unaided agent
-  does not finish. Measuring the efficiency difference needs only more runs, and better instruments
-  than dollars.
-</div>
-
-<h2>Case 2 — what every configuration got wrong</h2>
-
-<p class="lede">The flat columns are only half the result. The other half is a weakness all five
-share, and it is the part a maintainer would act on.</p>
-
-<p>The reported instance carries an orphaned row, and that row keeps breaking saves whatever
-happens to the code: the next attempt collides with the same unique key. Repairing the defect and
-clearing the damage it already caused are two separate jobs.</p>
-
-<p><strong>The agents see the row and do not say to remove it.</strong> Graded on whether the
-answer distinguishes the code fix from the data left behind, 7 of 15 runs scored the lowest mark
-available and only 2 reached the top one. A developer who applies what they were handed still has
-a database that fails.</p>
-
-<p>A second criterion behaves the same way in a manner worth flagging against itself: whether the
-answer accounts for <em>both</em> failure modes — the silent first save and the loud later one —
-returns the middle mark in fourteen of fifteen runs. A measure that almost never varies is not
-separating anything, and it is recorded here as an open question about the rubric rather than as a
-finding about the agents.</p>
-
-<h2>Case 2 — an unexplained gap between two Netresearch configurations</h2>
-
-<p>If neither configuration invoked a skill or a command, the two Netresearch arms should behave
-alike. They do not, and the difference is in how long the agent worked rather than in what it
-produced.</p>
-
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Per run</th><th class="num">tool calls</th><th class="num">agent cost</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>control</td><td class="num">47 / 93 / 96</td><td class="num">$2.99 / $8.21 / $6.76</td></tr>
-    <tr><td>nr — eight skills</td><td class="num">91 / 106 / 141</td><td class="num">$7.17 / $8.33 / $19.11</td></tr>
-    <tr><td>nr-full — twelve skills and the toolchain</td><td class="num delta-down">54 / 76 / 83</td><td class="num delta-down">$3.46 / $5.56 / $7.39</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>Cost tracks call count almost exactly, in every configuration: the price of a run is how long
-the agent kept going. And <code>nr</code> kept going longer in every run than <code>nr-full</code>
-did in any — 91 at its shortest against 83 at its longest.</p>
-
-<p><strong>The obvious explanation is wrong.</strong> Carrying skill descriptions that are never
-opened would make the larger set the dearer one, and here the larger set is the cheaper one:
-twelve descriptions plus a toolchain, and shorter runs. Whatever separates them, it is not the
-weight of the offer.</p>
-
-<p>No mechanism is claimed. What can be said about the strength of the signal is exact: two groups
-of three separate completely by chance one time in twenty. That is the strongest result three runs
-per configuration can produce, and it is the same standing as case 1's cost result — worth acting
-on as a hypothesis, not worth reporting as established. Both need more runs, and this is where
-they should be spent.</p>
-
-<h2>Case 2 — the cheapest route is the least grounded</h2>
-
-<p>One dimension does separate the configurations, and mechanically rather than by judgement:
-whether the agent opened the project's own documentation, its manifest and its source.</p>
-
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Read the project's documentation</th><th class="num">control</th><th class="num">nr</th><th class="num">companion</th><th class="num">dev-mcp</th><th class="num">nr-full</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Runs out of three</td><td class="num">2/3</td><td class="num">3/3</td><td class="num">2/3</td><td class="num delta-down">0/3</td><td class="num">2/3</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>The configuration with the fewest tool calls is the one that never read the documentation. It
-asked the running system instead — the same behaviour that produces its short trajectories. On
-this case that cost nothing measurable, because the answer was in the code and the database. It
-would cost something on a case whose answer lives in a <code>Documentation/</code> directory, and
-this benchmark does not yet have one.</p>
-
-<h2>Measuring cost when capability saturates</h2>
-
-<p>When every configuration solves the task, cost is not a consolation prize — it is the remaining
-axis, and often the only one left to improve on work a team already does well. That makes the
-instrument matter.</p>
-
-<p>Dollars are the noisiest available measure, because they carry the variance of prompt caching
-on top of the agent's own. Measured as coefficient of variation within each configuration:</p>
-
-<div class="scroll">
-<table>
-  <thead>
-    <tr><th>Spread within a configuration</th><th class="num">tool calls</th><th class="num">agent cost</th><th class="num">input tokens</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Range across the five (lower is steadier)</td><td class="num delta-down">0.17 – 0.34</td><td class="num">0.23 – 0.53</td><td class="num">0.31 – 0.67</td></tr>
-  </tbody>
-</table>
-</div>
-
-<p>Tool calls are the steadier signal, by a wide margin in the fullest configuration (0.17 against
-0.29 for cost). Two consequences for anyone repeating this: report call counts as the primary cost
-measure and dollars as a secondary one, and run more than three trials per configuration if the
-difference of interest is smaller than about a third. Case 1 separated cleanly on three because
-its ranges did not overlap; case 2 did not, and no amount of median arithmetic fixes that.</p>
-
-<h2>What the agents actually found</h2>
-
-<p>Every configuration produced a substantive review. The leading finding in the unaided run was a
-cache-clearing middleware registered in the frontend stack that never checks whether a user is
-authenticated — anchored to file and line, with the consequence stated: any anonymous visitor can
-flush page caches. Neither that nor two further findings appear in the case's recorded background
-notes; the agent established them from the code.</p>
-
-<p>The reviewed commit also carries three security findings marked with inline suppression
-comments. A static analysis run reports clean there while the problems remain, which is what lets
-the case distinguish an agent that reads a green result as reassurance from one that asks what
-produced it.</p>
-
-<div class="note">
-  <strong>Correction, 17 August 2026 — case 1.</strong> An earlier version of this page reported that the
-  Netresearch stack improved prioritization from 0.61 to 0.94 and called the difference real. It
-  was not. Nine grading criteria had hit a judge timeout, and the grading harness records a
-  timed-out judge as zero. Re-scored without the timeout, the control configuration reaches 0.94
-  as well and the difference disappears. Its unsupported-claims figure was reported as 0.50 and is
-  0.72. Six such instrument failures were found and fixed while producing this table, every one
-  returning a plausible number rather than an error; they are listed in
-  <a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/instrument-failures.md">docs/instrument-failures.md</a>.
+  <strong>Two things this does not show.</strong> No case here defeats the unaided agent, so none
+  of them measures what tooling adds in <em>capability</em> — that needs tasks the base agent does
+  not finish. And every figure comes from Claude Code on <code>claude-opus-5</code>; whether these
+  are findings about the stack or about the stack inside one harness is a question a second agent
+  has to answer, which is what <code>scripts/sentinel</code> exists for.
 </div>
 
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">27</span><span class="lbl">graded runs across two cases</span></div>
-  <div class="card"><span class="big">8</span><span class="lbl">graded dimensions per run</span></div>
-  <div class="card"><span class="big">8</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">4</span><span class="lbl">cases, one environment baseline</span></div>
+  <div class="card"><span class="big">48</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">13</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
-<a href="https://harborframework.com">Harbor</a>. This project contributes the review
-methodology, the cases, the eight-dimension rubric and the conventions that keep results
-comparable. Grading rests on observable behaviour only — tool calls, commands, files opened,
-output seen, the resulting diff and the final answer. Stated intentions are not evidence, and
-private reasoning is never read.</p>
+<a href="https://harborframework.com">Harbor</a>. This project contributes the review methodology,
+the cases, the rubric and the conventions that keep results comparable. Grading rests on observable
+behaviour only — tool calls, commands, files opened, output seen, the resulting diff and the final
+answer. Stated intentions are not evidence, and private reasoning is never read.</p>
 
-<p>The agent cannot reach the reviewed repository's own forge during a run: the working copy is a
-single-commit fetch with the remote removed, and the network allowlist excludes it while still
-permitting the framework's canonical documentation. The later change that fixed several of the
-issues lives in that repository's future and stays out of reach.</p>
+<p>Two arms may be compared only when a fingerprint over the whole configuration matches and the
+provision differs: the task digest, which covers instruction, rubric, environment and network
+policy, plus agent, model, judge and trial count. What each arm was <em>given</em> is probed
+before it is asked what it <em>used</em>, because a server that never answered and a server that
+answered and went unused are different findings, and only one of them voids a run.</p>
 
-<p>Specification, cases, rubric and raw conventions:
+<p>Every failure this benchmark made about itself is written down, including the ones that produced
+plausible numbers rather than errors — a leaked answer, a judge that scored zeros it never
+computed, a floor under total failure, a probe that reported "nothing provisioned" for a
+configuration carrying thirteen skills:
+<a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/instrument-failures.md">docs/instrument-failures.md</a></p>
+
+<p>Specification, cases, rubric and raw results:
 <a href="https://github.com/netresearch/agent-system-evals">github.com/netresearch/agent-system-evals</a></p>
 
 </main>
+
 
 <footer class="site">
   <div class="wrap">

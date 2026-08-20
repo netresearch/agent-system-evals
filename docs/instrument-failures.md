@@ -1,6 +1,6 @@
 # Instrument failures
 
-Nine ways this benchmark measured the wrong thing while looking like it was
+Thirteen ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -151,6 +151,64 @@ ordering rather than by a rule. Credentials no longer say "benchmark".
 and greps everything the agent can read for the measuring apparatus. It found
 two more leaks on its first run, one of them a script in the agent's own PATH
 describing the benchmark.
+
+## 10. A probe that reported "nothing provisioned" for thirteen skills
+
+The capability probe exists to tell "the tool was not there" from "the tool was
+there and unused". On the first clean five-arm run it reported `skills: none`
+for every arm, including fleets carrying nine and thirteen. It looked in Claude
+Code's default config directory; Harbor sets `CLAUDE_CONFIG_DIR` to
+`/logs/agent/sessions`.
+
+Read as a result, that number said the stack was never delivered — the exact
+misreading the probe was built to prevent, produced by the probe.
+
+**Fix:** it checks the path Harbor uses, and the MCP config with it.
+**Guard:** the ledger counts skills from the collected artifacts as a second,
+independent view and prefers it. One source of truth for a number this
+load-bearing was one too few.
+
+## 11. The same probe voiding an arm that worked
+
+The mirror image, one day later: the probe marked the companion's server
+`unreachable` in an arm whose agent had called it 57 times across all three
+trials, and the ledger printed VOID over a valid result. The probe launches a
+server itself and asks it to describe itself; that handshake can fail for
+reasons the agent never meets.
+
+**Fix:** usage settles it. A capability that was demonstrably called was
+provisioned, whatever the probe concluded, and the probe now decides only for
+capabilities nobody touched.
+
+## 12. A silent no-op that disarmed every tool arm
+
+The edit that was supposed to declare `PROVISION_PACKAGES` and
+`PROVISION_COMPANION_REF` in the cases was a string replacement anchored on a
+password that had not been renamed yet. It matched nothing, changed nothing,
+and reported success. No case declared the variables, so every companion and
+dev-mcp arm ran without its server: the companion arms came back at six tool
+calls and twenty-seven cents, because those skills stop when their server does
+not answer, and scored as a bad tool.
+
+Diagnosing it needed a second fix. Closing the ground-truth leak had deleted
+the install log, and with it every trace of what a provision did.
+
+**Fix:** the insertion refuses to proceed when its anchor is missing.
+**Guards:** `validate-tasks` requires a case to declare every `PROVISION_` key
+any fleet passes, and a sanitised `provisioning.txt` records what an arm was
+given and whether it worked — the file that finally said `companion_ref=<none>`.
+
+## 13. A floor under total failure
+
+The contract eval's negative criteria — "did not report `title` as broken" —
+are trivially true of an answer that says nothing. A trial whose agent could
+not reach its model endpoint answered `API Error: Unable to connect to API` and
+scored 3 of 11 rather than 0.
+
+**Fix:** the negative criteria require an answer to exist first.
+**Guard:** the predicate is checked against four answer shapes — an API error,
+an empty string, a correct answer, and one that lists every property in the
+file.
 
 ## What this cost, and what it teaches
 
