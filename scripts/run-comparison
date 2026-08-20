@@ -101,7 +101,7 @@ def resolve_job(output: str) -> Path | None:
     return Path(match.group(1)) if match else None
 
 
-def run_one(case_id: str, fleet: str, env: dict) -> Path | None:
+def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Path | None:
     command = [
         str(ROOT / "scripts" / "run-evaluation"),
         case_id,
@@ -110,6 +110,8 @@ def run_one(case_id: str, fleet: str, env: dict) -> Path | None:
         "--trials",
         "1",
     ]
+    if model:
+        command += ["--model", model]
     result = subprocess.run(command, env=env, capture_output=True, text=True)
     job = resolve_job(result.stdout)
     if result.returncode != 0 or job is None:
@@ -154,6 +156,12 @@ def main() -> int:
         "--primary",
         required=True,
         help="the one endpoint this run is powered for, declared before it starts",
+    )
+    parser.add_argument(
+        "--model",
+        help="the agent's model for every arm; the judge stays pinned in the "
+             "rubric. Held constant across arms — a model comparison is a "
+             "different experiment, run through scripts/compare --variable model",
     )
     parser.add_argument("--max-trials", type=int, default=12)
     parser.add_argument("--seed", type=int, default=None,
@@ -206,6 +214,10 @@ def main() -> int:
         # immediately. An endpoint chosen after the data are in is not a test.
         "primary_endpoint": args.primary,
         "secondary_endpoints": sorted(graded - {args.primary}),
+        # Recorded even when it is the default: a result that does not name the
+        # model it was produced by cannot be read a year later, and the default
+        # is a thing that changes.
+        "model": args.model or "run-evaluation default",
         "randomization": "one trial per arm per block, order shuffled per block",
         "randomization_seed": seed,
         "stopping_rule": (
@@ -258,7 +270,7 @@ def main() -> int:
                      "jobs": {}}
             print(f"\nround {round_number} block {block + 1}: {' '.join(order)}")
             for fleet in order:
-                job = run_one(args.case_id, fleet, env)
+                job = run_one(args.case_id, fleet, env, args.model)
                 if job is None:
                     # Fail closed. Continuing leaves the arms unequal for a
                     # reason that is not the treatment, and nothing downstream
