@@ -73,7 +73,7 @@ jobs:
         run: ./scripts/build-site --lint
 
       - name: Analysis core behaves as specified
-        run: uv run --with pytest python -m pytest tests -q
+        run: uv run --with pytest --with pyyaml python -m pytest tests -q
 
       # Version-pinned and checksummed. `apt-get install shellcheck` installs
       # whatever the runner image carries, which was not the version anyone had

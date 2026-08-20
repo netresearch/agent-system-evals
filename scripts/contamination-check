@@ -44,6 +44,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+import fleets as fleet_lib  # noqa: E402
 
 # Extensions worth reading. Skills are prose and configuration; a hit inside a
 # binary is not a learning anyone wrote.
@@ -57,10 +59,13 @@ STOPWORDS = {
 
 
 def fleet_skills(name: str) -> list[tuple[str, str]]:
-    path = ROOT / "fleets" / f"{name}.yaml"
-    if not path.exists():
-        sys.exit(f"no fleet {name!r}")
-    fleet = yaml.safe_load(path.read_text()) or {}
+    # Through the resolver: an ablation states its difference from a parent
+    # and inherits the rest, so reading its own file would check a shorter
+    # skill list than the arm actually runs.
+    try:
+        fleet = fleet_lib.read(name)
+    except fleet_lib.FleetError as exc:
+        sys.exit(str(exc))
     return [(s["repo"], s["ref"]) for s in (fleet.get("skills") or [])]
 
 

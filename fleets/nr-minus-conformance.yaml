@@ -1,0 +1,21 @@
+# `nr` without the one skill it actually reaches.
+#
+# The review case is the reason this exists. Across every trial of every
+# Netresearch arm the agent invoked exactly one skill of the nine — the
+# conformance skill — and the cost separated cleanly from the unaided arm. Two
+# readings fit that: the conformance skill carries the effect, or the fleet as a
+# whole does and this one is merely where the agent enters it.
+#
+# Nothing in the recorded results distinguishes them, because no arm has ever
+# varied one component. This one does.
+#
+# Derived rather than copied: a copy of `nr` would still name v2.19.1 on the day
+# `nr` moves, and the ablation would then measure two changes at once while
+# reporting one.
+
+name: nr-minus-conformance
+description: The Netresearch fleet with the conformance skill removed
+derives_from: nr
+
+without:
+  - netresearch/typo3-conformance-skill

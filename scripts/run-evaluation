@@ -31,6 +31,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+import fleets as fleet_lib  # noqa: E402
 from schemas import SNAPSHOT_VERSION  # noqa: E402
 
 # Recorded defaults. Overridable, but a change to any of them means results are
@@ -96,29 +97,18 @@ def rubric_judge(case_dir: Path) -> str:
 
 
 def load_fleet(name: str) -> list[str]:
-    path = ROOT / "fleets" / f"{name}.yaml"
-    if not path.exists():
-        available = sorted(p.stem for p in (ROOT / "fleets").glob("*.yaml"))
-        sys.exit(f"no fleet {name!r}; available: {', '.join(available)}")
+    """The fleet's skills, with any `derives_from` chain already applied.
 
-    fleet = yaml.safe_load(path.read_text()) or {}
-    entries = []
-    for skill in fleet.get("skills") or []:
-        ref = skill.get("ref")
-        if not ref:
-            sys.exit(f"{path}: skill {skill.get('repo')} has no ref; pin it")
-        # A full commit SHA cannot be used: Harbor resolves the ref with
-        # `git ls-remote <url> <ref>`, which returns nothing for a bare SHA and
-        # fails with "No matching ref". Tags and branches work; the resolved
-        # SHA is recovered afterwards from the job lock.
-        if len(ref) == 40 and all(c in "0123456789abcdef" for c in ref.lower()):
-            sys.exit(
-                f"{path}: skill {skill['repo']} is pinned to a commit SHA. "
-                f"Harbor resolves refs via git ls-remote, which cannot answer "
-                f"for a bare SHA. Use a tag."
-            )
-        entries.append(f"{skill['repo']}@{ref}")
-    return entries
+    Resolution moved to `scripts/lib/fleets.py` so an ablation can state its
+    difference from a parent instead of copying it. A copy drifts: the day
+    `nr` moves to a new skill version, a hand-made variant of it silently
+    measures the old one and reports a component effect that is a version
+    difference.
+    """
+    try:
+        return fleet_lib.skill_refs(name)
+    except fleet_lib.FleetError as exc:
+        sys.exit(str(exc))
 
 
 def load_companion(name: str) -> tuple[Path, Path] | None:
@@ -133,7 +123,7 @@ def load_companion(name: str) -> tuple[Path, Path] | None:
     launched over stdio and lives in the environment image; only the config
     that registers it varies per fleet.
     """
-    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    fleet = fleet_lib.read(name)
     companion = fleet.get("companion")
     if not companion:
         return None
@@ -173,7 +163,7 @@ def load_agent_env(name: str) -> list[str]:
     same arrangement the companion's binary already has: nothing registers it
     and no path leads to it.
     """
-    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    fleet = fleet_lib.read(name)
     env = fleet.get("env") or {}
     if not isinstance(env, dict):
         sys.exit(f"fleets/{name}.yaml: env must be a mapping of KEY: VALUE")
@@ -190,7 +180,7 @@ def fleet_versions(name: str) -> dict:
     not appear in a result at all. A recorded number has to be able to say what
     it measured.
     """
-    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    fleet = fleet_lib.read(name)
     declared = {}
     if fleet.get("package"):
         declared["package"] = fleet["package"]
@@ -334,7 +324,7 @@ def check_fleet_fits_the_case(name: str, case_dir: Path) -> None:
     have produced three trials indistinguishable from a control run and a table
     entry claiming otherwise.
     """
-    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    fleet = fleet_lib.read(name)
     if fleet.get("requires") != "runtime":
         return
 
@@ -357,7 +347,7 @@ def load_mcp_server(name: str) -> tuple[str, Path] | None:
     under test, installed into the image for every fleet so that only this
     config varies between arms.
     """
-    fleet = yaml.safe_load((ROOT / "fleets" / f"{name}.yaml").read_text()) or {}
+    fleet = fleet_lib.read(name)
     server = fleet.get("mcp")
     if not server:
         return None

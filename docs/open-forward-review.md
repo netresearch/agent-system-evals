@@ -148,6 +148,26 @@ redaction removes what a judge could read; it does not remove how an arm
 writes. Any claim that grading here is blind should say the first and not the
 second.
 
+### Ablations
+
+A fleet changes several things at once, so a difference it produces belongs to
+the fleet and to no component in it. Where a component question is worth
+answering, an **ablation fleet** states its difference from a parent and
+inherits the rest:
+
+```yaml
+name: nr-minus-conformance
+derives_from: nr
+without:
+  - netresearch/typo3-conformance-skill
+```
+
+Derived rather than copied on purpose. A copy still names the parent's old skill
+versions on the day the parent moves, and the arm then measures two changes
+while reporting one. Removing a skill the parent does not carry is refused,
+because an ablation that ablates nothing reads as a component that changes
+nothing.
+
 ## 9. Case admission
 
 A case enters the benchmark only via the lifecycle in

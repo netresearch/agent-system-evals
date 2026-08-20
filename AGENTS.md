@@ -21,7 +21,7 @@ the cases and the rubric.
 | `tests/` | Unit tests for the analysis core (metric, comparator) |
 | `scripts/lib/` | Shared readers for the scripts |
 | `experiments/` | One record per comparison run: seed, arms, jobs, stop reason |
-| `fleets/` | Pinned skill fleets: `control`, `nr`, `candidate` |
+| `fleets/` | Pinned skill fleets. `derives_from` + `without`/`only` declares an ablation without copying one. |
 | `datasets/` | Harbor dataset manifests and aggregation metrics |
 | `scripts/` | Everything runnable |
 | `jobs/`, `reports/` | Generated, gitignored |

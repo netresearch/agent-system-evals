@@ -29,6 +29,8 @@ from harbor.models.task.paths import TaskPaths
 from harbor.models.task.task import Task
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+import fleets as fleet_lib  # noqa: E402
 
 REQUIRED_METADATA = (
     "case_id",
@@ -58,7 +60,7 @@ def check_provision_declared(case_dir: Path, label: Path, raw: dict, problems: l
     declared = set((raw.get("environment", {}) or {}).get("env", {}) or {})
     needed = set()
     for fleet_path in (ROOT / "fleets").glob("*.yaml"):
-        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        fleet = fleet_lib.read(fleet_path.stem)
         needed |= {k for k in (fleet.get("env") or {}) if k.startswith("PROVISION_")}
     for key in sorted(needed - declared):
         problems.append(
@@ -90,7 +92,7 @@ def check_fleet_provisioning(case_dir: Path, label: Path, problems: list[str]) -
     text = installer.read_text()
 
     for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
-        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        fleet = fleet_lib.read(fleet_path.stem)
         for key in (fleet.get("env") or {}):
             if key.startswith("PROVISION_") and key not in text:
                 problems.append(
@@ -134,7 +136,7 @@ def check_runtime_mcp_servers(
     text = dockerfile.read_text()
 
     for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
-        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        fleet = fleet_lib.read(fleet_path.stem)
         floor = fleet.get("min_typo3_line")
         if not floor:
             continue
@@ -188,7 +190,7 @@ def check_fleet_toolchain(case_dir: Path, label: Path, problems: list[str]) -> N
     )
 
     for fleet_path in sorted((ROOT / "fleets").glob("*.yaml")):
-        fleet = yaml.safe_load(fleet_path.read_text()) or {}
+        fleet = fleet_lib.read(fleet_path.stem)
         path_value = (fleet.get("env") or {}).get("PATH")
         if not path_value:
             continue
