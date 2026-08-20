@@ -296,10 +296,21 @@ not to zero:
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/instrument-failures.md">docs/instrument-failures.md</a></p>
 
 <p>An external code review in August 2026 found five more, none of which any number could have
-revealed: three sat in files whose comments described the opposite of what the code did. Sixteen
-further items from that review are open work and are tracked as
-<a href="https://github.com/netresearch/agent-system-evals/issues">issues</a> — until the ones
-marked P0 are closed, results here are exploratory evidence rather than a causal measurement.</p>
+revealed: three sat in files whose comments described the opposite of what the code did. Its four
+blocking items are now closed — a validity state per trial so an infrastructure failure can never
+be read as a score, exact small-sample statistics with a primary endpoint declared before the run,
+randomisation at the level of the trial rather than the batch, and case expectations moved out of
+the public repository. Twelve further items remain
+<a href="https://github.com/netresearch/agent-system-evals/issues">open</a>.</p>
+
+<div class="note">
+  <strong>The figures on this page predate all of that.</strong> They were produced by the
+  instrument as it stood on 19 and 20 August: before the validity gate, before the statistics, and
+  under task digests that pinning the verifier images has since changed. They are not withdrawn —
+  nothing has been found wrong with them — but they are not the output of the current instrument
+  either, and the next measurement series will not be comparable with them by this project's own
+  rule.
+</div>
 
 <p>Specification, cases, rubric and raw results:
 <a href="https://github.com/netresearch/agent-system-evals">github.com/netresearch/agent-system-evals</a></p>
