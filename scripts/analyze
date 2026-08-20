@@ -45,6 +45,42 @@ from dimensions import met_threshold, order  # noqa: E402
 MET = met_threshold()
 
 
+def check_comparable(a: dict, b: dict, variable: str, label: str) -> None:
+    """Everything but the declared variable must match.
+
+    A thin version of the check in `scripts/compare`: it reads the same
+    snapshot fields, and its job here is to refuse a pooling that has more than
+    one candidate cause rather than to explain the full fingerprint.
+    """
+    fields = ["case_id", "agent", "model", "judge"]
+    if variable == "model":
+        fields.remove("model")
+        if a.get("fleet") != b.get("fleet"):
+            sys.exit(
+                f"{label}: both the model and the fleet differ; a result could "
+                f"not be attributed to either."
+            )
+    elif variable == "repository":
+        fields.remove("case_id")
+    elif a.get("provision_digest") == b.get("provision_digest"):
+        sys.exit(
+            f"{label}: same provision digest — nothing that is supposed to "
+            f"differ does. Use scripts/compare --placebo to measure the "
+            f"instrument's own spread deliberately."
+        )
+
+    differences = [
+        f"{field}: {a.get(field)!r} vs {b.get(field)!r}"
+        for field in fields
+        if a.get(field) != b.get(field)
+    ]
+    if differences:
+        sys.exit(
+            f"{label}: more than the declared variable ({variable}) differs:\n  "
+            + "\n  ".join(differences)
+        )
+
+
 class Arm:
     def __init__(self, name: str, jobs: list[Path]):
         self.name = name
@@ -244,6 +280,12 @@ def main() -> int:
         help="an arm and every job it produced",
     )
     parser.add_argument("--primary", help="the one endpoint this run is powered for")
+    parser.add_argument(
+        "--variable",
+        choices=("fleet", "model", "repository"),
+        default="fleet",
+        help="what these arms are allowed to differ in; everything else must match",
+    )
     parser.add_argument("--json", action="store_true", help="machine-readable output")
     args = parser.parse_args()
 
@@ -262,6 +304,23 @@ def main() -> int:
     primary = args.primary or record.get("primary_endpoint")
     built = {name: Arm(name, jobs) for name, jobs in arms.items()}
     names = list(built)
+
+    # Comparability, which this script did not check at all until 20 August
+    # 2026. It would pool an Opus arm against a Haiku one, or two different
+    # cases, and report an effect — while `scripts/compare` refused the same
+    # pair. The careful tool blocked what the sloppy one allowed.
+    #
+    # Every pair, not the first two: three arms are three comparisons, and an
+    # unchecked third is exactly the one nobody looks at.
+    for index, first in enumerate(names):
+        for second in names[index + 1:]:
+            check_comparable(
+                built[first].snapshot,
+                built[second].snapshot,
+                variable=args.variable,
+                label=f"{first} vs {second}",
+            )
+
     a, b = built[names[0]], built[names[1]]
 
     print(f"case      {a.case_id}")

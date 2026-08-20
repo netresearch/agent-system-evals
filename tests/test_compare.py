@@ -187,3 +187,56 @@ def test_jobs_graded_alike_pass():
 def test_a_job_without_a_grade_snapshot_is_noted_not_refused(capsys):
     compare.check_graded_alike(snapshot(), snapshot(grade=None))
     assert "predates the grade snapshot" in capsys.readouterr().err
+
+
+# --- the declared variable ---------------------------------------------------
+
+
+def test_a_model_comparison_is_refused_by_default():
+    """Two models with no declaration is a result with two candidate causes."""
+    with pytest.raises(SystemExit):
+        compare.check_comparable(
+            snapshot(), snapshot(model="claude-haiku-4-5", provision_digest="p2")
+        )
+
+
+def test_a_declared_model_comparison_is_allowed():
+    compare.check_comparable(
+        snapshot(),
+        snapshot(model="claude-haiku-4-5"),
+        variable="model",
+    )
+
+
+def test_a_model_comparison_that_also_moves_the_fleet_is_refused():
+    """The one that would look like a model finding and be a fleet one."""
+    with pytest.raises(SystemExit):
+        compare.check_comparable(
+            snapshot(),
+            snapshot(model="claude-haiku-4-5", fleet="nr", provision_digest="p2"),
+            variable="model",
+        )
+
+
+def test_a_model_comparison_that_also_moves_the_judge_is_refused():
+    """The grading instrument must be the same on both sides."""
+    with pytest.raises(SystemExit):
+        compare.check_comparable(
+            snapshot(),
+            # A different judge, not the same one restated: the first version
+            # of this test passed `claude-opus-5`, which the fixture already
+            # uses, so it changed nothing and asserted nothing.
+            snapshot(model="claude-haiku-4-5", judge="gpt-5-thinking"),
+            variable="model",
+        )
+
+
+def test_the_model_fingerprint_is_ignored_only_when_declared():
+    a = snapshot(comparison={"task_digest": "aaa", "model": "claude-opus-5"})
+    b = snapshot(
+        model="claude-haiku-4-5",
+        comparison={"task_digest": "aaa", "model": "claude-haiku-4-5"},
+    )
+    compare.check_comparable(a, b, variable="model")
+    with pytest.raises(SystemExit):
+        compare.check_comparable(a, b)

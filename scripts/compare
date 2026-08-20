@@ -130,7 +130,24 @@ def check_graded_alike(a: dict, b: dict) -> None:
         sys.exit(2)
 
 
-def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
+# What a comparison is allowed to vary. Everything not named here has to match,
+# because a difference with two candidate causes is not attributable to either.
+#
+# `fleet` is the default and was for a long time the only one, which made every
+# other experiment either impossible or silently wrong: an agent-model
+# comparison was refused by this script and pooled without comment by
+# `scripts/analyze`, which checked nothing at all. The careful tool blocked it
+# and the sloppy one allowed it.
+VARIABLES = {
+    "fleet": "the provisioned stack",
+    "model": "the agent's model, with the fleet and the judge held constant",
+    "repository": "the target's agent-facing scaffolding (a variant pair)",
+}
+
+
+def check_comparable(
+    a: dict, b: dict, placebo: bool = False, variable: str = "fleet"
+) -> None:
     """Everything but the provision must match (docs/open-forward-review.md §8).
 
     The spec lists ten things that have to be constant. This used to compare
@@ -143,6 +160,30 @@ def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
     one hash. See `fingerprints()` in scripts/run-evaluation.
     """
     fields = ["case_id", "agent", "model", "judge", "trials"]
+
+    if variable == "model":
+        # The model varies; the stack must not. Both differing would leave a
+        # result with two candidate causes and no way to choose between them.
+        fields.remove("model")
+        print(
+            f"model comparison: {a.get('model')} against {b.get('model')} — "
+            f"the fleet and the judge are held constant"
+        )
+        if a.get("fleet") != b.get("fleet"):
+            print(
+                f"both the model and the fleet differ ({a.get('fleet')} vs "
+                f"{b.get('fleet')}); a difference could not be attributed to "
+                f"either.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        if a.get("judge") != b.get("judge"):
+            print(
+                "the judge differs as well; the grading instrument must be the "
+                "same on both sides of a model comparison.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
 
     # Two variants of one case may be compared, and nothing else across cases.
     # A variant pair holds the fleet constant and varies the target — the
@@ -180,7 +221,10 @@ def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
         # The task digest covers the task directory, and for a variant pair the
         # task directory *is* the variable. Every other fingerprint field still
         # has to match.
-        checked = sorted((set(fa) | set(fb)) - ({"task_digest"} if pair else set()))
+        ignored = {"task_digest"} if pair else set()
+        if variable == "model":
+            ignored |= {"model"}
+        checked = sorted((set(fa) | set(fb)) - ignored)
         differences = [
             f"{field}: {fa.get(field)!r} vs {fb.get(field)!r}"
             for field in checked
@@ -201,7 +245,16 @@ def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
                 "dimension that moves here moves without a cause, and is the "
                 "scale on which a real difference has to be read."
             )
-        elif not differences and not pair and same_provision:
+        elif (
+            variable == "fleet"
+            and not differences
+            and not pair
+            and same_provision
+        ):
+            # Only where the fleet is the declared variable. In a model or a
+            # repository comparison an identical provision is the point — the
+            # stack is held constant — and refusing it made the very
+            # comparison this flag exists to permit impossible.
             print(
                 "these runs have the same provision digest: nothing that is "
                 "supposed to differ does. A comparison would be measuring "
@@ -271,6 +324,12 @@ def main() -> int:
     parser.add_argument("job_a", type=Path)
     parser.add_argument("job_b", type=Path)
     parser.add_argument(
+        "--variable",
+        choices=sorted(VARIABLES),
+        default="fleet",
+        help="what this comparison is allowed to vary; everything else must match",
+    )
+    parser.add_argument(
         "--placebo",
         action="store_true",
         help="compare an arm against itself, to measure the instrument's own spread",
@@ -279,7 +338,7 @@ def main() -> int:
     dir_a, dir_b = args.job_a, args.job_b
 
     snap_a, snap_b = load_snapshot(dir_a), load_snapshot(dir_b)
-    check_comparable(snap_a, snap_b, placebo=args.placebo)
+    check_comparable(snap_a, snap_b, placebo=args.placebo, variable=args.variable)
     check_graded_alike(snap_a, snap_b)
 
     trials_a, excluded_a = load_trials(dir_a)
@@ -308,6 +367,8 @@ def main() -> int:
     # unable to tell which side is which.
     if snap_a.get("variant") and snap_a.get("variant") != snap_b.get("variant"):
         label_a, label_b = snap_a["variant"], snap_b["variant"]
+    elif args.variable == "model":
+        label_a, label_b = str(snap_a.get("model")), str(snap_b.get("model"))
     elif args.placebo:
         label_a, label_b = f"{snap_a['fleet']} (a)", f"{snap_b['fleet']} (b)"
     else:

@@ -128,6 +128,27 @@ When comparing two variants, everything except the variable under study **MUST**
 be held constant: target SHA, prompt, environment image, agent, model, judge
 model, rubric digest, resource limits, network policy, trial count.
 
+The variable is **declared**, not inferred. `scripts/compare --variable` and
+`scripts/analyze --variable` take one of:
+
+| Variable | What differs | What is held |
+|---|---|---|
+| `fleet` (default) | the provisioned stack | everything else, including the model |
+| `model` | the agent's model | the fleet, the judge, the rubric |
+| `repository` | the target's agent-facing scaffolding | the fleet and the case's identity |
+
+An agent-model comparison is a legitimate experiment and asks a different
+question from a fleet comparison: not whether the stack helps, but whether what
+it adds depends on how strong the model underneath is. The judge stays where the
+rubric pins it, so the grading instrument does not move with the thing being
+graded.
+
+Until 20 August 2026 there was no declaration and only `fleet` existed. That
+made every other experiment either impossible or silently wrong: `compare`
+refused a model pair outright, and `analyze` — which checked nothing at all —
+pooled one without comment. The careful tool blocked what the sloppy one
+allowed.
+
 The judge **MUST NOT** be told which variant it is grading, and **MUST NOT** be
 able to work it out. Telling it that one side is "the improved skill set" is a
 request for the answer, not a measurement — but so is handing it a transcript

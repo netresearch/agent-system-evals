@@ -49,6 +49,7 @@ the cases and the rubric.
 | `./scripts/build-site` | Render the published page from the jobs it names |
 | `./scripts/benchmark-version [--check]` | The benchmark's version; --check refuses a tree that should have bumped it |
 | `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
+| `./scripts/compare --variable model <job-a> <job-b>` | A model comparison, fleet and judge held constant |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
 | `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
 
