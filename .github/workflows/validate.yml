@@ -86,5 +86,17 @@ jobs:
       # Separate job: this one reaches the network to fetch each pinned skill,
       # so it fails for reasons unrelated to the change under review. Keeping
       # it apart makes that distinguishable at a glance.
+      #
+      # The declared markers are the identifiers that give a case's findings
+      # away, so they live inside the encrypted expectations and this job needs
+      # the key to read them. Without the secret the run still happens and
+      # checks the generic markers, and says on stderr that it covered less —
+      # a quiet fall back to a narrower question is how a check keeps passing
+      # while measuring nothing.
       - name: Fleet carries no case-specific knowledge
+        env:
+          EVALS_EXPECTATIONS_KEY: ${{ secrets.EVALS_EXPECTATIONS_KEY }}
         run: ./scripts/contamination-check --fleet nr
+
+      - name: Expectations are encrypted and complete
+        run: ./scripts/expectations check

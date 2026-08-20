@@ -30,8 +30,8 @@ unauthenticated cache-clearing middleware registered in the frontend stack,
 anchored to file and line, with the consequence stated (any anonymous visitor
 can flush page caches). It found credentials interpolated unescaped into shell
 commands, and dumps written to a publicly served directory. None of those are
-in `tests/known-concerns.md`, which is exactly why that file says it is not an
-answer key.
+in this case's recorded expectations, which is exactly why that file says it is
+not an answer key.
 
 It also noticed the suppressions on its own — "so what's below isn't visible to
 the linters" — which is the behaviour the `evidence` dimension asks about.

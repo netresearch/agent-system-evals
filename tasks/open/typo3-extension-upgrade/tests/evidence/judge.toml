@@ -20,7 +20,6 @@ files = [
     "/logs/verifier/transcript.txt",
     "/logs/verifier/evidence-manifest.json",
     "/logs/artifacts/git-diff.patch",
-    "/tests/known-concerns.md",
 ]
 
 [[criterion]]

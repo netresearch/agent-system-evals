@@ -214,6 +214,18 @@ def main() -> int:
         check_fleet_toolchain(case_dir, label, problems)
         check_fleet_provisioning(case_dir, label, problems)
 
+        # Expectations belong in the encrypted store, not in the task
+        # directory. They sat here in plaintext, in a public repository, while
+        # ADR 0005 and the dataset manifest both said they did not — and
+        # nothing checked, because nothing had been asked to. A file put back
+        # by habit would be just as public and just as quiet.
+        if (case_dir / "tests" / "known-concerns.md").exists():
+            problems.append(
+                f"{label}: tests/known-concerns.md is plaintext in a public "
+                f"repository. Move it to expectations/<case-id>.md and run "
+                f"scripts/expectations encrypt."
+            )
+
         # Harbor's own validation, with the error surfaced instead of hidden.
         try:
             config = TaskConfig.model_validate_toml(config_path.read_text())
@@ -297,11 +309,16 @@ def main() -> int:
                 problems.append(
                     f"{label}: open cases ship no solution/ (ADR 0003)"
                 )
-            if not (case_dir / "tests" / "known-concerns.md").exists():
+            # The same requirement, now pointed at the store the expectations
+            # moved to. Checked by the presence of the ciphertext, which needs
+            # no key: a contributor without one can still be told that a case
+            # is missing its baseline.
+            case_id = raw.get("metadata", {}).get("case_id", "")
+            if not (ROOT / "expectations" / f"{case_id}.md.enc").exists():
                 problems.append(
-                    f"{label}: no tests/known-concerns.md; a case with no "
-                    f"recorded human baseline cannot be graded for outcome "
-                    f"quality"
+                    f"{label}: no expectations/{case_id}.md.enc; a case with no "
+                    f"recorded human baseline cannot be read against one later. "
+                    f"See expectations/README.md."
                 )
 
     if problems:

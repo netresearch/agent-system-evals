@@ -22,7 +22,6 @@ files = [
     "/logs/artifacts/git-diffstat.txt",
     "/logs/artifacts/matrix-13.4.txt",
     "/logs/artifacts/matrix-14.3.txt",
-    "/tests/known-concerns.md",
 ]
 
 [[criterion]]

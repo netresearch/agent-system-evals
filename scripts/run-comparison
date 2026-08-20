@@ -2,36 +2,36 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Run an A/B in alternating blocks, and only as deep as the answer needs.
+"""Run an A/B as randomised blocks of single trials, only as deep as it needs.
 
-Two problems this addresses, both found in this repository's own results.
+Three problems this addresses, all of them found in this repository's own
+results.
 
-**Order.** Every comparison before this ran one arm to completion and then the
-other, hours apart. A model update, a caching change or a quiet backend
-migration in between arrives as a difference between arms and is
-indistinguishable from one. Here the arms alternate per stage in a shuffled
-order, so a drift over the session is split across them rather than landing on
-one.
+**Order.** Every comparison recorded before August 2026 ran one arm to
+completion and the other hours later. A model update, a caching change or a
+quiet backend migration in between arrives as a difference between arms and
+cannot be told apart from one.
 
-That is *block* randomisation, not trial-level interleaving: a stage still runs
-one arm's three trials back to back, because a job is the unit `scripts/compare`
-reads. Within a stage, a drift can still fall on one side. The docstring used to
-claim `A B, B A, A B` — trial by trial — which this has never done; saying so
-here rather than in an issue alone, because a comment that overstates the method
-is how a reader stops checking. Tracked in issue #5.
+The fix is the trial, not the batch. A *block* is one trial of every arm, in an
+order shuffled per block, and a trial is its own Harbor call and its own job
+directory. Until August 2026 this alternated whole three-trial jobs and called
+it interleaving; within a stage, one arm still ran back to back, so a drift
+inside that stage landed on one side. Pooling across many small jobs is what
+`scripts/analyze` reads, and the reason it takes an experiment rather than two
+directories.
 
 **Depth.** Three trials per arm was treated as the measurement. It is not: on
 the runtime case the spread inside one arm covered the gap between arms, and a
 median difference got published as a 53% saving before the per-trial figures
-were looked at. Three trials answer "is anything obviously happening"; nothing
-more. So the run starts at three, and continues only where the result is close
-enough that more trials could settle it.
+were looked at. So a run starts at three blocks and continues only where the
+result is close enough that more blocks could settle it.
 
-Every run writes `experiments/<case>-<n>.json`: the seed, the arms, the
-stage sizes, the jobs each stage produced and why it stopped. Without it the
-seed is unrecoverable and the run is not reproducible even in principle.
+**The endpoint.** `--primary` is required, and it is written into the record
+before the first trial starts. With eight dimensions read per run, something
+moves in most of them; choosing which one mattered afterwards turns a coin flip
+into a finding. Everything else the analysis reports is labelled exploratory.
 
-    scripts/run-comparison <case-id> --arms control,nr [--max-trials 12]
+    scripts/run-comparison <case-id> --arms control,nr --primary outcome_quality
 """
 
 from __future__ import annotations
@@ -40,250 +40,251 @@ import argparse
 import json
 import os
 import random
+import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MET = 0.75
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
-# Three is enough to notice a difference and never enough to establish one.
-DISCOVERY = 3
-# Complete separation of two groups of three happens by chance one time in ten.
-# Six exchangeable observations admit C(6,3) = 20 orderings and two of them are
-# completely separated — all of A below all of B, or all of B below all of A.
-# The check below tests both directions, so the figure is 2/20 and not the 1/20
-# this comment, docs/open-forward-review.md and the published page all used to
-# state. One in twenty is the one-sided figure, and would only apply to a
-# direction named before the data were seen, which none of them was.
-#
-# It is also read across every dimension a case grades. Eight independent
-# dimensions at one in ten would produce at least one separation by chance in
-# roughly half of all runs; they are not independent, but nothing here corrects
-# for the multiplicity either. So separation is a reason to spend more trials
-# and is never itself a result. Tracked in issue #6.
-STAGES = (3, 4, 5)
+import cases  # noqa: E402
+import stats  # noqa: E402
+import validity  # noqa: E402
+from dimensions import ids_for  # noqa: E402
+
+# Blocks per round. Three is enough to notice a difference and never enough to
+# establish one: complete separation of two groups of three happens by chance
+# one time in ten — two of the twenty orderings, one per direction. The
+# repository called that one in twenty until August 2026, which is the
+# one-sided figure and applies only to a direction named before the data were
+# seen.
+ROUNDS = (3, 4, 5)
 
 
-def trials_of(job_dir: Path) -> list[dict]:
-    rows = []
-    for trial in sorted(job_dir.glob("*__*")):
-        result = trial / "result.json"
-        if result.is_file():
-            rows.append(json.loads(result.read_text()))
-    return rows
+def resolve_job(output: str) -> Path | None:
+    """The job directory this run wrote, from its own report.
 
-
-def dimension_scores(job_dir: Path) -> dict[str, list[float]]:
-    scores: dict[str, list[float]] = {}
-    for trial in sorted(job_dir.glob("*__*")):
-        details = trial / "verifier" / "reward-details.json"
-        if not details.is_file():
-            continue
-        for dimension, block in json.loads(details.read_text()).items():
-            block = block if isinstance(block, dict) else (block or [{}])[0]
-            if isinstance(block, dict) and "score" in block:
-                scores.setdefault(dimension, []).append(block["score"])
-    return scores
-
-
-def mechanical_outcome(job_dir: Path) -> list[float] | None:
-    """Pass/fail per trial where the case has ground truth, else None.
-
-    The separation test reads graded dimensions, and on the upgrade case that
-    missed the thing worth watching: `verification` separated once and not
-    again — noise — while the matrix outcome, which the framework itself
-    decides, reproduced exactly across two independent runs. A dimension a
-    judge scored moved the deepening; the fact that repeated did not.
+    Read from the output rather than by globbing for the newest match: a glob
+    plus modification time is a race against anything else writing into
+    `jobs/`, and it silently returns the wrong directory instead of failing.
     """
-    outcomes = []
-    for trial in sorted(job_dir.glob("*__*")):
-        artifacts = trial / "artifacts" / "logs" / "artifacts"
-        legs = sorted(artifacts.glob("matrix-*.txt"))
-        if not legs:
-            return None
-        complete = all(
-            "resolve: ok" in leg.read_text(errors="ignore")
-            and "\nOK (" in leg.read_text(errors="ignore")
-            for leg in legs
-        )
-        outcomes.append(1.0 if complete else 0.0)
-    return outcomes or None
+    match = re.search(r"snapshot written to (\S+)/nr-snapshot\.json", output)
+    return Path(match.group(1)) if match else None
 
 
-def separated(a: list[float], b: list[float]) -> bool:
-    """Do the two samples not overlap at all?
-
-    The strongest statement small samples can make, and the trigger for
-    spending more of them. Deliberately not a p-value: with three per side the
-    only distinguishable outcomes are "completely separated" and "not", and
-    dressing that up as significance would overstate it.
-    """
-    return bool(a) and bool(b) and (max(a) < min(b) or max(b) < min(a))
-
-
-def run_arm(case_id: str, fleet: str, trials: int, env: dict) -> Path | None:
+def run_one(case_id: str, fleet: str, env: dict) -> Path | None:
     command = [
         str(ROOT / "scripts" / "run-evaluation"),
         case_id,
         "--fleet",
         fleet,
         "--trials",
-        str(trials),
+        "1",
     ]
-    print(f"  → {fleet}: {trials} trial(s)")
     result = subprocess.run(command, env=env, capture_output=True, text=True)
-    if result.returncode != 0:
+    job = resolve_job(result.stdout)
+    if result.returncode != 0 or job is None:
         print(result.stdout[-2000:], file=sys.stderr)
         print(result.stderr[-2000:], file=sys.stderr)
         return None
-    jobs = sorted(
-        (ROOT / "jobs").glob(f"{case_id}-{fleet}-*"), key=lambda p: p.stat().st_mtime
-    )
-    return jobs[-1] if jobs else None
+    return job
+
+
+def gated(jobs: list[Path], case_id: str):
+    for job in jobs:
+        valid, _ = validity.gate(
+            job,
+            expected_dimensions=cases.graded_dimensions(case_id),
+            required_artifacts=cases.required_artifacts(case_id),
+        )
+        yield from valid
+
+
+def valid_trials(jobs: list[Path], case_id: str) -> int:
+    return sum(1 for _ in gated(jobs, case_id))
+
+
+def scores(jobs: list[Path], case_id: str) -> dict[str, list[float]]:
+    """Per-dimension scores of the valid trials only."""
+    out: dict[str, list[float]] = {}
+    for trial in gated(jobs, case_id):
+        reward = validity.read_json(trial / "verifier" / "reward.json")
+        if reward is None:
+            result = validity.read_json(trial / "result.json") or {}
+            reward = (result.get("verifier_result") or {}).get("rewards") or {}
+        for dimension, value in (reward or {}).items():
+            out.setdefault(dimension, []).append(value)
+    return out
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=__doc__)
     parser.add_argument("case_id")
     parser.add_argument("--arms", required=True, help="comma-separated fleets")
+    parser.add_argument(
+        "--primary",
+        required=True,
+        help="the one endpoint this run is powered for, declared before it starts",
+    )
     parser.add_argument("--max-trials", type=int, default=12)
     parser.add_argument("--seed", type=int, default=None,
-                        help="fix the interleaving order, for reproduction")
+                        help="fix the block order, for reproduction")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="write the plan and stop, without spending a trial")
     args = parser.parse_args()
 
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     if len(arms) < 2:
         sys.exit("--arms needs at least two fleets")
 
-    rng = random.Random(args.seed)
+    graded = cases.graded_dimensions(args.case_id)
+    if not graded:
+        sys.exit(f"no case {args.case_id!r}")
+    if args.primary not in graded:
+        sys.exit(
+            f"--primary {args.primary!r} is not graded by {args.case_id}, which "
+            f"grades {sorted(graded)}. An endpoint the case cannot produce is "
+            f"not a plan."
+        )
+
+    seed = args.seed if args.seed is not None else random.randrange(1_000_000)
+    rng = random.Random(seed)
     env = dict(os.environ)
-    if not env.get("CLAUDE_CODE_OAUTH_TOKEN") and not env.get("ANTHROPIC_API_KEY"):
+    if not args.dry_run and not (
+        env.get("CLAUDE_CODE_OAUTH_TOKEN") or env.get("ANTHROPIC_API_KEY")
+    ):
         sys.exit("no credential; see scripts/run-evaluation")
 
-    collected: dict[str, list[Path]] = {arm: [] for arm in arms}
-    spent = 0
-    stop_reason = "stages exhausted"
-    record: dict = {
-        "case": args.case_id,
-        "arms": arms,
-        "seed": args.seed,
-        "max_trials": args.max_trials,
-        "stages": [],
-    }
     experiments = ROOT / "experiments"
     experiments.mkdir(exist_ok=True)
-    log = experiments / f"{args.case_id}-{len(list(experiments.iterdir())):03d}.json"
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    log = experiments / f"{args.case_id}-{stamp}.json"
+
+    collected: dict[str, list[Path]] = {arm: [] for arm in arms}
+    record: dict = {
+        "experiment_id": f"{args.case_id}-{stamp}",
+        "case": args.case_id,
+        "arms": arms,
+        # Declared here, before a single trial runs, and written to disk
+        # immediately. An endpoint chosen after the data are in is not a test.
+        "primary_endpoint": args.primary,
+        "secondary_endpoints": sorted(graded - {args.primary}),
+        "randomization": "one trial per arm per block, order shuffled per block",
+        "randomization_seed": seed,
+        "stopping_rule": (
+            f"rounds of {ROUNDS} blocks; stop after the discovery round unless "
+            f"the primary endpoint separates completely, and never exceed "
+            f"{args.max_trials} trials in total"
+        ),
+        "max_trials": args.max_trials,
+        "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "blocks": [],
+        "stop_reason": "not started",
+        "trials_spent": 0,
+        "jobs": {arm: [] for arm in arms},
+    }
 
     def save() -> None:
-        record["stop_reason"] = stop_reason
-        record["trials_spent"] = spent
         record["jobs"] = {
             arm: [str(job.relative_to(ROOT)) for job in jobs]
             for arm, jobs in collected.items()
         }
         log.write_text(json.dumps(record, indent=2))
 
-    for stage, size in enumerate(STAGES, start=1):
-        # Checked against what a full stage would cost, not against what has
-        # already been spent. The first version tested `spent >= max_trials`
-        # before a stage and then let the stage run in full, so `--max-trials
-        # 12` with two arms ran fourteen: 3+3 leaves six spent, under the
-        # limit, and stage two adds eight more. A budget that can be exceeded
-        # by two thirds of a stage is not a budget.
-        remaining = args.max_trials - spent
-        if remaining < len(arms):
-            stop_reason = f"budget exhausted ({spent} of {args.max_trials} trials)"
-            print(f"\n{stop_reason}")
+    save()
+    print(f"experiment {record['experiment_id']}")
+    print(f"  primary   {args.primary}")
+    print(f"  seed      {seed}")
+    print(f"  plan      {log.relative_to(ROOT)}")
+    if args.dry_run:
+        record["stop_reason"] = "dry run"
+        save()
+        print("\ndry run: the plan is on disk and no trial was spent.")
+        return 0
+
+    spent = 0
+    stopped = False
+    for round_number, blocks in enumerate(ROUNDS, start=1):
+        if stopped:
             break
-        size = min(size, remaining // len(arms))
-
-        # Shuffled per stage so a systematic drift over the session does not
-        # always favour the same side.
-        order = list(arms)
-        rng.shuffle(order)
-        print(f"\nstage {stage}: {size} trial(s) per arm, order {' '.join(order)}")
-        record["stages"].append({"stage": stage, "size": size, "order": order})
-        for fleet in order:
-            job = run_arm(args.case_id, fleet, size, env)
-            if job is None:
-                # Fail closed. Continuing would leave one arm with fewer trials
-                # than the other and no note in the output saying so, and the
-                # comparison would read the imbalance as a result.
-                stop_reason = f"arm {fleet} failed in stage {stage}"
-                print(f"\n{stop_reason}; stopping rather than comparing "
-                      f"unequal arms.", file=sys.stderr)
-                save()
-                print(f"experiment record: {log.relative_to(ROOT)}")
-                return 1
-            collected[fleet].append(job)
-            spent += size
-
-        if stage == 1:
-            # Stop unless something looks like it is happening. A dimension
-            # that already separates completely is worth more trials; one that
-            # overlaps is not going to be settled by them either.
-            #
-            # Every pair of arms, not the first two. `--arms a,b,c` was accepted
-            # and then decided on `a` against `b` alone, so a third arm's trials
-            # were paid for and could neither trigger the deepening nor stop it.
-            interesting: list[str] = []
-
-            def outcome_of(jobs):
-                runs = [o for o in (mechanical_outcome(j) for j in jobs) if o]
-                return [v for run in runs for v in run]
-
-            for i, first in enumerate(arms):
-                for second in arms[i + 1:]:
-                    scores_a, scores_b = merged(collected[first]), merged(collected[second])
-
-                    # Ground truth first, where the case has any, and judged by
-                    # a different rule. Complete separation is meaningless for a
-                    # pass/fail outcome — [0,1,1] against [1,1,1] can never
-                    # separate, though the difference is exactly the finding.
-                    # Any gap in the pass rate is worth more trials, because it
-                    # is the one number no judge decided.
-                    out_a, out_b = outcome_of(collected[first]), outcome_of(collected[second])
-                    if out_a and out_b and sum(out_a) / len(out_a) != sum(out_b) / len(out_b):
-                        note = (
-                            f"{first} vs {second}: mechanical outcome differs — "
-                            f"{sum(out_a):.0f}/{len(out_a)} against "
-                            f"{sum(out_b):.0f}/{len(out_b)}"
-                        )
-                        print(f"  {note} — continuing")
-                        interesting.append(note)
-
-                    for dimension in sorted(set(scores_a) | set(scores_b)):
-                        if separated(scores_a.get(dimension, []), scores_b.get(dimension, [])):
-                            note = f"{first} vs {second}: {dimension} separates completely"
-                            print(f"  {note} — continuing")
-                            interesting.append(note)
-
-            record["stages"][-1]["separations"] = interesting
-            if not interesting:
-                stop_reason = "nothing separated after the discovery stage"
-                print(f"\n{stop_reason}; stopping.")
-                print("Three trials per arm cannot establish a difference, and "
-                      "nothing here suggests one is there to establish.")
+        for block in range(blocks):
+            if spent + len(arms) > args.max_trials:
+                record["stop_reason"] = (
+                    f"budget exhausted at {spent} of {args.max_trials} trials"
+                )
+                stopped = True
                 break
 
+            order = list(arms)
+            rng.shuffle(order)
+            entry = {"round": round_number, "block": block + 1, "order": order,
+                     "jobs": {}}
+            print(f"\nround {round_number} block {block + 1}: {' '.join(order)}")
+            for fleet in order:
+                job = run_one(args.case_id, fleet, env)
+                if job is None:
+                    # Fail closed. Continuing leaves the arms unequal for a
+                    # reason that is not the treatment, and nothing downstream
+                    # would say so.
+                    record["stop_reason"] = (
+                        f"arm {fleet} failed in round {round_number} "
+                        f"block {block + 1}"
+                    )
+                    record["blocks"].append(entry)
+                    record["trials_spent"] = spent
+                    save()
+                    print(f"\n{record['stop_reason']}; stopping rather than "
+                          f"comparing unequal arms.", file=sys.stderr)
+                    return 1
+                collected[fleet].append(job)
+                entry["jobs"][fleet] = str(job.relative_to(ROOT))
+                spent += 1
+                print(f"  {fleet}: {job.name}")
+            record["blocks"].append(entry)
+            record["trials_spent"] = spent
+            save()
+
+        if stopped or round_number > 1:
+            continue
+
+        # After the discovery round: continue only if something is happening on
+        # the endpoint this run was planned around. A dimension that moves
+        # elsewhere is exploratory and is not worth more trials on its own —
+        # eight looks at a one-in-ten event separate somewhere in most runs.
+        first, second = arms[0], arms[1]
+        primary_a = scores(collected[first], args.case_id).get(args.primary, [])
+        primary_b = scores(collected[second], args.case_id).get(args.primary, [])
+        p, _ = stats.permutation_p(primary_a, primary_b)
+        record["blocks"][-1]["primary_p"] = p
+        if stats.separated(primary_a, primary_b):
+            print(f"\n{args.primary} separates completely (p {p:.3f}) — continuing")
+        else:
+            record["stop_reason"] = (
+                f"{args.primary} did not separate after the discovery round "
+                f"(p {p:.3f})"
+            )
+            print(f"\n{record['stop_reason']}; stopping.")
+            print("Three trials per arm cannot establish a difference, and "
+                  "nothing here suggests one is there to establish.")
+            stopped = True
+
+    if record["stop_reason"] == "not started":
+        record["stop_reason"] = "rounds exhausted"
+    record["finished_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    record["valid_trials"] = {
+        arm: valid_trials(jobs, args.case_id) for arm, jobs in collected.items()
+    }
     save()
-    print("\njobs:")
-    for fleet, jobs in collected.items():
-        for job in jobs:
-            print(f"  {fleet}: {job.relative_to(ROOT)}")
-    print(f"\nexperiment record: {log.relative_to(ROOT)}")
-    print("Compare them with scripts/compare, and read the per-trial figures "
-          "before any median.")
+
+    print(f"\nstopped: {record['stop_reason']}")
+    print(f"trials:  {spent}")
+    for arm, jobs in collected.items():
+        print(f"  {arm}: {len(jobs)} job(s), "
+              f"{record['valid_trials'][arm]} valid trial(s)")
+    print(f"\nscripts/analyze {log.relative_to(ROOT)}")
     return 0
-
-
-def merged(jobs: list[Path]) -> dict[str, list[float]]:
-    out: dict[str, list[float]] = {}
-    for job in jobs:
-        for dimension, values in dimension_scores(job).items():
-            out.setdefault(dimension, []).extend(values)
-    return out
 
 
 if __name__ == "__main__":

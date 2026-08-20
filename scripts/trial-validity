@@ -1,0 +1,83 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""State every trial of a job, and why.
+
+A trial can fail as infrastructure, as provisioning, as a dead agent, as a
+missing collector or as an errored judge. Only `VALID` may enter a statistic;
+everything else is reported by reason and never silently replaced, because a
+failed trial that gets quietly re-run is a sample chosen by its outcome.
+
+    scripts/trial-validity jobs/<job> [jobs/<job> ...]
+    scripts/trial-validity --all          # every job that carries a snapshot
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import cases  # noqa: E402
+import validity  # noqa: E402
+
+
+def report(job: Path, quiet: bool) -> tuple[int, int]:
+    snapshot = validity.read_json(job / "nr-snapshot.json") or {}
+    case_id = snapshot.get("case_id")
+    valid, verdicts = validity.gate(
+        job,
+        expected_dimensions=cases.graded_dimensions(case_id) if case_id else None,
+        required_artifacts=cases.required_artifacts(case_id) if case_id else None,
+    )
+    if not verdicts:
+        return 0, 0
+
+    counts = Counter(v.state for v in verdicts.values())
+    summary = "  ".join(f"{state} {n}" for state, n in sorted(counts.items()))
+    print(f"{job.name}")
+    print(f"  {len(valid)}/{len(verdicts)} valid — {summary}")
+
+    for trial, verdict in verdicts.items():
+        if not verdict.valid:
+            print(f"    {trial.name}: {verdict}")
+        elif verdict.unchecked and not quiet:
+            # A check that did not run is not a check that passed. Said out
+            # loud, because the alternative is a green line that means less
+            # than it looks.
+            print(f"    {trial.name}: valid, unchecked — {'; '.join(verdict.unchecked)}")
+    return len(valid), len(verdicts)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("jobs", nargs="*", type=Path)
+    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--quiet", action="store_true", help="hide unchecked notes")
+    args = parser.parse_args()
+
+    jobs = list(args.jobs)
+    if args.all:
+        jobs = sorted(
+            p for p in (ROOT / "jobs").glob("*") if (p / "nr-snapshot.json").is_file()
+        )
+    if not jobs:
+        sys.exit(__doc__)
+
+    valid = total = 0
+    for job in jobs:
+        v, t = report(job, args.quiet)
+        valid += v
+        total += t
+    if len(jobs) > 1:
+        print(f"\n{valid}/{total} trials valid across {len(jobs)} job(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

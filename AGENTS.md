@@ -10,6 +10,7 @@ the cases and the rubric.
 | Path | Contents |
 |------|----------|
 | `dimensions.toml` | The dimension registry. A dimension exists here or nowhere. |
+| `expectations/` | Case expectations, encrypted. Never plaintext, never in a task dir. |
 | `docs/` | Methodology. `open-forward-review.md` is normative. |
 | `docs/adr/` | Decisions, numbered. Read 0003 and 0004 before changing a case. |
 | `tasks/open/` | Open Forward Review cases |
@@ -37,6 +38,9 @@ the cases and the rubric.
 | `./scripts/run-smoke <CASE-ID> --fleet <name>` | One trial. Pipeline check only, not evidence. |
 | `./scripts/run-evaluation <CASE-ID> --fleet <name>` | Three trials. Costs money. |
 | `./scripts/compare <job-a> <job-b>` | Per-dimension counts across two jobs |
+| `./scripts/analyze experiments/<file>.json` | Effect sizes, intervals and validity for a whole experiment |
+| `./scripts/trial-validity --all` | Which trials may enter a statistic, and why not |
+| `./scripts/expectations decrypt\|encrypt\|check` | The encrypted case expectations |
 | `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
 | `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
@@ -59,8 +63,9 @@ reaches npm and the run cannot reach the target's forge.
 **Never put a case's expected findings anywhere the agent can reach.** Not in
 the instruction, the environment, an injected skill, or a reachable URL. A
 leaked expectation cannot be un-learned by the skills that saw it, and the case
-is finished. `tests/known-concerns.md` is verifier-side; it ships in `tests/`,
-which only the verifier container receives.
+is finished. Expectations live encrypted in `expectations/<case-id>.md.enc`
+and nothing in either container carries them — see `expectations/README.md`
+for why they moved and what that does not repair.
 
 **The agent must not be able to reach the target's own forge.** Ground truth
 lives in the target's future commits. `[agent] network_mode = "allowlist"` with

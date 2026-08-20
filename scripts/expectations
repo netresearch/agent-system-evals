@@ -1,0 +1,189 @@
+#!/usr/bin/env -S uv run --quiet --with cryptography --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Keep case expectations out of the public repository.
+
+`tasks/*/tests/known-concerns.md` recorded what an experienced reviewer knows
+about each target: the findings a case expects, the mechanisms behind them, the
+identifiers that give them away. ADR 0005 and the dataset manifest both said
+those expectations were not public. They were: the files were committed in a
+public repository from the day each case was written, and a skill author, a
+crawler or a future model could read every one.
+
+Two things follow, and only one of them is fixable here.
+
+**Fixable.** Expectations now live in `expectations/<case-id>.md.enc`,
+encrypted, and the plaintext working copy is ignored by git. Nothing in the
+verifier image carries them any more — which costs nothing, because an agent
+judge never reads the `files` list they were passed in and therefore never saw
+them (docs/instrument-failures.md, failure 6). They were public and unused.
+
+**Not fixable.** Git history still holds every plaintext version, and this
+repository is public. The five existing cases must be treated as burned: their
+expectations have been readable for as long as they have existed, and no
+rewrite of history can un-publish what was already fetchable. This mechanism
+protects the cases written from now on. See ADR 0005.
+
+    scripts/expectations keygen              # a new key, printed once
+    scripts/expectations encrypt             # plaintext → committed ciphertext
+    scripts/expectations decrypt             # ciphertext → local plaintext
+    scripts/expectations check               # every case has one, all decrypt
+
+The key comes from `EVALS_EXPECTATIONS_KEY`, or from
+`~/.config/agent-system-evals/expectations.key`. It is never written into this
+repository and never printed by anything but `keygen`.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+import tomllib
+from pathlib import Path
+
+from cryptography.fernet import Fernet, InvalidToken
+
+ROOT = Path(__file__).resolve().parents[1]
+STORE = ROOT / "expectations"
+KEY_FILE = Path.home() / ".config" / "agent-system-evals" / "expectations.key"
+
+
+def case_ids() -> dict[str, Path]:
+    found = {}
+    for path in sorted(ROOT.glob("tasks/*/*/task.toml")):
+        case_id = tomllib.loads(path.read_text()).get("metadata", {}).get("case_id")
+        if case_id:
+            found[case_id] = path.parent
+    return found
+
+
+def load_key() -> Fernet:
+    key = os.environ.get("EVALS_EXPECTATIONS_KEY", "").strip()
+    if not key and KEY_FILE.is_file():
+        key = KEY_FILE.read_text().strip()
+    if not key:
+        sys.exit(
+            "No key. Set EVALS_EXPECTATIONS_KEY, or put one in "
+            f"{KEY_FILE}.\nGenerate one with: scripts/expectations keygen"
+        )
+    try:
+        return Fernet(key.encode())
+    except (ValueError, TypeError) as exc:
+        sys.exit(f"EVALS_EXPECTATIONS_KEY is not a valid Fernet key: {exc}")
+
+
+def encrypt(_: argparse.Namespace) -> int:
+    fernet = load_key()
+    written = 0
+    for case_id in case_ids():
+        plaintext = STORE / f"{case_id}.md"
+        if not plaintext.is_file():
+            continue
+        (STORE / f"{case_id}.md.enc").write_bytes(
+            fernet.encrypt(plaintext.read_bytes())
+        )
+        written += 1
+        print(f"encrypted {case_id}")
+    if not written:
+        print(
+            f"nothing to encrypt: no plaintext under {STORE.relative_to(ROOT)}. "
+            f"Run `decrypt` first, or write one."
+        )
+    return 0
+
+
+def decrypt(_: argparse.Namespace) -> int:
+    fernet = load_key()
+    for path in sorted(STORE.glob("*.md.enc")):
+        case_id = path.name[: -len(".md.enc")]
+        try:
+            (STORE / f"{case_id}.md").write_bytes(fernet.decrypt(path.read_bytes()))
+        except InvalidToken:
+            sys.exit(
+                f"{path.name} does not decrypt with this key. A wrong key and a "
+                f"corrupted file look the same here; check the key first."
+            )
+        print(f"decrypted {case_id}")
+    return 0
+
+
+def check(_: argparse.Namespace) -> int:
+    problems: list[str] = []
+
+    # The failure this replaces: plaintext expectations, committed.
+    for stray in ROOT.glob("tasks/*/*/tests/known-concerns.md"):
+        problems.append(
+            f"{stray.relative_to(ROOT)} is plaintext inside the task directory. "
+            f"Move it to expectations/<case-id>.md and encrypt it."
+        )
+
+    cases = case_ids()
+    for case_id, case_dir in cases.items():
+        # A contract eval is exempt by construction: its expected answer is the
+        # rubric, stated explicitly, and there is nothing left to keep back.
+        if "contract = true" in (case_dir / "task.toml").read_text():
+            continue
+        if not (STORE / f"{case_id}.md.enc").is_file():
+            problems.append(
+                f"{case_id} has no expectations/{case_id}.md.enc. A case with no "
+                f"recorded expectation cannot be read against one later."
+            )
+
+    key = os.environ.get("EVALS_EXPECTATIONS_KEY", "").strip() or (
+        KEY_FILE.read_text().strip() if KEY_FILE.is_file() else ""
+    )
+    if key:
+        fernet = load_key()
+        for path in sorted(STORE.glob("*.md.enc")):
+            try:
+                fernet.decrypt(path.read_bytes())
+            except InvalidToken:
+                problems.append(f"{path.name} does not decrypt with the key in use")
+    else:
+        # Not an error. A contributor without the key can still check the
+        # structure, and saying which half ran is the point.
+        print(
+            "note: no key available, so this checked structure only — whether "
+            "each file decrypts was not tested.",
+            file=sys.stderr,
+        )
+
+    if problems:
+        print(f"{len(problems)} problem(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+    print(f"expectations: {len(cases)} case(s), all present")
+    return 0
+
+
+def keygen(_: argparse.Namespace) -> int:
+    print(Fernet.generate_key().decode())
+    print(
+        "\nStore this somewhere shared and private — Vault, or the repository's "
+        "actions secrets as EVALS_EXPECTATIONS_KEY. It is printed once and is "
+        "not recoverable from the ciphertext.",
+        file=sys.stderr,
+    )
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    for name, handler in (
+        ("keygen", keygen),
+        ("encrypt", encrypt),
+        ("decrypt", decrypt),
+        ("check", check),
+    ):
+        sub.add_parser(name).set_defaults(handler=handler)
+    args = parser.parse_args()
+    STORE.mkdir(exist_ok=True)
+    return args.handler(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

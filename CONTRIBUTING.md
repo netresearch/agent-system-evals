@@ -12,7 +12,8 @@ work went wrong in a way that no single skill owns. The full lifecycle is in
 3. A real target at a pinned commit, with no defects introduced for the
    benchmark.
 4. A prompt that names no method, tool, skill, file or expected finding.
-5. A human baseline recorded in `tests/known-concerns.md`, verifier-side.
+5. A human baseline recorded in `expectations/<case-id>.md`, encrypted with
+   `scripts/expectations encrypt` and never committed in plaintext.
 6. `./scripts/contamination-check` clean.
 
 Scaffold with `harbor init --task --no-solution`, then copy the structure of
@@ -23,7 +24,8 @@ Scaffold with `harbor init --task --no-solution`, then copy the structure of
 The questions that matter, in order:
 
 **Can the agent reach the answers?** Check the network allowlist excludes the
-target's forge. Check `known-concerns.md` is under `tests/`. Check the
+target's forge. Check the expectations are encrypted and that no plaintext
+copy is staged. Check the
 environment image does not carry the target's remote or lock file. This is the
 one mistake that cannot be repaired later.
 

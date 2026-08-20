@@ -8,3 +8,8 @@ __pycache__/
 node_modules/
 .env
 .cache/
+
+# Decrypted expectations. The ciphertext beside them is what is committed;
+# the plaintext is a local working copy and must never be added.
+expectations/*.md
+!expectations/README.md

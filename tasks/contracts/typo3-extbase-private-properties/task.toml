@@ -8,6 +8,13 @@ case_id = "CON-TYPO3-EXTBASE-001"
 # synthetic defect, and the expected result is known. Not an Open Forward
 # Review, and it may not become one by editing the prompt — see ADR 0002.
 contract = true
+
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: the collector redirects into its
+# file before running, so the file is there if and only if the collector ran.
+required_artifacts = [
+    "git-status.txt",
+]
 # Deliberately not a runtime case. tasks/open/ models a developer's situation
 # and needs their instance; this models a check, and needs to be cheap enough
 # to gate a merge.

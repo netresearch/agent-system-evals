@@ -1,10 +1,12 @@
 # Public Open Forward Review cases.
 #
-# Targets, prompts, rubrics and expectations are all public here. The
-# known-concerns files are verifier-side — the agent's container never holds
-# them — but they are committed and anyone can read them, so a stack developed
-# against this dataset may have seen the findings its cases expect. This comment
-# claimed the opposite until 20 August 2026; see ADR 0005 and issue #8.
+# Targets, prompts and rubrics are public here. Expectations are not: they live
+# encrypted in expectations/<case-id>.md.enc since 20 August 2026, when it
+# turned out this comment had claimed that all along while the files sat in
+# plaintext in a public repository.
+#
+# For the five cases that predate the move, treat the expectations as burned —
+# git history is public and holds every plaintext version. See ADR 0005.
 #
 # The [[files]] digest is maintained by `harbor sync`; a stale digest means the
 # published dataset and this manifest disagree about what the metric computes.

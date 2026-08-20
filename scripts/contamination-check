@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --quiet --with pyyaml --script
+#!/usr/bin/env -S uv run --quiet --with pyyaml --with cryptography --script
 # /// script
 # requires-python = ">=3.12"
 # ///
@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import os
 import re
 import sys
 import tarfile
@@ -61,6 +62,56 @@ def fleet_skills(name: str) -> list[tuple[str, str]]:
         sys.exit(f"no fleet {name!r}")
     fleet = yaml.safe_load(path.read_text()) or {}
     return [(s["repo"], s["ref"]) for s in (fleet.get("skills") or [])]
+
+
+def expectations(case_id: str) -> str | None:
+    """A case's recorded expectations, decrypted, or None with a loud reason.
+
+    They live in `expectations/<case-id>.md.enc` since it turned out they had
+    been committed in plaintext in a public repository the whole time. The
+    declared contamination markers are inside them — they are the identifiers
+    that give a case's findings away, so a plaintext sidecar would reintroduce
+    exactly what the move fixed.
+
+    A run without the key therefore checks less. It says so, once per run,
+    rather than reporting a clean result from a narrower question.
+    """
+    path = ROOT / "expectations" / f"{case_id}.md.enc"
+    if not path.is_file():
+        return None
+
+    key = os.environ.get("EVALS_EXPECTATIONS_KEY", "").strip()
+    key_file = Path.home() / ".config" / "agent-system-evals" / "expectations.key"
+    if not key and key_file.is_file():
+        key = key_file.read_text().strip()
+    if not key:
+        global _WARNED_ABOUT_KEY
+        if not _WARNED_ABOUT_KEY:
+            print(
+                "warning: no EVALS_EXPECTATIONS_KEY, so the declared markers "
+                "cannot be read and only generic ones are checked. This run "
+                "covers less than a full contamination check.",
+                file=sys.stderr,
+            )
+            _WARNED_ABOUT_KEY = True
+        return None
+
+    try:
+        from cryptography.fernet import Fernet, InvalidToken
+    except ImportError:  # pragma: no cover - declared in the shebang
+        print("warning: cryptography is unavailable; markers not read",
+              file=sys.stderr)
+        return None
+    try:
+        return Fernet(key.encode()).decrypt(path.read_bytes()).decode()
+    except (InvalidToken, ValueError) as exc:
+        sys.exit(
+            f"{path.name} does not decrypt with the key in use ({exc}). A wrong "
+            f"key and a corrupted file look the same here; check the key first."
+        )
+
+
+_WARNED_ABOUT_KEY = False
 
 
 def distinctive(marker: str) -> bool:
@@ -138,11 +189,19 @@ def case_markers() -> dict[str, list[str]]:
         # its author has to make explicitly:
         #
         #     <!-- contamination-markers: DumpFileTrait, SyncImportTask -->
-        concerns = case_dir / "tests" / "known-concerns.md"
-        if concerns.exists():
+        #
+        # Read from the encrypted expectations store, which is where those
+        # files moved when it turned out they had been public all along. The
+        # markers are the identifiers that give a case's findings away, so they
+        # cannot live in a plaintext sidecar either — which means this check
+        # needs the key. Without it the run falls back to the generic markers
+        # and says so; a quiet fallback to weaker coverage is how a check keeps
+        # passing while measuring less.
+        text = expectations(case_id)
+        if text is not None:
             declared = re.search(
                 r"<!--\s*contamination-markers:\s*(.+?)\s*-->",
-                concerns.read_text(),
+                text,
                 re.S,
             )
             if declared:
@@ -153,7 +212,7 @@ def case_markers() -> dict[str, list[str]]:
                 )
             else:
                 print(
-                    f"warning: {concerns.relative_to(ROOT)} declares no "
+                    f"warning: the expectations for {case_id} declare no "
                     f"contamination-markers; only generic case markers will "
                     f"be checked for this case",
                     file=sys.stderr,

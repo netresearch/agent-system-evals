@@ -40,7 +40,7 @@ container never holds them.
 
 The sentence that stood here — "public means the target and prompt are public,
 not that the expectations are" — was false for this repository as published.
-Every `tasks/*/tests/known-concerns.md` is committed and readable by anyone,
+Every `tasks/*/tests/known-concerns.md` was committed and readable by anyone,
 naming the findings a case expects and the mechanisms behind them. What the
 files have is *verifier isolation*, which keeps them out of the agent's
 container during a run. That is not secrecy, and describing it as secrecy
@@ -48,8 +48,19 @@ mattered in three directions: a skill author can read the expected findings, a
 future model can absorb them from a public repository, and the lexical
 contamination check cannot detect either.
 
-The decision above stands. The claim about the public dataset does not. Moving
-expectations into a private verifier store is
-[issue #8](https://github.com/netresearch/agent-system-evals/issues/8); until
-that lands, the public cases are development instruments and their scores are
-not evidence about a stack that could have read them.
+The decision above stands. The claim about the public dataset did not.
+
+**Resolved the same day.** Expectations now live encrypted in
+`expectations/<case-id>.md.enc`, the plaintext is ignored by git, and
+`scripts/validate-tasks` fails if one reappears inside a task directory. Moving
+them cost nothing in grading: they were listed in each judge's `files`, and
+RewardKit's agent path ignores `files` entirely, so no judge had ever read one.
+They were public and unused.
+
+What that does not repair: git history holds every plaintext version, and this
+repository is public. The five cases that existed before 20 August 2026 are
+burned — their expectations were readable for as long as they existed, and no
+rewrite can un-publish what was already fetchable. Their scores stay useful for
+development and are not evidence about any system that could have read them.
+The mechanism protects the cases written from here on, and the holdout set
+above remains the answer for cases that must stay unseen.

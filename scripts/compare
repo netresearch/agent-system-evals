@@ -31,6 +31,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+import cases  # noqa: E402
+import validity  # noqa: E402
 from dimensions import met_threshold, order  # noqa: E402
 
 # A dimension counts as met for a trial at or above this value. Three-point
@@ -39,49 +41,47 @@ from dimensions import met_threshold, order  # noqa: E402
 MET = met_threshold()
 
 
-def load_trials(job_dir: Path) -> list[dict[str, float]]:
-    """Every trial's per-dimension rewards."""
-    rewards = []
-    for path in sorted(job_dir.glob("**/reward.json")):
-        try:
-            rewards.append(json.loads(path.read_text()))
-        except json.JSONDecodeError:
-            print(f"warning: unreadable {path}", file=sys.stderr)
-    if not rewards:
-        sys.exit(f"no reward.json under {job_dir}")
-    return rewards
+def load_trials(job_dir: Path) -> tuple[list[dict[str, float]], list[str]]:
+    """The rewards of the *valid* trials, and why the others were left out.
 
+    This used to glob every `reward.json` under the job, which pooled trials
+    whose agent never finished, whose provisioned server never answered, and
+    whose judge errored — RewardKit records the last of those as `0.0`, a
+    number the system under test never earned. Nine such zeros were published
+    as findings once, one of them as the headline difference between two
+    fleets.
 
-def errored_criteria(job_dir: Path) -> list[str]:
-    """Criteria whose judge failed rather than scored.
-
-    RewardKit records a timed-out or errored judge as 0.0, which is
-    indistinguishable from a criterion the run genuinely failed. That is not a
-    theoretical risk: nine criteria across three jobs timed out at the default
-    limit, and the resulting zeros were published as findings — one of them as
-    the headline difference between two fleets, which better measurement then
-    erased.
-
-    So a comparison refuses to average over them. A dimension whose judge did
-    not answer has no value, not a low one.
+    The gate lives in `scripts/lib/validity.py` and is the same one
+    `scripts/trial-validity` prints.
     """
-    problems: list[str] = []
-    for path in sorted(job_dir.glob("**/reward-details.json")):
-        try:
-            details = json.loads(path.read_text())
-        except (OSError, json.JSONDecodeError):
-            continue
-        for dimension, groups in details.items():
-            for group in groups if isinstance(groups, list) else [groups]:
-                if not isinstance(group, dict):
-                    continue
-                for score in group.get("criteria") or []:
-                    if isinstance(score, dict) and score.get("error"):
-                        problems.append(
-                            f"{path.parent.parent.name} {dimension}/"
-                            f"{score.get('name')}: {str(score['error'])[:60]}"
-                        )
-    return problems
+    snapshot = validity.read_json(job_dir / "nr-snapshot.json") or {}
+    case_id = snapshot.get("case_id")
+    valid, verdicts = validity.gate(
+        job_dir,
+        expected_dimensions=cases.graded_dimensions(case_id) if case_id else None,
+        required_artifacts=cases.required_artifacts(case_id) if case_id else None,
+    )
+    excluded = [
+        f"{trial.name}: {verdict}"
+        for trial, verdict in verdicts.items()
+        if not verdict.valid
+    ]
+
+    rewards = []
+    for trial in valid:
+        reward = validity.read_json(trial / "verifier" / "reward.json")
+        if reward is None:
+            result = validity.read_json(trial / "result.json") or {}
+            reward = (result.get("verifier_result") or {}).get("rewards")
+        if reward:
+            rewards.append(reward)
+
+    if not rewards:
+        sys.exit(
+            f"{job_dir.name} has no valid trial to compare:\n  "
+            + "\n  ".join(excluded or ["no trials at all"])
+        )
+    return rewards, excluded
 
 
 def load_snapshot(job_dir: Path) -> dict:
@@ -238,28 +238,7 @@ def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
         sys.exit(2)
 
 
-def offered_nothing(snapshot: dict) -> bool | None:
-    """Did this arm have any capability to choose among?
-
-    None where the snapshot cannot say. Absence of a field an older run never
-    recorded is not evidence that the arm was offered nothing — read that way,
-    it reported n/a for a fleet carrying twelve skills.
-    """
-    declares = snapshot.get("fleet_declares")
-    provision = snapshot.get("provision")
-    requested = snapshot.get("fleet_requested")
-    if declares is None and provision is None and requested is None:
-        return None
-
-    return not (
-        (declares or {}).get("skills")
-        or (declares or {}).get("package")
-        or (declares or {}).get("companion_ref")
-        or (provision or {}).get("mcp_servers")
-        or requested
-        or snapshot.get("companion")
-        or snapshot.get("mcp_server")
-    )
+offered_nothing = validity.offered_nothing
 
 
 def counts(trials: list[dict[str, float]], dimension: str) -> tuple[int, int, int]:
@@ -303,29 +282,26 @@ def main() -> int:
     check_comparable(snap_a, snap_b, placebo=args.placebo)
     check_graded_alike(snap_a, snap_b)
 
-    for job in (dir_a, dir_b):
-        problems = errored_criteria(job)
-        if problems:
-            print(
-                f"{job.name}: {len(problems)} criterion/criteria did not score — "
-                f"their judge errored, and RewardKit records that as 0.0:",
-                file=sys.stderr,
-            )
-            for problem in problems[:8]:
-                print(f"  - {problem}", file=sys.stderr)
-            print(
-                "\nA zero from a failed judge is not a result. Raise the judge "
-                "timeout and regrade the recorded job — that costs no agent time "
-                "— then compare again.",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-
-    trials_a, trials_b = load_trials(dir_a), load_trials(dir_b)
+    trials_a, excluded_a = load_trials(dir_a)
+    trials_b, excluded_b = load_trials(dir_b)
 
     print(f"case   {snap_a['case_id']}")
     print(f"agent  {snap_a['agent']} / {snap_a['model']}")
     print(f"judge  {snap_a['judge']}")
+
+    if excluded_a or excluded_b:
+        # Named, never quietly dropped and never quietly replaced. A trial
+        # excluded for its outcome is a sample chosen by its outcome; a trial
+        # excluded for a stated infrastructure reason is a gap the reader can
+        # weigh, and unequal arms are visible in the counts below.
+        print("\nexcluded by the validity gate:")
+        for job, excluded in ((dir_a, excluded_a), (dir_b, excluded_b)):
+            for entry in excluded:
+                print(f"  {job.name} / {entry}")
+        print(
+            "  → these did not enter any count. Re-run deliberately if you "
+            "want them replaced; do not let the arms end up unequal by accident."
+        )
     print()
     # Two arms of a variant pair carry the same fleet name, so labelling the
     # columns by fleet would print the same word twice and leave the reader

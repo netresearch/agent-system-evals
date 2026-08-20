@@ -22,6 +22,20 @@ keywords = ["open-forward-review", "typo3", "upgrade", "agent-system"]
 [metadata]
 case_id = "OFR-TYPO3-UPGRADE-001"
 category = "open-forward-review"
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: every collector redirects into its
+# file before running, so the file is there if and only if the collector ran —
+# which is the difference between "produced nothing" and "never ran". Emptiness
+# is a separate question and often the right answer.
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "matrix-13.4.txt",
+    "matrix-14.3.txt",
+    "composer.after.json",
+    "capability-inventory.json",
+]
+
 domain = "typo3"
 target_type = "extension"
 target_repository = "https://github.com/netresearch/t3x-contexts.git"
@@ -39,6 +53,17 @@ runtime = true
 # See docs/adr/0007-writing-cases.md.
 writing_task = true
 source_learning_id = "retro-20260816-source-authority"
+
+# Ground truth this case decides for itself, without a judge: the verifier pins
+# the dependency matrix to each TYPO3 line, resolves it and runs the extension's
+# own suite. A leg counts only if it resolved and the suite passed.
+#
+# Declared here rather than hard-coded in the comparison script, which knew
+# `matrix-*.txt` and therefore had ground truth for exactly one case — while
+# calling it the most valuable signal the framework has.
+[metadata.mechanical_outcome]
+artifacts = "matrix-*.txt"
+all_of = ["resolve: ok", "\nOK ("]
 
 [agent]
 timeout_sec = 5400.0

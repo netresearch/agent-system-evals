@@ -24,7 +24,6 @@ atif-trajectory = "/logs/verifier/transcript.txt"
 files = [
     "/logs/verifier/transcript.txt",
     "/logs/verifier/evidence-manifest.json",
-    "/tests/known-concerns.md",
 ]
 
 # This dimension scores the *absence* of unsupported claims, so a high score

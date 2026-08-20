@@ -11,7 +11,6 @@ files = [
     "/logs/verifier/transcript.txt",
     "/logs/verifier/evidence-manifest.json",
     "/logs/artifacts/translation-rows.txt",
-    "/tests/known-concerns.md",
 ]
 
 [[criterion]]

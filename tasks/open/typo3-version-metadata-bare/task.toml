@@ -23,6 +23,19 @@ case_id = "OFR-TYPO3-METADATA-001-BARE"
 variant_of = "OFR-TYPO3-METADATA-001"
 variant = "bare"
 category = "open-forward-review"
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: every collector redirects into its
+# file before running, so the file is there if and only if the collector ran —
+# which is the difference between "produced nothing" and "never ran". Emptiness
+# is a separate question and often the right answer.
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "composer.after.json",
+    "emconf.after.txt",
+    "capability-inventory.json",
+]
+
 domain = "typo3"
 target_type = "extension"
 target_repository = "https://github.com/netresearch/t3x-nr-xliff-streaming.git"

@@ -67,17 +67,25 @@ verifier-side.
 ## 4. Known concerns
 
 A case may — and normally should — record what an experienced reviewer knows
-about the target. That record is **verifier-side only**. It **MUST NOT** be
-present in:
+about the target. That record **MUST** be encrypted, in
+`expectations/<case-id>.md.enc` (see `expectations/README.md`), and **MUST
+NOT** be present in:
 
 - the agent's workspace or environment image
 - the instruction
 - any injected skill
 - any file the agent can reach over the network
+- **any plaintext file in this repository**, whatever directory it sits in
+
+The last line was added on 20 August 2026, after the previous requirement —
+"verifier-side only" — turned out to be satisfied by files committed in
+plaintext in a public repository. Keeping expectations out of the agent's
+container is isolation; it is not secrecy, and the two were being used
+interchangeably.
 
 Violating this does not merely inflate a score, it destroys the case
 permanently, because the leaked expectation cannot be un-learned by the skills
-that were exposed to it.
+that were exposed to it — or by a model trained on the repository.
 
 ## 5. Evidence
 
@@ -149,36 +157,58 @@ DumpFileTrait.php" is contamination wearing a learning's clothes.
 
 Two rules that come from this repository's own results rather than from theory.
 
-**Alternate the arms.** Every comparison recorded before August 2026 ran one
-arm to completion and the other hours later. A model update, a caching change
-or a backend migration in between arrives as a difference between arms and
-cannot be told apart from one. `scripts/run-comparison` runs them in stages with
-the order shuffled, so a drift across the session spreads over both arms.
+**Randomise the trial, not the batch.** Every comparison recorded before August
+2026 ran one arm to completion and the other hours later. A model update, a
+caching change or a backend migration in between arrives as a difference
+between arms and cannot be told apart from one.
 
-That is block randomisation and not trial-level interleaving: within a stage,
-one arm's trials still run back to back, because a Harbor job is the unit the
-comparator reads. A drift inside a single stage still lands on one side. Tracked
-in [issue #5](https://github.com/netresearch/agent-system-evals/issues/5).
+`scripts/run-comparison` schedules a *block* — one trial of every arm, order
+shuffled per block — and each trial is its own Harbor call and its own job
+directory. Between 19 and 20 August it alternated whole three-trial jobs and
+called that interleaving; within a stage one arm still ran back to back, so a
+drift inside that stage landed on one side.
+
+**A trial that failed as infrastructure is not a trial that failed.** Every
+aggregation reads the gate in `scripts/lib/validity.py` first: a rate-limited
+run, a dead agent, an empty trajectory, a provisioned server that never
+answered, a collector that never ran and an errored judge each have their own
+state, and only `VALID` enters a statistic. RewardKit records a failed judge as
+`0.0`, which is a number the system under test never earned; nine such zeros
+were once published as findings. Excluded trials are listed with their reason
+and are never silently replaced — a re-run chosen because the first attempt
+came out wrong is a sample chosen by its outcome.
+
+**One endpoint, declared before the run.** `--primary` is required and is
+written into `experiments/<case>-<stamp>.json` before the first trial starts.
+Everything else `scripts/analyze` reports is labelled exploratory and carries
+Holm-adjusted p-values, because a run reads every dimension a case grades and a
+threshold meant for one look is a coin flip at eight.
 
 **Three trials answer one question: is anything obviously happening.** They
 cannot establish that something is. On the runtime case the spread inside a
 single arm covered the whole gap between arms, and a median difference was
 published as a 53% saving before anyone looked at the per-trial figures.
 
-So a comparison starts at three per arm and continues only where a dimension
-*separates completely* — no overlap between the two samples. That is the
-strongest statement three trials can make, and it happens by chance **one time
-in ten**: six exchangeable observations admit twenty orderings and two of them
-are completely separated, one in each direction. This document, the script and
-the published page all said one in twenty until August 2026 — that is the
+So a comparison starts at three per arm and continues only where the **primary
+endpoint** separates completely — no overlap between the two samples. That is
+the strongest statement three trials can make, and it happens by chance **one
+time in ten**: six exchangeable observations admit twenty orderings and two of
+them are completely separated, one in each direction. This document, the script
+and the published page all said one in twenty until August 2026 — that is the
 one-sided figure, and it would apply only to a direction named before the data
 were seen, which none of ours was.
 
-It is also read across every dimension a case grades, with no correction for
-looking eight times. Separation is a reason to spend more trials and is never a
-result on its own. Deliberately not reported as a p-value, because with three
-per side the only distinguishable outcomes are "separated" and "not", and a
-p-value would dress that up as more.
+Reading it across every dimension is what makes the figure misleading, and the
+deepening rule therefore reads only the declared endpoint. `scripts/analyze`
+reports the rest with Holm-adjusted p-values so the list cannot be read as
+eight independent findings.
+
+The statistics are exact and non-parametric throughout — permutation tests on
+ranks, Fisher for pass/fail outcomes, Wilson intervals for rates, bootstrap
+intervals for differences (`scripts/lib/stats.py`). With three per arm the
+smallest attainable two-sided p is 0.10, so **nothing at this sample size can
+clear a conventional threshold**, and a report that appears to is a report to
+distrust.
 
 Report counts and per-trial values. A median of three, standing alone, reads
 as a measurement and is not one.
