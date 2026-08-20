@@ -31,6 +31,14 @@ print(f"wrote {path}")
 # CLI exit, which took the whole verifier run with it.
 path = nreval.write_transcript("/logs/verifier/transcript.txt")
 print(f"wrote {path}")
+
+# The same transcript with capability names replaced by stable pseudonyms.
+# Every dimension but `capability_selection` is judged from this one, because
+# every rubric tells the judge not to infer which arm it is grading and the
+# unblinded transcript then names that arm's skills 23 to 147 times per trial
+# (measured: scripts/judge-blinding). An instruction is not a mechanism.
+path = nreval.write_blind_transcript("/logs/verifier/transcript-blind.txt")
+print(f"wrote {path}")
 PY
 
 # One reward per subdirectory of /tests. Version-pinned: an unpinned judge

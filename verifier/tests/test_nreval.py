@@ -12,6 +12,7 @@ regression here would move scores without any rubric change.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -388,3 +389,101 @@ def test_an_unrecorded_exit_code_is_none_never_zero():
     traj = _with_result("ls", content="a\nb")
     assert nreval.command_results(traj)[0]["exit_code"] is None
     assert nreval.command_results(traj)[0]["failed"] is False
+
+
+# --------------------------------------------------------------------------
+# blinding
+#
+# Every rubric tells the judge not to infer which arm it is grading. Measured
+# on the review case, the transcript then named that arm's own skills between
+# 23 and 147 times per trial. An instruction is not a mechanism.
+# --------------------------------------------------------------------------
+
+
+def _skill_call(name, function="Skill"):
+    return {
+        "schema_version": "ATIF-v1.7",
+        "steps": [
+            {
+                "step_id": 1,
+                "tool_calls": [
+                    {
+                        "tool_call_id": "c1",
+                        "function_name": function,
+                        "arguments": {"skill": name},
+                    }
+                ],
+            }
+        ],
+    }
+
+
+def test_an_invoked_skill_name_is_replaced_by_a_pseudonym():
+    traj = _skill_call("typo3-conformance")
+    text = "The agent invoked typo3-conformance and read its checklist."
+    blinded = nreval.neutralise(text, traj)
+    assert "typo3-conformance" not in blinded
+    assert "capability-1" in blinded
+    # The behaviour survives; only the identity goes.
+    assert "invoked" in blinded and "checklist" in blinded
+
+
+def test_an_mcp_server_is_replaced_inside_the_tool_name():
+    traj = {
+        "schema_version": "ATIF-v1.7",
+        "steps": [
+            {
+                "step_id": 1,
+                "tool_calls": [
+                    {
+                        "tool_call_id": "c1",
+                        "function_name": "mcp__typo3-dev-companion__lookup",
+                        "arguments": {},
+                    }
+                ],
+            }
+        ],
+    }
+    blinded = nreval.neutralise("called mcp__typo3-dev-companion__lookup twice", traj)
+    assert "typo3-dev-companion" not in blinded
+    assert "__lookup" in blinded
+
+
+def test_a_longer_name_is_not_half_replaced_by_a_shorter_one(monkeypatch, tmp_path):
+    """`typo3-extension-conformance` must not become `capability-1-conformance`."""
+    inventory = tmp_path / "capability-inventory.json"
+    inventory.write_text(
+        json.dumps(
+            {"skills": {"names": ["typo3-extension", "typo3-extension-conformance"]}}
+        )
+    )
+    monkeypatch.setattr(nreval, "ARTIFACTS_DIR", str(tmp_path))
+    blinded = nreval.neutralise("used typo3-extension-conformance", _skill_call("x"))
+    assert "conformance" not in blinded
+
+
+def test_a_skill_offered_but_never_invoked_is_still_hidden(monkeypatch, tmp_path):
+    """The gap that left six to eight mentions per arm after the first fix.
+
+    A skill's own text names its siblings — `Testing -> typo3-testing` — and
+    those names are nowhere in the trajectory, because the agent never called
+    them. They come from the inventory the probe writes.
+    """
+    inventory = tmp_path / "capability-inventory.json"
+    inventory.write_text(json.dumps({"skills": {"names": ["typo3-testing"]}}))
+    monkeypatch.setattr(nreval, "ARTIFACTS_DIR", str(tmp_path))
+    blinded = nreval.neutralise("Delegation: Testing -> `typo3-testing`", _skill_call("x"))
+    assert "typo3-testing" not in blinded
+
+
+def test_a_missing_inventory_degrades_rather_than_raising(monkeypatch, tmp_path):
+    monkeypatch.setattr(nreval, "ARTIFACTS_DIR", str(tmp_path / "nowhere"))
+    assert nreval.offered_names() == []
+    blinded = nreval.neutralise("used typo3-conformance", _skill_call("typo3-conformance"))
+    assert "typo3-conformance" not in blinded
+
+
+def test_generic_tool_names_survive():
+    """Hiding `Bash` would hide what the agent did, not who equipped it."""
+    traj = _skill_call("Bash", function="Skill")
+    assert "Bash" in nreval.neutralise("ran Bash twice", traj)

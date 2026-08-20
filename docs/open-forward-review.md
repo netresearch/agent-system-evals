@@ -128,8 +128,25 @@ When comparing two variants, everything except the variable under study **MUST**
 be held constant: target SHA, prompt, environment image, agent, model, judge
 model, rubric digest, resource limits, network policy, trial count.
 
-The judge **MUST NOT** be told which variant it is grading. Telling it that one
-side is "the improved skill set" is a request for the answer, not a measurement.
+The judge **MUST NOT** be told which variant it is grading, and **MUST NOT** be
+able to work it out. Telling it that one side is "the improved skill set" is a
+request for the answer, not a measurement — but so is handing it a transcript
+that names the arm's own skills.
+
+That was the state until 20 August 2026: the rubric asked the judge not to
+infer the variant, and `scripts/judge-blinding` then measured 23 to 147
+mentions of an arm's own capabilities per trial in the text the judge reads.
+Every dimension except `capability_selection` is now judged from a transcript
+whose capability names are replaced by stable pseudonyms; that dimension asks
+*which* capability was chosen and needs the names.
+
+The residual is measured rather than assumed. After neutralisation the literal
+test is clean, and a leave-one-out nearest-centroid classifier still recovers
+the arm in 6 of 18 recorded transcripts against a chance rate of 1 in 6 —
+p = 0.065, which is suggestive and not established at that sample size. So:
+redaction removes what a judge could read; it does not remove how an arm
+writes. Any claim that grading here is blind should say the first and not the
+second.
 
 ## 9. Case admission
 

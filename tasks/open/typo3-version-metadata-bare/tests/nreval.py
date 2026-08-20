@@ -566,6 +566,128 @@ def write_transcript(path: str | Path | None = None) -> Path:
     return target
 
 
+# --------------------------------------------------------------------------
+# blinding
+# --------------------------------------------------------------------------
+
+# Names that identify the *tool*, not the arm. Replacing these would hide what
+# the agent did without hiding who equipped it, which is the wrong trade.
+_GENERIC_TOOLS = {"bash", "read", "write", "edit", "glob", "grep", "task", "todowrite"}
+
+
+def provisioned_names(traj: dict[str, Any] | None = None) -> list[str]:
+    """Skill and MCP-server names, in order of first appearance.
+
+    Read from the trajectory rather than from a fleet manifest: the verifier
+    runs in its own container and is never told which arm produced the run —
+    which is the point. Anything the agent reached names itself in its own tool
+    calls.
+    """
+    seen: list[str] = []
+
+    def note(name: str) -> None:
+        if name and name.lower() not in _GENERIC_TOOLS and name not in seen:
+            seen.append(name)
+
+    for call in tool_calls(traj):
+        function = str(call.get("function_name") or "")
+        mcp = re.match(r"mcp__([^_]+(?:[^_]|_(?!_))*)__", function)
+        if mcp:
+            note(mcp.group(1))
+        if function.lower() in {"skill", "useskill"}:
+            args = call.get("arguments") or {}
+            for key in ("skill", "name", "command"):
+                value = args.get(key)
+                if isinstance(value, str) and value.strip():
+                    note(value.strip().split()[0].split("/")[-1])
+                    break
+    for name in skills_used(traj):
+        note(str(name).split("/")[-1])
+
+    # Also every capability visible as a path. A skill that was installed but
+    # never invoked still names itself in a directory listing, and a skill's own
+    # text names its siblings — the first version of this missed both, and the
+    # blinded transcripts still carried six to eight identifier mentions per
+    # arm from `Testing -> `typo3-testing`` lines inside a skill the agent read.
+    for step in steps(traj):
+        for result in ((step.get("observation") or {}).get("results") or []):
+            content = result.get("content")
+            if isinstance(content, str):
+                for match in re.finditer(r"(?:^|/)skills/([a-z0-9][\w.-]*)/", content):
+                    note(match.group(1))
+    for call in tool_calls(traj):
+        for value in (call.get("arguments") or {}).values():
+            if isinstance(value, str):
+                for match in re.finditer(r"(?:^|/)skills/([a-z0-9][\w.-]*)/", value):
+                    note(match.group(1))
+    return seen
+
+
+def offered_names() -> list[str]:
+    """Capability names from the inventory the probe wrote, if it is there.
+
+    The trajectory only shows what the agent *reached*. A skill that was
+    offered and never invoked still appears in a listing, and a skill's own
+    text names its siblings: measured on the review case, blinding from the
+    trajectory alone left six to eight identifier mentions per arm, all of them
+    inside `Testing -> \\`typo3-testing\\`` lines in a file the agent had read.
+
+    Returns an empty list where the inventory is missing rather than raising:
+    a partial blinding is still better than none, and
+    `write_blind_transcript` records which source it had.
+    """
+    path = Path(ARTIFACTS_DIR) / "capability-inventory.json"
+    if not path.is_file():
+        return []
+    try:
+        inventory = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+    names = list((inventory.get("skills") or {}).get("names") or [])
+    names += list((inventory.get("mcp") or {}).keys())
+    return [str(n) for n in names if n]
+
+
+def neutralise(text: str, traj: dict[str, Any] | None = None) -> str:
+    """Replace capability names with stable pseudonyms.
+
+    Every rubric tells the judge not to infer which arm it is grading, and the
+    transcript then names the arm's skills between 23 and 147 times per trial —
+    measured, by `scripts/judge-blinding`, on the review case. An instruction is
+    not a blinding mechanism.
+
+    Pseudonyms rather than deletion: "the agent invoked capability-1 three
+    times and read its reference" is exactly as gradeable as the original for
+    every dimension except the one that asks *which* capability was chosen. The
+    structure survives; the identity does not.
+    """
+    replaced = text
+    names = list(dict.fromkeys([*provisioned_names(traj), *offered_names()]))
+    # Longest first: `typo3-extension-conformance` must not be half-replaced by
+    # a pass over `typo3-extension`.
+    for index, name in enumerate(sorted(names, key=len, reverse=True), start=1):
+        pseudonym = f"capability-{index}"
+        replaced = re.sub(rf"(?<![\w-]){re.escape(name)}(?![\w-])", pseudonym, replaced)
+        # Also inside `mcp__<server>__<tool>`, where the name is bounded by
+        # underscores and the pattern above does not reach it.
+        replaced = replaced.replace(f"mcp__{name}__", f"mcp__{pseudonym}__")
+    return replaced
+
+
+def write_blind_transcript(path: str | Path | None = None) -> Path:
+    """The transcript every dimension but `capability_selection` is judged from.
+
+    That one dimension asks which capability the agent chose, so it needs the
+    names and reads the unblinded transcript. Everything else does not, and
+    reading them is how a judge learns which arm it is looking at.
+    """
+    target = Path(path or f"{ARTIFACTS_DIR}/transcript-blind.txt")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    traj = load_trajectory()
+    target.write_text(neutralise(transcript(traj), traj))
+    return target
+
+
 def write_evidence_manifest(path: str | Path | None = None) -> Path:
     target = Path(path or f"{ARTIFACTS_DIR}/evidence-manifest.json")
     target.parent.mkdir(parents=True, exist_ok=True)

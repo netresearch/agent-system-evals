@@ -1,0 +1,260 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Can the judge tell which arm it is grading?
+
+Every rubric tells the judge not to infer which variant it is looking at. An
+instruction is not a mechanism, and the judge reads a transcript full of skill
+names, MCP tool prefixes and paths that say so anyway. This measures it instead
+of asserting it, in two ways:
+
+**Literal.** Does the judge's input contain a string that names the arm? If it
+does, no classifier is needed: the answer is in the text.
+
+**Statistical.** Leave-one-out nearest-centroid over token frequencies. Held-out
+accuracy against the majority-class baseline says whether the arm is recoverable
+from the writing even after the obvious identifiers are gone. Deliberately a
+weak classifier: it is a floor, not a ceiling — a stronger one recovering more
+would not change the conclusion, and this one recovering the arm already settles
+it.
+
+    scripts/judge-blinding --arm control=jobs/a --arm nr=jobs/b
+    scripts/judge-blinding --case OFR-TYPO3-EXT-001     # newest job per fleet
+"""
+
+from __future__ import annotations
+
+import argparse
+import math
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import validity  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "verifier" / "common"))
+import nreval  # noqa: E402
+
+# What the judge actually reads. `atif-trajectory` is the only channel an agent
+# judge receives, and every rubric points it at the bounded transcript.
+JUDGE_INPUT = ("verifier/transcript.txt",)
+
+TOKEN = re.compile(r"[A-Za-z][A-Za-z0-9_-]{2,}")
+
+
+def judge_input(trial: Path) -> str:
+    for name in JUDGE_INPUT:
+        path = trial / name
+        if path.is_file():
+            return path.read_text(errors="ignore")
+    return ""
+
+
+def identifiers(snapshot: dict) -> list[str]:
+    """Strings that name this arm, from what it was provisioned with.
+
+    Both the repository name and the invoked name. A fleet declares
+    `netresearch/typo3-conformance-skill@v2.19.1`, and the transcript shows
+    `Skill(typo3-conformance)` — the first version of this function looked only
+    for the repository name and reported zero identifier mentions for an arm
+    whose transcripts name the skill they invoked. A blinding check that finds
+    no leak because it searched for the wrong string is the failure it exists
+    to detect, one level up.
+    """
+    found: list[str] = []
+    declared = list((snapshot.get("fleet_declares") or {}).get("skills") or [])
+    declared += list(snapshot.get("fleet_requested") or [])
+    for entry in declared:
+        name = str(entry).split("@")[0].rstrip("/").split("/")[-1]
+        if not name:
+            continue
+        found.append(name)
+        # How a skill is addressed once installed: the repository suffix is not
+        # part of the name the agent or the transcript uses.
+        if name.endswith("-skill"):
+            found.append(name[: -len("-skill")])
+    if snapshot.get("mcp_server"):
+        found.append(str(snapshot["mcp_server"]))
+    if snapshot.get("companion"):
+        found.append("typo3-dev-companion")
+    return sorted({f for f in found if len(f) > 3})
+
+
+def centroid(texts: list[Counter]) -> Counter:
+    total = Counter()
+    for counts in texts:
+        total.update(counts)
+    return total
+
+
+def cosine(a: Counter, b: Counter) -> float:
+    shared = set(a) & set(b)
+    numerator = sum(a[t] * b[t] for t in shared)
+    if not numerator:
+        return 0.0
+    return numerator / (
+        math.sqrt(sum(v * v for v in a.values()))
+        * math.sqrt(sum(v * v for v in b.values()))
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--arm", action="append", default=[], metavar="NAME=job[,job]")
+    parser.add_argument("--case", help="use the newest job per fleet for this case")
+    parser.add_argument(
+        "--neutralised",
+        action="store_true",
+        help="measure the blinded transcript instead: does the fix work?",
+    )
+    args = parser.parse_args()
+
+    arms: dict[str, list[Path]] = {}
+    for entry in args.arm:
+        name, _, joined = entry.partition("=")
+        arms[name] = [Path(p) for p in joined.split(",") if p]
+    if args.case:
+        newest: dict[str, Path] = {}
+        for job in sorted((ROOT / "jobs").glob("*")):
+            snapshot = validity.read_json(job / "nr-snapshot.json")
+            if not snapshot or snapshot.get("case_id") != args.case:
+                continue
+            fleet = snapshot.get("fleet")
+            if fleet and (
+                fleet not in newest
+                or job.stat().st_mtime > newest[fleet].stat().st_mtime
+            ):
+                newest[fleet] = job
+        for fleet, job in newest.items():
+            arms.setdefault(fleet, []).append(job)
+    if len(arms) < 2:
+        sys.exit("need at least two arms")
+
+    samples: list[tuple[str, Counter]] = []
+    print("judge input per arm")
+    leaked_any = False
+    for name, jobs in sorted(arms.items()):
+        texts = 0
+        marks: Counter = Counter()
+        snapshot: dict = {}
+        for job in jobs:
+            snapshot = snapshot or validity.read_json(job / "nr-snapshot.json") or {}
+            for trial in validity.trial_dirs(job):
+                text = judge_input(trial)
+                if not text:
+                    continue
+                if args.neutralised:
+                    # The same measurement against the transcript the fix
+                    # produces. Applied here rather than read from disk so a
+                    # recorded job from before the fix can still answer the
+                    # question.
+                    try:
+                        traj = nreval.load_trajectory(
+                            trial / "verifier" / "trajectory.json"
+                        )
+                        # Point the reader at this trial's collected artifacts,
+                        # where the capability inventory is: the offered names
+                        # are not derivable from the trajectory.
+                        nreval.ARTIFACTS_DIR = str(
+                            trial / "artifacts" / "logs" / "artifacts"
+                        )
+                        text = nreval.neutralise(text, traj)
+                        # Jobs recorded before 20 August 2026 carry an
+                        # inventory without a `names` field, so the reader
+                        # cannot see what was merely offered. Supplied here
+                        # from the snapshot so the measurement answers "does
+                        # the fix work" rather than "did the old probe record
+                        # enough" — for a fresh run this branch changes
+                        # nothing.
+                        for extra, offered in enumerate(
+                            identifiers(snapshot), start=900
+                        ):
+                            text = re.sub(
+                                rf"(?<![\w-]){re.escape(offered)}(?![\w-])",
+                                f"capability-{extra}",
+                                text,
+                            )
+                    except nreval.MissingEvidence:
+                        pass
+                texts += 1
+                samples.append((name, Counter(TOKEN.findall(text.lower()))))
+                for identifier in identifiers(snapshot):
+                    hits = text.lower().count(identifier.lower())
+                    if hits:
+                        marks[identifier] += hits
+        leaked = sum(marks.values())
+        leaked_any = leaked_any or bool(leaked)
+        print(f"  {name}: {texts} transcript(s), {leaked} identifier mention(s)")
+        for identifier, hits in marks.most_common(5):
+            print(f"      {identifier}: {hits}")
+
+    if not samples:
+        sys.exit("no judge input found; were transcripts collected?")
+
+    print("\nliteral test")
+    if leaked_any:
+        print(
+            "  FAILED. The judge's input names the arm's own capabilities. No "
+            "classifier is required: the answer is in the text, and the "
+            "instruction not to infer the variant is the only thing standing "
+            "between the judge and it."
+        )
+    else:
+        print("  passed: no provisioned identifier appears in any judge input.")
+
+    # Leave-one-out nearest centroid.
+    names = sorted({name for name, _ in samples})
+    correct = 0
+    for index, (truth, counts) in enumerate(samples):
+        centroids = {
+            name: centroid(
+                [c for i, (n, c) in enumerate(samples) if n == name and i != index]
+            )
+            for name in names
+        }
+        guess = max(centroids, key=lambda n: cosine(counts, centroids[n]))
+        correct += guess == truth
+
+    baseline = max(Counter(n for n, _ in samples).values()) / len(samples)
+    accuracy = correct / len(samples)
+    # How surprising that many correct guesses would be if the classifier were
+    # guessing at the base rate. Without this, "33% against 17%" reads as a
+    # finding at any sample size, and at eighteen transcripts it is one round
+    # of luck away from nothing.
+    rate = 1 / len(names)
+    chance = sum(
+        math.comb(len(samples), i) * rate**i * (1 - rate) ** (len(samples) - i)
+        for i in range(correct, len(samples) + 1)
+    )
+    print("\nstatistical test — leave-one-out nearest centroid")
+    print(f"  {len(samples)} transcripts across {len(names)} arms")
+    print(f"  {correct} correct, accuracy {accuracy:.0%}, "
+          f"majority baseline {baseline:.0%}, chance rate {rate:.0%}")
+    print(f"  P(at least {correct} correct by chance) = {chance:.3f}")
+    if accuracy > baseline and chance < 0.05:
+        print(
+            "  The arm is recoverable from the judge's input. Grading is not "
+            "blind, whatever the prompt asks for."
+        )
+    elif accuracy > baseline:
+        print(
+            "  Above baseline, but not beyond what chance produces at this "
+            "sample size. Suggestive, not established — run more trials before "
+            "treating it either way."
+        )
+    else:
+        print(
+            "  Not recoverable by this classifier. That bounds the leak from "
+            "below and does not prove blinding — a stronger classifier or a "
+            "larger sample may still recover it."
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

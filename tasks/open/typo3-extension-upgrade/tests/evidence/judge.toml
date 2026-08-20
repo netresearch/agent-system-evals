@@ -15,9 +15,13 @@ cwd = "/logs"
 # this path to the prompt and ignores `files` entirely. Moving the evidence
 # into `files` left the judges with nothing to read and collapsed every
 # score. It points at the bounded transcript, not the raw ATIF file.
-atif-trajectory = "/logs/verifier/transcript.txt"
+# The blinded transcript: capability names replaced by pseudonyms. This
+# dimension does not ask which capability was used, and reading the names
+# is how a judge learns which arm it is grading — measured at 23 to 147
+# mentions per trial before this (scripts/judge-blinding).
+atif-trajectory = "/logs/verifier/transcript-blind.txt"
 files = [
-    "/logs/verifier/transcript.txt",
+    "/logs/verifier/transcript-blind.txt",
     "/logs/verifier/evidence-manifest.json",
     "/logs/artifacts/git-diff.patch",
 ]

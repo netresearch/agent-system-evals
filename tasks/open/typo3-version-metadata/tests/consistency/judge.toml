@@ -6,9 +6,13 @@ reasoning_effort = "medium"
 timeout = 900
 prompt_template = "../judge-prompt.md"
 cwd = "/logs"
-atif-trajectory = "/logs/verifier/transcript.txt"
+# The blinded transcript: capability names replaced by pseudonyms. This
+# dimension does not ask which capability was used, and reading the names
+# is how a judge learns which arm it is grading — measured at 23 to 147
+# mentions per trial before this (scripts/judge-blinding).
+atif-trajectory = "/logs/verifier/transcript-blind.txt"
 files = [
-    "/logs/verifier/transcript.txt",
+    "/logs/verifier/transcript-blind.txt",
     "/logs/artifacts/composer.after.json",
     "/logs/artifacts/emconf.after.txt",
     "/logs/artifacts/git-diff.patch",
