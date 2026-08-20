@@ -4,9 +4,19 @@
 # Pinned to the skill ref each was judged at; a fleet bump lapses them and the
 # new text is judged fresh.
 #
-# All three are the target-naming attribution pattern of issue #3 and #21: the
-# text around each helps on any repository, and the extension's name is the only
-# part that does not. The upstream fixes are issue #22.
+# Three entries, two kinds.
+#
+# The two typo3-testing ones are **permanent**. That line is not an attribution
+# but a citation — "Observed concretely in [t3x-nr-image-optimize#93]" supports
+# a factual claim about PHPUnit's strict coverage metadata producing
+# green-locally-red-in-CI. Removing it would leave the claim unsupported and
+# make the document worse. A benchmark that pushes a skill to drop its evidence
+# has started corrupting the thing it measures. An example attribution is
+# decoration and can go; a citation is evidence and stays.
+#
+# The php-modernization one is a bare attribution label of the kind issue #3 and
+# #21 cover, and lapses when netresearch/php-modernization-skill#94 is released
+# and the fleet moves (issue #22).
 #
 # The php-modernization one was read line by line before being recorded, because
 # it is the closest to real contamination in this repository so far. It
