@@ -82,6 +82,12 @@ def usage(trial: Path) -> tuple[dict[str, int], int, dict]:
                             arguments = json.loads(arguments)
                         except json.JSONDecodeError:
                             arguments = {}
+                    # Fleet-qualified. Skill names are not unique across
+                    # stacks: the Netresearch set and the TYPO3 Dev Companion
+                    # both ship one called `typo3-extension-upgrade`, for the
+                    # same job and with different content. Keyed by name alone,
+                    # a table would show two different skills as one row and
+                    # invite exactly the comparison that cannot be made.
                     key = f"skill:{(arguments or {}).get('skill', '?')}"
                 elif name.startswith("mcp__"):
                     key = f"mcp:{name.split('__')[1]}"
@@ -163,6 +169,13 @@ def report(job_dir: Path) -> None:
             provided[key] = "yes (used)"
 
     fleet = snapshot.get("fleet", job_dir.name)
+    used = {
+        (f"{k}@{fleet}" if k.startswith("skill:") else k): v for k, v in used.items()
+    }
+    trials_using = {
+        (f"{k}@{fleet}" if k.startswith("skill:") else k): v
+        for k, v in trials_using.items()
+    }
     print(f"\n{fleet}  ({len(rows)} trials)")
     print(f"  {'capability':28} {'provided':>12} {'trials used':>12} {'calls':>7}")
     keys = sorted(set(provided) | set(used))
