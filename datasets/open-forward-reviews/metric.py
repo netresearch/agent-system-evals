@@ -66,6 +66,7 @@ DIMENSIONS = [
     "outcome_quality",
     "consistency",
     "release",
+    "documentation",
     "contract",
 ]
 MET = 0.75

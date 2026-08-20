@@ -80,6 +80,11 @@ applies_to = "case"
 asks = "Does the release carry the same version everywhere it has to, and does the changelog describe what actually changed?"
 
 [[dimension]]
+id = "documentation"
+applies_to = "case"
+asks = "Does the documentation render, and does it describe this extension rather than a template?"
+
+[[dimension]]
 id = "contract"
 applies_to = "contract"
 asks = "Mechanical: is the known answer present and are the known non-answers absent?"

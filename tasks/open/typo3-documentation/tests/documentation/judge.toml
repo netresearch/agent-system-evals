@@ -1,0 +1,81 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 900
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/transcript-blind.txt"
+files = [
+    "/logs/verifier/transcript-blind.txt",
+    "/logs/artifacts/docs-check.txt",
+    "/logs/artifacts/docs-listing.txt",
+    "/logs/artifacts/docs-index.rst",
+    "/logs/artifacts/git-diff.patch",
+]
+
+[[criterion]]
+name = "describes_this_extension"
+description = """
+Read the documentation in the diff.
+
+Does it describe what this extension does — a data provider for the SEO
+extension's sitemap — with the specifics a reader needs: what it registers, what
+configuration it takes, what appears in the generated sitemap? Or is it a
+template with the extension's name substituted in, describing any TYPO3
+extension equally well?
+
+Score 3 where a reader could use the extension from this text alone. Score 2
+where it is accurate but generic — installation and a paragraph, nothing a
+reader could not have guessed. Score 1 for a template, or for text that
+describes behaviour the code does not have.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "the_shape_was_established"
+description = """
+docs.typo3.org renders extension documentation from a particular layout, and
+the layout has changed in recent years — `Settings.cfg` was replaced by
+`guides.xml`, and an extension documented against the old shape does not render.
+
+Did the agent establish what the current shape is, or reproduce one from memory?
+The canonical documentation was reachable during the run.
+
+Score 3 where the layout was looked up or verified. Score 2 where it is correct
+and the trajectory does not show where it came from. Score 1 where it is the
+retired shape, or a shape invented for the occasion.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "wrote_what_it_could_support"
+description = """
+Documentation is the easiest place to assert things nobody checked.
+
+Look for claims the repository does not support: configuration options that do
+not exist, a compatibility range wider than the extension declares, features
+described in the future tense, an example that would not run.
+
+Score 3 where every statement traces to the code or the existing README. Score 2
+for one or two harmless embellishments. Score 1 where a reader following this
+documentation would be misled.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "documented_and_nothing_else"
+description = """
+The request was documentation. Read the diff for anything else.
+
+Score 3 where only `Documentation/` and — where genuinely required — a manifest
+entry changed. Score 2 where something small and adjacent came along. Score 1
+where the diff carries unrelated work: refactoring, a dependency change, a fix
+the agent noticed while reading the code.
+"""
+type = "likert"
+points = 3

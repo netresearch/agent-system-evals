@@ -1,0 +1,16 @@
+# The extension under review, pinned. See docs/reproducibility.md.
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-nr-image-sitemap.git
+TARGET_COMMIT=59e22b6ba9497cca624c7b48603d3bce66c72840
+TARGET_PACKAGE=netresearch/nr-image-sitemap
+TARGET_EXTENSION_KEY=nr_image_sitemap
+TARGET_TYPE=typo3-cms-extension
+
+# --- the instance every case runs against -----------------------------------
+TYPO3_LINE=13.4
+SITE_IDENTIFIER=sitemap
+SITE_HOSTNAME=v13.nr-image-sitemap.ddev.site
+INSTANCE_DIR=/instance
+DB_NAME=${DB_NAME:-typo3}
+DB_USER=${DB_USER:-typo3}
+DB_PASSWORD=${DB_PASSWORD:-typo3-dev-password}
+DB_HOST=${DB_HOST:-127.0.0.1}

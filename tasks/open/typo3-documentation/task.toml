@@ -1,0 +1,254 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-documentation"
+version = "1.0.0"
+description = "Open forward review: create renderable documentation for a TYPO3 extension"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "maintenance", "documentation", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-DOCS-001"
+category = "open-forward-review"
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: every collector redirects into its
+# file before running, so the file is there if and only if the collector ran —
+# which is the difference between "produced nothing" and "never ran". Emptiness
+# is a separate question and often the right answer.
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "docs-check.txt",
+    "docs-listing.txt",
+    "guides.after.xml",
+    "capability-inventory.json",
+]
+
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-nr-image-sitemap.git"
+target_package = "netresearch/nr-image-sitemap"
+target_sha = "59e22b6ba9497cca624c7b48603d3bce66c72840"
+# Every case runs against an installed instance with the extension active —
+# that is the baseline, not a property of this case. See
+# docs/adr/0006-runtime-fidelity.md.
+runtime = true
+source_learning_id = "retro-20260820-extensions-without-rendered-docs"
+# Graded on one dimension rather than the full eight. The eight exist for an
+# open review; this is a maintenance task with a fact at the end of it, and
+# judging it on prioritisation or context discovery would price a low-level
+# case out of being one. Declared here so no comparison can mix rubrics
+# silently — see docs/scoring.md.
+dimensions = ["documentation"]
+
+# Ground truth this case decides for itself. Documentation docs.typo3.org can
+# render has a shape: a `guides.xml` naming the project, an `Index.rst`, and a
+# toctree whose every entry resolves to a file that exists.
+#
+# The last is what separates written documentation from a skeleton: an index
+# listing pages nobody wrote looks complete in a diff and fails at render.
+[metadata.mechanical_outcome]
+artifacts = "docs-check.txt"
+all_of = ["docs: ok"]
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+# The agent must not start against a half-installed instance. The installation
+# runs at container start because it needs the database; this holds the agent
+# phase until it has finished, and fails the trial if it never does.
+[environment.healthcheck]
+command = "test -f /instance/.instance-ready && cd /instance && vendor/bin/typo3 site:list >/dev/null && curl -fsS -o /dev/null http://v13.nr-image-sitemap.ddev.site/typo3/"
+interval_sec = 10.0
+timeout_sec = 60.0
+start_period_sec = 240.0
+start_interval_sec = 10.0
+retries = 5
+
+[environment.env]
+# Not the service name. This case runs under `network_mode = "allowlist"`, and
+# Harbor then puts every service without its own `networks`/`network_mode` —
+# `main` and `db` alike — into the egress sidecar's network namespace. They
+# share one localhost, and the name `db` resolves nowhere. Changing this back
+# to "db" fails with `getaddrinfo for db failed`.
+DB_HOST = "127.0.0.1"
+DB_NAME = "typo3"
+DB_USER = "typo3"
+DB_PASSWORD = "typo3-dev-password"
+# What this arm installs into the instance, resolved from the host environment
+# the way the credentials are. Empty for an arm that provisions nothing, which
+# is what control has to mean: the products are not baked into the image for
+# every fleet.
+PROVISION_PACKAGES = "${PROVISION_PACKAGES}"
+PROVISION_COMPANION_REF = "${PROVISION_COMPANION_REF}"
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# Snapshot the runtime state the agent leaves behind. For a diagnosis case the
+# database is part of the evidence: whether the agent only looked, or also
+# changed something, is visible nowhere else.
+# What the arm was actually given. Run after the agent phase because Harbor
+# hands the MCP configuration to the agent process, not to the container — so
+# this is the earliest point at which the servers can be asked to describe
+# themselves. It records provisioning only; what the agent did with it is
+# counted from the trajectory, separately, and the two must not be conflated:
+# a server that never answered makes a run void, a server that answered and
+# went unused is a result.
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+
+
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 30720
+network_mode = "public"
+
+# The two declarations in their final state. For this case that is also the
+# mechanical half of the answer: they were already right, so a tree that still
+# says what it said is the correct outcome rather than an absent one.
+# The four places a TYPO3 extension states its version, read back after the
+# agent has finished, plus one verdict line. Written by the framework rather
+# than judged: whether four strings match is a fact.
+#
+# `|| true` on the outer command only. The check's own exit status is carried
+# in the file, because a collector that fails silently and a release that is
+# wrong must not look the same.
+[[verifier.collect]]
+command = '''
+python3 - <<'PYCHECK' > /logs/artifacts/docs-check.txt 2>&1 || true
+import pathlib, xml.etree.ElementTree as ET
+
+root = pathlib.Path("/app/Documentation")
+problems = []
+
+
+def toctree_entries(text):
+    """Documents a toctree points at, read line by line.
+
+    Not one regex. The first version was, and it matched nothing against an
+    ordinary toctree — the blank line between the options and the entries ends
+    the block for a contiguous pattern, and every real index has one. A check
+    that silently finds zero entries reports a skeleton as complete.
+    """
+    entries = []
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != ".. toctree::":
+            continue
+        indent = len(line) - len(line.lstrip())
+        for candidate in lines[index + 1:]:
+            if not candidate.strip():
+                continue
+            depth = len(candidate) - len(candidate.lstrip())
+            if depth <= indent:
+                break
+            entry = candidate.strip()
+            if entry.startswith(":"):
+                continue
+            entries.append(entry)
+    return entries
+
+
+if not root.is_dir():
+    problems.append("no Documentation/ directory")
+else:
+    guides = root / "guides.xml"
+    if not guides.is_file():
+        problems.append("no Documentation/guides.xml")
+    else:
+        try:
+            tree = ET.parse(guides).getroot()
+            # Namespace-agnostic: guides.xml declares a default namespace, so
+            # `find(".//project")` matches nothing and the check reported a
+            # valid file as having no <project>.
+            project = next(
+                (e for e in tree.iter() if e.tag.rsplit("}", 1)[-1] == "project"),
+                None,
+            )
+            if project is None:
+                problems.append("guides.xml has no <project>")
+            else:
+                for attribute in ("title", "release"):
+                    if not (project.get(attribute) or "").strip():
+                        problems.append("guides.xml <project> has no " + attribute)
+        except ET.ParseError as exc:
+            problems.append("guides.xml does not parse: " + str(exc))
+
+    if not (root / "Index.rst").is_file():
+        problems.append("no Documentation/Index.rst")
+
+    referenced = 0
+    for rst in sorted(root.rglob("*.rst")):
+        for entry in toctree_entries(rst.read_text(errors="ignore")):
+            referenced += 1
+            target = rst.parent / entry
+            if not (target.with_suffix(".rst").is_file()
+                    or (target / "Index.rst").is_file()
+                    or target.is_file()):
+                problems.append(
+                    rst.name + " toctree references " + entry + ", which does not exist"
+                )
+    print("toctree entries: " + str(referenced))
+    if referenced == 0 and (root / "Index.rst").is_file():
+        problems.append("Index.rst has no toctree; nothing is reachable from it")
+
+print("problems: " + str(len(problems)))
+for problem in problems:
+    print("  - " + problem)
+print("docs: ok" if not problems else "docs: incomplete")
+PYCHECK
+'''
+
+[[verifier.collect]]
+command = "find /app/Documentation -type f 2>/dev/null | sort > /logs/artifacts/docs-listing.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "cat /app/Documentation/Index.rst > /logs/artifacts/docs-index.rst 2>&1 || true"
+
+[[verifier.collect]]
+command = "cp /app/Documentation/guides.xml /logs/artifacts/guides.after.xml 2>&1 || true"
