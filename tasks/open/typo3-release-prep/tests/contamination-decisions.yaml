@@ -1,0 +1,40 @@
+# Recorded human decisions on contamination-check hits for this case.
+#
+# Shape and rules: see tasks/open/typo3-extension-upgrade/tests/contamination-decisions.yaml.
+# Pinned to the skill ref each was judged at; a fleet bump lapses them and the
+# new text is judged fresh.
+#
+# All three are the target-naming attribution pattern of issue #3 and #21: the
+# text around each helps on any repository, and the extension's name is the only
+# part that does not. The upstream fixes are issue #22.
+#
+# The php-modernization one was read line by line before being recorded, because
+# it is the closest to real contamination in this repository so far. It
+# documents the multi-version adapter pattern for a dependency with incompatible
+# major APIs — derived from this extension's intervention/image v2/v4 work. The
+# fix this case asks an agent to write a changelog for is a *different* one in
+# the same dependency: a decoder heuristic that misreads a non-ASCII path as
+# binary image data. The document does not name it, does not describe it, and
+# would not lead an agent to it.
+#
+# It is recorded rather than waved through because that judgement is close
+# enough to be worth writing down, and because the attribution should go
+# regardless.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.2
+  path: typo3-testing-skill-5.20.2/skills/typo3-testing/references/ci-cd.md
+  marker: netresearch/t3x-nr-image-optimize
+  reason: Attribution on a note about PHPUnit strict coverage metadata; names the target and nothing about its release.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.2
+  path: typo3-testing-skill-5.20.2/skills/typo3-testing/references/ci-cd.md
+  marker: t3x-nr-image-optimize
+  reason: The same attribution, matched by the shorter repository marker.
+
+- skill: netresearch/php-modernization-skill
+  ref: v1.22.0
+  path: php-modernization-skill-1.22.0/skills/php-modernization/references/multi-version-adapters.md
+  marker: t3x-nr-image-optimize
+  reason: Attribution on the multi-version adapter pattern, derived from a different fix in the same dependency; does not name or describe the change this case is about.
