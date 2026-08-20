@@ -273,7 +273,7 @@ that reports one number for it is answering a question nobody asked.</p>
 <div class="grid">
   <div class="card"><span class="big">4</span><span class="lbl">cases, one environment baseline</span></div>
   <div class="card"><span class="big">48</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">13</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">18</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
@@ -291,8 +291,15 @@ answered and went unused are different findings, and only one of them voids a ru
 <p>Every failure this benchmark made about itself is written down, including the ones that produced
 plausible numbers rather than errors — a leaked answer, a judge that scored zeros it never
 computed, a floor under total failure, a probe that reported "nothing provisioned" for a
-configuration carrying thirteen skills:
+configuration carrying thirteen skills, an aggregation that zeroed what its own docstring promised
+not to zero:
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/instrument-failures.md">docs/instrument-failures.md</a></p>
+
+<p>An external code review in August 2026 found five more, none of which any number could have
+revealed: three sat in files whose comments described the opposite of what the code did. Sixteen
+further items from that review are open work and are tracked as
+<a href="https://github.com/netresearch/agent-system-evals/issues">issues</a> — until the ones
+marked P0 are closed, results here are exploratory evidence rather than a causal measurement.</p>
 
 <p>Specification, cases, rubric and raw results:
 <a href="https://github.com/netresearch/agent-system-evals">github.com/netresearch/agent-system-evals</a></p>
