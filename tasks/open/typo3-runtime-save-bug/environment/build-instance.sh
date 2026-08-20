@@ -32,7 +32,20 @@ else
     cd "$EXTENSION_DIR"
     git init -q .
     git remote add origin "$TARGET_REPOSITORY"
-    git fetch -q --depth 1 origin "$TARGET_COMMIT"
+    # Depth 1 by default: a review or a diagnosis needs the tree, not the past,
+    # and a shallow fetch keeps the build quick.
+    #
+    # A case may ask for the history instead, with TARGET_HISTORY=full. A
+    # release task genuinely needs it — "what changed since the last version"
+    # is not answerable from a single commit — and a developer preparing a
+    # release has it. Never with tags: the remote's tags include the release
+    # this case exists to see the agent produce, and fetching them would hand
+    # over the answer along with the history.
+    if [ "${TARGET_HISTORY:-shallow}" = "full" ]; then
+        git fetch -q --no-tags origin "$TARGET_COMMIT"
+    else
+        git fetch -q --depth 1 --no-tags origin "$TARGET_COMMIT"
+    fi
     git checkout -q FETCH_HEAD
     # Detach from the forge: the fix for the defect under investigation lives in
     # this repository's future.

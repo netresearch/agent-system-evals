@@ -1,0 +1,192 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-release-prep"
+version = "1.0.0"
+description = "Open forward review: prepare a release of a TYPO3 extension"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "maintenance", "release", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-RELEASE-001"
+category = "open-forward-review"
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: every collector redirects into its
+# file before running, so the file is there if and only if the collector ran —
+# which is the difference between "produced nothing" and "never ran". Emptiness
+# is a separate question and often the right answer.
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "release-check.txt",
+    "capability-inventory.json",
+]
+
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-nr-image-optimize.git"
+target_package = "netresearch/nr-image-optimize"
+target_sha = "5b06205c0daaaf38f60472f265b5fb7fef6b4e1d"
+# Every case runs against an installed instance with the extension active —
+# that is the baseline, not a property of this case. See
+# docs/adr/0006-runtime-fidelity.md.
+runtime = true
+source_learning_id = "retro-20260820-typo3-release-version-files"
+# Graded on one dimension rather than the full eight. The eight exist for an
+# open review; this is a maintenance task with a fact at the end of it, and
+# judging it on prioritisation or context discovery would price a low-level
+# case out of being one. Declared here so no comparison can mix rubrics
+# silently — see docs/scoring.md.
+dimensions = ["release"]
+
+# Ground truth this case decides for itself. A TYPO3 extension carries its
+# version in four places and a release that updates three of them is a release
+# that ships wrong metadata — the extension manager, the rendered documentation
+# and the changelog then disagree about what is installed.
+#
+# `release-check.txt` is written by a collector below; the token is the verdict
+# line it prints only when all four agree on the requested version.
+[metadata.mechanical_outcome]
+artifacts = "release-check.txt"
+all_of = ["release: ok"]
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+# The agent must not start against a half-installed instance. The installation
+# runs at container start because it needs the database; this holds the agent
+# phase until it has finished, and fails the trial if it never does.
+[environment.healthcheck]
+command = "test -f /instance/.instance-ready && cd /instance && vendor/bin/typo3 site:list >/dev/null && curl -fsS -o /dev/null http://v13.nr-image-optimize.ddev.site/typo3/"
+interval_sec = 10.0
+timeout_sec = 60.0
+start_period_sec = 240.0
+start_interval_sec = 10.0
+retries = 5
+
+[environment.env]
+# Not the service name. This case runs under `network_mode = "allowlist"`, and
+# Harbor then puts every service without its own `networks`/`network_mode` —
+# `main` and `db` alike — into the egress sidecar's network namespace. They
+# share one localhost, and the name `db` resolves nowhere. Changing this back
+# to "db" fails with `getaddrinfo for db failed`.
+DB_HOST = "127.0.0.1"
+DB_NAME = "typo3"
+DB_USER = "typo3"
+DB_PASSWORD = "typo3-dev-password"
+# What this arm installs into the instance, resolved from the host environment
+# the way the credentials are. Empty for an arm that provisions nothing, which
+# is what control has to mean: the products are not baked into the image for
+# every fleet.
+PROVISION_PACKAGES = "${PROVISION_PACKAGES}"
+PROVISION_COMPANION_REF = "${PROVISION_COMPANION_REF}"
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# Snapshot the runtime state the agent leaves behind. For a diagnosis case the
+# database is part of the evidence: whether the agent only looked, or also
+# changed something, is visible nowhere else.
+# What the arm was actually given. Run after the agent phase because Harbor
+# hands the MCP configuration to the agent process, not to the container — so
+# this is the earliest point at which the servers can be asked to describe
+# themselves. It records provisioning only; what the agent did with it is
+# counted from the trajectory, separately, and the two must not be conflated:
+# a server that never answered makes a run void, a server that answered and
+# went unused is a result.
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+
+
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 30720
+network_mode = "public"
+
+# The two declarations in their final state. For this case that is also the
+# mechanical half of the answer: they were already right, so a tree that still
+# says what it said is the correct outcome rather than an absent one.
+# The four places a TYPO3 extension states its version, read back after the
+# agent has finished, plus one verdict line. Written by the framework rather
+# than judged: whether four strings match is a fact.
+#
+# `|| true` on the outer command only. The check's own exit status is carried
+# in the file, because a collector that fails silently and a release that is
+# wrong must not look the same.
+[[verifier.collect]]
+command = """
+{
+  want=2.4.2
+  emconf=$(grep -oP "'version'\\s*=>\\s*'\\K[^']+" /app/ext_emconf.php 2>/dev/null | head -1)
+  guides=$(grep -oP 'release="\\K[^"]+' /app/Documentation/guides.xml 2>/dev/null | head -1)
+  # `|| echo 0` would append a second line: grep -c prints 0 *and* exits 1 when
+  # it finds nothing, so the variable became "0\\n0" and the numeric test below
+  # failed with "integer expression expected" — on the path where the release
+  # is incomplete, which is the path that has to work.
+  changelog=$(grep -c "\\[$want\\]" /app/CHANGELOG.md 2>/dev/null || true)
+  docschangelog=$(grep -c "$want" /app/Documentation/Changelog/Index.rst 2>/dev/null || true)
+  changelog=${changelog:-0}
+  docschangelog=${docschangelog:-0}
+  echo "requested: $want"
+  echo "ext_emconf.php: ${emconf:-MISSING}"
+  echo "Documentation/guides.xml: ${guides:-MISSING}"
+  echo "CHANGELOG.md mentions: $changelog"
+  echo "Documentation/Changelog/Index.rst mentions: $docschangelog"
+  if [ "$emconf" = "$want" ] && [ "$guides" = "$want" ] \\
+     && [ "$changelog" -gt 0 ] && [ "$docschangelog" -gt 0 ]; then
+    echo "release: ok"
+  else
+    echo "release: incomplete"
+  fi
+} > /logs/artifacts/release-check.txt 2>&1 || true
+"""
+
+[[verifier.collect]]
+command = "cp /app/CHANGELOG.md /logs/artifacts/changelog.after.md 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app log --oneline -20 > /logs/artifacts/git-log.txt 2>&1 || true"

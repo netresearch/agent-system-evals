@@ -75,6 +75,11 @@ applies_to = "case"
 asks = "Do the statements that have to agree agree, and against something established rather than assumed?"
 
 [[dimension]]
+id = "release"
+applies_to = "case"
+asks = "Does the release carry the same version everywhere it has to, and does the changelog describe what actually changed?"
+
+[[dimension]]
 id = "contract"
 applies_to = "contract"
 asks = "Mechanical: is the known answer present and are the known non-answers absent?"

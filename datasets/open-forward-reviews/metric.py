@@ -65,6 +65,7 @@ DIMENSIONS = [
     "unsupported_claims",
     "outcome_quality",
     "consistency",
+    "release",
     "contract",
 ]
 MET = 0.75

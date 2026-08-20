@@ -1,0 +1,22 @@
+# The extension under review, pinned. See docs/reproducibility.md.
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-nr-image-optimize.git
+TARGET_COMMIT=5b06205c0daaaf38f60472f265b5fb7fef6b4e1d
+TARGET_PACKAGE=netresearch/nr-image-optimize
+TARGET_EXTENSION_KEY=nr_image_optimize
+TARGET_TYPE=typo3-cms-extension
+
+# The history, not just the tree. "What changed since the last version" is not
+# answerable from one commit, and a developer preparing a release has the log.
+# Fetched without tags: the remote already carries v2.4.2, which is the answer
+# this case exists to watch an agent produce.
+TARGET_HISTORY=full
+
+# --- the instance every case runs against -----------------------------------
+TYPO3_LINE=13.4
+SITE_IDENTIFIER=imageopt
+SITE_HOSTNAME=v13.nr-image-optimize.ddev.site
+INSTANCE_DIR=/instance
+DB_NAME=${DB_NAME:-typo3}
+DB_USER=${DB_USER:-typo3}
+DB_PASSWORD=${DB_PASSWORD:-typo3-dev-password}
+DB_HOST=${DB_HOST:-127.0.0.1}
