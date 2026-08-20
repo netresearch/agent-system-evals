@@ -14,9 +14,10 @@ task_schema_version=1.4
 # The verifier image's base, pinned by digest. The tag alone moves.
 verifier_base=ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
 
-# Not pinned, and known not to be: the verifier installs the Claude Code CLI
-# with `curl -fsSL https://claude.ai/install.sh | bash`, which has no version
-# argument and no published checksum in use here. The judge's own binary is
-# therefore the one part of a recorded result that cannot be reconstructed.
-# Tracked in issue #10.
-claude_code=unpinned
+# The judge's own binary, fetched by version from the release channel and
+# checked against the SHA-256 the manifest publishes for it. Until 20 August
+# 2026 the verifier ran `curl -fsSL https://claude.ai/install.sh | bash`, which
+# always installs the newest release — so this was the one part of a recorded
+# result that could not be reconstructed.
+claude_code=2.1.237
+claude_code_sha256_linux_x64=73975167f0108693cf6fd6614994781657ebb8456ebef5d247458734abfb3916

@@ -22,9 +22,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Installed at build time on purpose. The verifier's run-time allowlist does
 # not include claude.ai, so an install during the run would fail — and it
 # should not be reaching out mid-verification anyway.
-RUN curl -fsSL https://claude.ai/install.sh | bash \
-    && /root/.local/bin/claude --version \
-    && mv /root/.local/bin/claude /root/.local/bin/claude-real
+#
+# The versioned binary, fetched directly and checked against the SHA-256 the
+# release manifest publishes for it. `curl -fsSL https://claude.ai/install.sh |
+# bash` — what stood here — always installs whatever is newest, so the judge's
+# own binary was the one part of a recorded result that could not be
+# reconstructed, in a repository whose lock file says a version change
+# invalidates comparison with earlier runs. Two jobs a week apart could have
+# been judged by different software with nothing recording it.
+#
+# (The installer was never as unverified as it looks: it checks the binary
+# against the same manifest. What it does not do is let you choose which
+# version you get.)
+ARG CLAUDE_CODE_VERSION=2.1.237
+ARG CLAUDE_CODE_SHA256=73975167f0108693cf6fd6614994781657ebb8456ebef5d247458734abfb3916
+# `mkdir` first: the installer used to create this directory as a side effect,
+# and without it curl fails with exit 23 — "failed writing body", which reads
+# like a network problem and is a missing directory.
+RUN mkdir -p /root/.local/bin \
+    && curl -fsSL \
+        "https://downloads.claude.ai/claude-code-releases/${CLAUDE_CODE_VERSION}/linux-x64/claude" \
+        -o /root/.local/bin/claude-real \
+    && echo "${CLAUDE_CODE_SHA256}  /root/.local/bin/claude-real" | sha256sum -c - \
+    && chmod +x /root/.local/bin/claude-real \
+    && test "$(/root/.local/bin/claude-real --version | cut -d" " -f1)" = "${CLAUDE_CODE_VERSION}"
 
 # A wrapper around the CLI rather than the CLI itself, so a failing judge
 # leaves a readable error behind: RewardKit truncates the CLI's error envelope

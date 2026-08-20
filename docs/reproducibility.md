@@ -8,14 +8,28 @@ A result is only interpretable next to the exact system that produced it.
 | Layer | Pinned as |
 |---|---|
 | Harbor | version, from `versions.lock` |
-| RewardKit | version, from `versions.lock` |
+| RewardKit | exact patch version, from `versions.lock` |
 | Agent | agent name and CLI version |
 | Model | model id as sent, not a family name |
 | Judge | provider, model id, and rubric digest |
+| Judge binary | Claude Code version and SHA-256, from `versions.lock` |
+| Verifier base image | digest, from `versions.lock` |
 | Skills | resolved commit SHA per skill, read from the Harbor job lock |
 | Target | repository URL and commit SHA |
 | Environment | built image digest |
 | Case | task digest |
+| Grade | rubric digest and grading timestamp, separate from the trial |
+
+Three of those rows were added on 20 August 2026 and two of them were repairs
+rather than additions. `harbor-rewardkit=0.1` installed as `0.1.*` across seven
+patch releases, the verifier's base image was pinned by a tag that moves, and
+the judge's own binary came from `curl … install.sh | bash`, which always
+fetches the newest release. This page listed reproducibility as a property of
+the project while three of its layers floated.
+
+The last row is a different repair: what was run and how it was judged used to
+be one record, so a regrade carried the original rubric's identity forward and
+a comparison could not tell that one side had been re-scored.
 
 Harbor's job lock already records resolved skill commits, task digests and the
 verifier environment mode. `scripts/snapshot` reads that lock rather than the
