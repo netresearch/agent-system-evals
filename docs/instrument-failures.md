@@ -1,6 +1,6 @@
 # Instrument failures
 
-Thirteen ways this benchmark measured the wrong thing while looking like it was
+Eighteen ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -10,9 +10,16 @@ A harness that dies is a nuisance. A harness that returns `0.0` for a criterion
 its judge never evaluated is a liar, and nothing downstream can tell the
 difference. Two of these reached a published page before they were caught.
 
-Not one was found by a gate. Every one was found by holding a number against
-something known independently — a report that had been read, an earlier
-measurement, or an implausible spread.
+Not one was found by a gate. The first thirteen were found by holding a number
+against something known independently — a report that had been read, an earlier
+measurement, or an implausible spread. The last five were found by an external
+review reading the code, which is a different instrument and found a different
+class of failure: three of them sat in files whose own comments described the
+opposite behaviour, so no amount of holding numbers against reality would have
+pointed at them.
+
+Each of the five now has a test that fails against the commit before the fix.
+That is the first time anything here has been gated rather than only recorded.
 
 ## 1. A judge that could not see the evidence
 
@@ -209,6 +216,81 @@ scored 3 of 11 rather than 0.
 **Guard:** the predicate is checked against four answer shapes — an API error,
 an empty string, a correct answer, and one that lists every property in the
 file.
+
+## 14. A metric that zeroed what it promised not to zero
+
+`datasets/open-forward-reviews/metric.py` opened with a paragraph headed
+*"Missing dimensions are reported, not zeroed"*, explaining that scoring an
+absent dimension as zero "would silently convert infrastructure failure into
+evidence about the system under test, which is the single most misleading thing
+this file could do". Forty lines below, the `else` branch wrote `0.0` and the
+mean averaged it in.
+
+It also aggregated `skill_routing`, a dimension renamed to
+`capability_selection` weeks earlier — so it summed a dimension no case emits
+and ignored the one every case does — and CI's smoke test fed it the retired
+name, asserted nothing about the output, and passed.
+
+**Fix:** a dimension with no values is omitted and counted under
+`<dimension>_missing`; the mean names the dimensions it covers.
+**Guard:** `tests/test_metric.py`, nine cases, each one a state the old version
+got wrong. Seventeen of the twenty-four new tests fail against the previous
+commit.
+
+## 15. A comparator that read "not produced" as "failed"
+
+`scripts/compare` counted a dimension met with `t.get(dimension, 0.0) >= 0.75`.
+A dimension the verifier never produced was therefore indistinguishable from
+one the run failed, and the metadata cases — which grade a single dimension by
+design — would have printed seven confident `0/3` rows for dimensions they do
+not grade at all.
+
+**Fix:** met, scored and missing are three numbers. Missing is reported apart
+and never counted as failure.
+
+## 16. A variant comparison that could never run
+
+The comparator gained a rule permitting exactly one cross-case comparison: the
+prepared and bare variants of one case, where the repository is the variable.
+The rule was written after the fingerprint check, which collects every
+difference including the task digest — and two variants differ in the task
+directory by construction. The feature was refused every time it was used, on
+the first line of the check written to allow it. It had never worked, and
+nothing said so because a refusal reads as a configuration mistake.
+
+**Fix:** the pair is recognised before the fingerprints are read.
+**Guard:** two tests, one for the pair and one for a pair that varies the fleet
+as well, which must still be refused.
+
+## 17. Pins that pinned nothing
+
+`versions.lock` said `harbor-rewardkit=0.1`, `scripts/bootstrap` installed
+`0.1.*` and every verifier image resolved `harbor-rewardkit==0.1.*` at build
+time. Seven patch releases exist. Two jobs recorded weeks apart could have been
+scored by different judge harnesses, in a file whose own header states that
+changing a version invalidates comparison with earlier runs. The verifier's
+base image was pinned by tag rather than digest for the same reason and with
+the same effect.
+
+**Fix:** exact version, base image by digest. The Claude Code CLI is still
+installed by `curl | bash` with no version and no checksum — written down in
+`versions.lock` as `claude_code=unpinned` rather than left to be discovered.
+
+## 18. A regrade that carried the old rubric's identity
+
+`scripts/regrade` copied the source job's snapshot forward and added
+`regraded_from`. Everything else was preserved, including the fingerprint that
+says which rubric scored it. A job re-scored with today's rubric therefore
+claimed to have been graded by the rubric of months ago, and a comparison
+between a regraded job and a fresh one read the two as graded alike — which is
+the precondition the whole comparison rests on.
+
+The cause is conceptual: what was run and how it was judged were one record.
+A regrade changes exactly one of the two.
+
+**Fix:** a separate `grade` block — rubric digest, judge, RewardKit version,
+timestamp — replaced on regrade while the trial fingerprint is carried
+unchanged. `scripts/compare` refuses two jobs whose grade identities differ.
 
 ## What this cost, and what it teaches
 

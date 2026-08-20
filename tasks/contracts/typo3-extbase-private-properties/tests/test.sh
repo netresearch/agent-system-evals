@@ -22,4 +22,4 @@ print("wrote", nreval.write_evidence_manifest("/logs/verifier/evidence-manifest.
 print("wrote", nreval.write_transcript("/logs/verifier/transcript.txt"))
 PY
 
-uvx --from 'harbor-rewardkit==0.1.*' rewardkit /tests
+uvx --from 'harbor-rewardkit==0.1.7' rewardkit /tests

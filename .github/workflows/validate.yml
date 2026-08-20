@@ -46,20 +46,21 @@ jobs:
       - name: Cases are valid tasks and follow repository rules
         run: ./scripts/validate-tasks
 
-      - name: Dataset metric runs
-        run: |
-          printf '%s\n' \
-            '{"context_discovery":1.0,"skill_routing":0.5,"authority":1.0,"evidence":1.0,"verification":0.5,"prioritization":1.0,"unsupported_claims":1.0,"outcome_quality":1.0}' \
-            'null' > /tmp/rewards.jsonl
-          uv run --python 3.12 datasets/open-forward-reviews/metric.py \
-            -i /tmp/rewards.jsonl -o /tmp/metric.json
-          cat /tmp/metric.json
+      # Was a bare executability check that fed the metric `skill_routing` —
+      # the name the dimension had stopped having — and asserted nothing about
+      # the output. It passed for weeks while the metric aggregated a dimension
+      # no case emits, ignored the one every case does, and scored missing
+      # dimensions as zero against its own docstring.
+      - name: Analysis core behaves as specified
+        run: uv run --with pytest python -m pytest tests -q
 
       - name: Shell scripts lint clean
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
-          shellcheck scripts/sync-verifier-lib scripts/verifier-selftest \
-            scripts/run-smoke scripts/refresh-target-lock \
+          shellcheck scripts/bootstrap scripts/sync-verifier-lib \
+            scripts/verifier-selftest scripts/run-smoke \
+            scripts/refresh-target-lock scripts/regrade scripts/sync-environment \
+            scripts/prepare-companion scripts/agent-surface-audit \
             tasks/*/*/environment/*.sh tasks/*/*/tests/test.sh
 
   contamination:

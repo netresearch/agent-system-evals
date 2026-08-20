@@ -36,8 +36,11 @@ docker info >/dev/null 2>&1 || {
 echo "installing harbor==$harbor_version"
 uv tool install --force "harbor==$harbor_version" >/dev/null
 
-echo "installing harbor-rewardkit==$rewardkit_version.*"
-uv tool install --force "harbor-rewardkit==$rewardkit_version.*" >/dev/null
+# Exactly what the lock says. This used to append `.*`, so a lock naming a
+# patch version still installed whatever the latest patch was — the pin was
+# decorative on both sides, here and in every verifier image.
+echo "installing harbor-rewardkit==$rewardkit_version"
+uv tool install --force "harbor-rewardkit==$rewardkit_version" >/dev/null
 
 installed="$(harbor --version 2>&1 | tail -1)"
 if [ "$installed" != "$harbor_version" ]; then

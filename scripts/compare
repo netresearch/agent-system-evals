@@ -14,29 +14,29 @@ comparison has no single candidate cause and reporting it invites one to be
 invented.
 
     scripts/compare jobs/<case>-main-<stamp> jobs/<case>-candidate-<stamp>
+    scripts/compare --placebo jobs/<case>-nr-<a> jobs/<case>-nr-<b>
+
+`--placebo` is the one case where two runs that differ in *nothing* are the
+point: the same fleet against itself measures how far this instrument moves on
+its own. Without it there is no scale to read a fleet difference against, and
+the ordinary refusal to compare identical provisions makes the measurement
+impossible to take.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
 
-DIMENSIONS = [
-    "context_discovery",
-    "capability_selection",
-    "authority",
-    "evidence",
-    "verification",
-    "prioritization",
-    "unsupported_claims",
-    "outcome_quality",
-]
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from dimensions import met_threshold, order  # noqa: E402
 
 # A dimension counts as met for a trial at or above this value. Three-point
 # criteria put PARTIAL at 0.5, so the threshold sits above it: a dimension
 # carried by partial credit alone has not been met.
-MET = 0.75
+MET = met_threshold()
 
 
 def load_trials(job_dir: Path) -> list[dict[str, float]]:
@@ -94,7 +94,43 @@ def load_snapshot(job_dir: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def check_comparable(a: dict, b: dict) -> None:
+def check_graded_alike(a: dict, b: dict) -> None:
+    """Were these two scored by the same rubric, by the same judge build?
+
+    The trial and its grade are separate facts and used not to be recorded
+    separately. `scripts/regrade` copied the source job's snapshot forward and
+    added only `regraded_from`, so a job re-scored with today's rubric still
+    carried the fingerprint of the rubric that scored it originally — and a
+    later comparison read the two as having been graded alike. The trial
+    fingerprint says what was run; this says how it was judged, and both have
+    to match before a difference in scores means anything.
+    """
+    ga, gb = a.get("grade"), b.get("grade")
+    if not ga or not gb:
+        print(
+            "note: one of these jobs predates the grade snapshot; whether both "
+            "were scored by the same rubric cannot be checked here.",
+            file=sys.stderr,
+        )
+        return
+    differences = [
+        f"{field}: {ga.get(field)!r} vs {gb.get(field)!r}"
+        for field in ("rubric_digest", "judge", "rewardkit")
+        if ga.get(field) != gb.get(field)
+    ]
+    if differences:
+        print("these runs were not graded alike:", file=sys.stderr)
+        for difference in differences:
+            print(f"  - {difference}", file=sys.stderr)
+        print(
+            "\nRegrade both with the current rubric — that costs judge calls "
+            "and no agent time — and compare the results of that.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
+def check_comparable(a: dict, b: dict, placebo: bool = False) -> None:
     """Everything but the provision must match (docs/open-forward-review.md §8).
 
     The spec lists ten things that have to be constant. This used to compare
@@ -106,31 +142,6 @@ def check_comparable(a: dict, b: dict) -> None:
     the task directory — instruction, rubric, environment, network policy — in
     one hash. See `fingerprints()` in scripts/run-evaluation.
     """
-    fa, fb = a.get("comparison"), b.get("comparison")
-    if fa and fb:
-        differences = [
-            f"{field}: {fa.get(field)!r} vs {fb.get(field)!r}"
-            for field in sorted(set(fa) | set(fb))
-            if fa.get(field) != fb.get(field)
-        ]
-        if not differences and a.get("provision_digest") == b.get("provision_digest"):
-            print(
-                "these runs have the same provision digest: nothing that is "
-                "supposed to differ does. A comparison would be measuring "
-                "noise against itself.",
-                file=sys.stderr,
-            )
-            sys.exit(2)
-    else:
-        # Recorded before fingerprints existed. Fall back to the fields that
-        # were captured, and say so rather than implying the stronger check.
-        print(
-            "note: one of these jobs predates the comparison fingerprint; "
-            "only case, agent, model, judge and trial count are checked.",
-            file=sys.stderr,
-        )
-        differences = []
-
     fields = ["case_id", "agent", "model", "judge", "trials"]
 
     # Two variants of one case may be compared, and nothing else across cases.
@@ -139,7 +150,12 @@ def check_comparable(a: dict, b: dict) -> None:
     # the task digest with it. Everything that is not the declared variable
     # still has to match, which is why this permits exactly the pair and not
     # cross-case comparison in general.
-    pair = (
+    #
+    # Decided *before* the fingerprints are read, which the first version did
+    # not do: it collected every fingerprint difference first, and the task
+    # digest of two variants differs by construction, so the pair was rejected
+    # by the check written to allow it. The feature had never been usable.
+    pair = bool(
         a.get("variant_of")
         and a.get("variant_of") == b.get("variant_of")
         and a.get("variant") != b.get("variant")
@@ -158,6 +174,51 @@ def check_comparable(a: dict, b: dict) -> None:
                 file=sys.stderr,
             )
             sys.exit(2)
+
+    fa, fb = a.get("comparison"), b.get("comparison")
+    if fa and fb:
+        # The task digest covers the task directory, and for a variant pair the
+        # task directory *is* the variable. Every other fingerprint field still
+        # has to match.
+        checked = sorted((set(fa) | set(fb)) - ({"task_digest"} if pair else set()))
+        differences = [
+            f"{field}: {fa.get(field)!r} vs {fb.get(field)!r}"
+            for field in checked
+            if fa.get(field) != fb.get(field)
+        ]
+        same_provision = a.get("provision_digest") == b.get("provision_digest")
+        if placebo:
+            if not same_provision:
+                print(
+                    "--placebo compares an arm against itself, but these two "
+                    "runs have different provision digests. Drop the flag: this "
+                    "is an ordinary comparison.",
+                    file=sys.stderr,
+                )
+                sys.exit(2)
+            print(
+                "placebo comparison: identical provision on both sides. Any "
+                "dimension that moves here moves without a cause, and is the "
+                "scale on which a real difference has to be read."
+            )
+        elif not differences and not pair and same_provision:
+            print(
+                "these runs have the same provision digest: nothing that is "
+                "supposed to differ does. A comparison would be measuring "
+                "noise against itself — which is a measurement worth taking, "
+                "but only deliberately: pass --placebo.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+    else:
+        # Recorded before fingerprints existed. Fall back to the fields that
+        # were captured, and say so rather than implying the stronger check.
+        print(
+            "note: one of these jobs predates the comparison fingerprint; "
+            "only case, agent, model, judge and trial count are checked.",
+            file=sys.stderr,
+        )
+        differences = []
 
     differences += [
         f"{field}: {a.get(field)!r} vs {b.get(field)!r}"
@@ -201,18 +262,46 @@ def offered_nothing(snapshot: dict) -> bool | None:
     )
 
 
-def counts(trials: list[dict[str, float]], dimension: str) -> tuple[int, int]:
-    met = sum(1 for t in trials if t.get(dimension, 0.0) >= MET)
-    return met, len(trials)
+def counts(trials: list[dict[str, float]], dimension: str) -> tuple[int, int, int]:
+    """Met, scored, missing — three numbers, because two conflate two states.
+
+    This used to read `t.get(dimension, 0.0)`, so a dimension the verifier never
+    produced was indistinguishable from one the run failed, and the case that
+    grades a single dimension printed seven confident `0/3` rows for dimensions
+    it does not grade at all.
+    """
+    scored = [t[dimension] for t in trials if dimension in t]
+    met = sum(1 for value in scored if value >= MET)
+    return met, len(scored), len(trials) - len(scored)
+
+
+def dimensions_present(*trial_sets: list[dict[str, float]]) -> list[str]:
+    """What these jobs actually graded, in registry order.
+
+    Driven by the rewards rather than by a list in this file: a case grades the
+    dimensions its rubric defines, and a comparator that knows a fixed eight
+    reports nothing at all for a case built after it — which is what happened
+    to `consistency`.
+    """
+    keys = {key for trials in trial_sets for trial in trials for key in trial}
+    return order(keys)
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
-        sys.exit(__doc__)
-    dir_a, dir_b = Path(sys.argv[1]), Path(sys.argv[2])
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("job_a", type=Path)
+    parser.add_argument("job_b", type=Path)
+    parser.add_argument(
+        "--placebo",
+        action="store_true",
+        help="compare an arm against itself, to measure the instrument's own spread",
+    )
+    args = parser.parse_args()
+    dir_a, dir_b = args.job_a, args.job_b
 
     snap_a, snap_b = load_snapshot(dir_a), load_snapshot(dir_b)
-    check_comparable(snap_a, snap_b)
+    check_comparable(snap_a, snap_b, placebo=args.placebo)
+    check_graded_alike(snap_a, snap_b)
 
     for job in (dir_a, dir_b):
         problems = errored_criteria(job)
@@ -238,51 +327,90 @@ def main() -> int:
     print(f"agent  {snap_a['agent']} / {snap_a['model']}")
     print(f"judge  {snap_a['judge']}")
     print()
-    label_a, label_b = snap_a["fleet"], snap_b["fleet"]
-    width = max(len(d) for d in DIMENSIONS)
-    print(f"{'dimension'.ljust(width)}  {label_a:>10}  {label_b:>10}")
+    # Two arms of a variant pair carry the same fleet name, so labelling the
+    # columns by fleet would print the same word twice and leave the reader
+    # unable to tell which side is which.
+    if snap_a.get("variant") and snap_a.get("variant") != snap_b.get("variant"):
+        label_a, label_b = snap_a["variant"], snap_b["variant"]
+    elif args.placebo:
+        label_a, label_b = f"{snap_a['fleet']} (a)", f"{snap_b['fleet']} (b)"
+    else:
+        label_a, label_b = snap_a["fleet"], snap_b["fleet"]
+
+    dimensions = dimensions_present(trials_a, trials_b)
+    if not dimensions:
+        sys.exit("neither job's rewards name a dimension; nothing to compare")
+    width = max(len(d) for d in dimensions)
+    print(f"{'dimension'.ljust(width)}  {label_a:>12}  {label_b:>12}")
 
     moved = []
-    for dimension in DIMENSIONS:
-        met_a, n_a = counts(trials_a, dimension)
-        met_b, n_b = counts(trials_b, dimension)
+    incomplete = []
+    for dimension in dimensions:
+        met_a, n_a, missing_a = counts(trials_a, dimension)
+        met_b, n_b, missing_b = counts(trials_b, dimension)
+        if missing_a or missing_b:
+            incomplete.append((dimension, missing_a, missing_b))
 
         # An arm offered nothing had no selection to get right. Scoring it zero
         # would make every comparison against a control look like an
         # improvement on a dimension the control could not act on.
+        na_a = na_b = False
         if dimension == "capability_selection":
             na_a, na_b = offered_nothing(snap_a), offered_nothing(snap_b)
-            if na_a or na_b:
-                left = "n/a" if na_a else f"{met_a}/{n_a}"
-                right = "n/a" if na_b else f"{met_b}/{n_b}"
-                print(f"{dimension:22} {left:>11} {right:>11}"
-                      "   (n/a: nothing was offered to choose among)")
-                continue
+
+        left = "n/a" if na_a else ("—" if not n_a else f"{met_a}/{n_a}")
+        right = "n/a" if na_b else ("—" if not n_b else f"{met_b}/{n_b}")
+
         marker = ""
-        if met_a != met_b:
+        if na_a or na_b:
+            marker = "   (n/a: nothing was offered to choose among)"
+        elif not n_a or not n_b:
+            marker = "   (not graded on one side)"
+        elif met_a != met_b:
             marker = "  <-- moved"
             moved.append((dimension, met_a, n_a, met_b, n_b))
+        print(f"{dimension.ljust(width)}  {left:>12}  {right:>12}{marker}")
+
+    if incomplete:
+        print()
+        print("dimensions the verifier did not produce for every trial:")
+        for dimension, missing_a, missing_b in incomplete:
+            print(f"  {dimension}: {missing_a} missing / {missing_b} missing")
         print(
-            f"{dimension.ljust(width)}  {f'{met_a}/{n_a}':>10}  "
-            f"{f'{met_b}/{n_b}':>10}{marker}"
+            "A missing dimension is a fact about the verifier, not about the "
+            "run. It is excluded above rather than counted as a failure."
         )
 
     print()
     if not moved:
         print("no dimension moved.")
-        print(
-            f"With {len(trials_a)} trials per side this does not establish "
-            f"that the change had no effect — only that none was observed at "
-            f"this sample size."
-        )
+        if args.placebo:
+            print(
+                f"With {len(trials_a)} trials per side the instrument held "
+                f"still. That bounds its spread at this sample size; it does "
+                f"not establish that it has none."
+            )
+        else:
+            print(
+                f"With {len(trials_a)} trials per side this does not establish "
+                f"that the change had no effect — only that none was observed at "
+                f"this sample size."
+            )
     else:
         for dimension, met_a, n_a, met_b, n_b in moved:
             direction = "improved" if met_b > met_a else "regressed"
             print(f"{dimension}: {direction}, {met_a}/{n_a} -> {met_b}/{n_b}")
-        print(
-            "\nA one-trial difference is within the noise of a stochastic "
-            "agent. Re-run before treating any of these as a finding."
-        )
+        if args.placebo:
+            print(
+                "\nNothing differed between these two runs but the dice. Every "
+                "movement above is this instrument's own spread, and a fleet "
+                "comparison has to clear it before it says anything."
+            )
+        else:
+            print(
+                "\nA one-trial difference is within the noise of a stochastic "
+                "agent. Re-run before treating any of these as a finding."
+            )
     return 0
 
 

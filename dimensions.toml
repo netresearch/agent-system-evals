@@ -1,0 +1,80 @@
+# The dimensions, in one place.
+#
+# They used to live in four: `scripts/compare`, `scripts/validate-rubric`,
+# `datasets/*/metric.py` and `docs/scoring.md`. The lists drifted, quietly and
+# in the direction that hides errors. When `skill_routing` was renamed to
+# `capability_selection` the metric kept the old name, so it aggregated a
+# dimension no case emits and ignored the one every case does — and the CI
+# smoke test fed it the old name too, which is why nothing said so. When the
+# metadata cases introduced `consistency`, the validator learned it through a
+# special case and neither the comparator nor the metric ever heard of it.
+#
+# So: added here first, or it does not exist. `scripts/validate-rubric --check`
+# fails when a consumer's copy diverges from this file.
+#
+# `applies_to` decides where a dimension is expected rather than merely allowed:
+#
+#   open      the eight of an open forward review; a case grades all of them
+#             unless its task.toml declares a narrower set
+#   case      graded only where a case names it in metadata.dimensions
+#   contract  the single mechanical reward of a contract eval
+version = 2
+
+# A dimension counts as met for a trial at or above this. Three-point criteria
+# put PARTIAL at 0.5, so the threshold sits above it: a dimension carried by
+# partial credit alone has not been met.
+met_threshold = 0.75
+
+[[dimension]]
+id = "context_discovery"
+applies_to = "open"
+asks = "Did it establish what this project is before judging it?"
+
+[[dimension]]
+id = "capability_selection"
+applies_to = "open"
+asks = "Did it choose sensibly among the capabilities it was offered — including choosing none?"
+# An arm that was offered nothing had no decision to get right. Scoring it zero
+# would make every comparison against a control look like an improvement on a
+# dimension the control could not act on. See docs/scoring.md.
+not_applicable_when = "nothing was provisioned"
+
+[[dimension]]
+id = "authority"
+applies_to = "open"
+asks = "Did each claim come from the source that owns that fact?"
+
+[[dimension]]
+id = "evidence"
+applies_to = "open"
+asks = "Is each finding anchored to a location, a version, and an observation?"
+
+[[dimension]]
+id = "verification"
+applies_to = "open"
+asks = "Did it run the checks that were available to it?"
+
+[[dimension]]
+id = "prioritization"
+applies_to = "open"
+asks = "Is the ordering one an experienced engineer would accept?"
+
+[[dimension]]
+id = "unsupported_claims"
+applies_to = "open"
+asks = "Penalises assertions no observation backs"
+
+[[dimension]]
+id = "outcome_quality"
+applies_to = "open"
+asks = "Would a competent developer actually use this output?"
+
+[[dimension]]
+id = "consistency"
+applies_to = "case"
+asks = "Do the statements that have to agree agree, and against something established rather than assumed?"
+
+[[dimension]]
+id = "contract"
+applies_to = "contract"
+asks = "Mechanical: is the known answer present and are the known non-answers absent?"

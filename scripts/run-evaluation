@@ -226,6 +226,31 @@ def fingerprints(job_dir: Path) -> dict:
     lock = json.loads(locks[0].read_text())
     agent = lock.get("agent", {}) or {}
 
+    # Every trial of a job, not the first one. Harbor locks per trial, and
+    # nothing guaranteed the rest resolved the same skills, image or agent
+    # version — a job whose trials disagree is not one measurement, and reading
+    # only `locks[0]` would describe it as though it were.
+    def identity(candidate: dict) -> tuple:
+        return (
+            (candidate.get("task") or {}).get("digest"),
+            json.dumps(candidate.get("skills") or [], sort_keys=True),
+            (candidate.get("agent") or {}).get("model_name"),
+        )
+
+    disagreements = [
+        path.parent.name
+        for path in locks[1:]
+        if identity(json.loads(path.read_text())) != identity(lock)
+    ]
+    if disagreements:
+        print(
+            f"\nWARNING: {len(disagreements)} trial(s) of this job resolved a "
+            f"different task digest or skill set than the first "
+            f"({', '.join(disagreements[:3])}). The job is not one "
+            f"configuration and its trials must not be pooled.",
+            file=sys.stderr,
+        )
+
     comparison = {
         "task_digest": (lock.get("task", {}) or {}).get("digest"),
         "agent": agent.get("name"),
@@ -257,6 +282,45 @@ def fingerprints(job_dir: Path) -> dict:
         "provision": provision,
         "provision_digest": digest(provision),
     }
+
+
+def rubric_digest(case_dir: Path) -> str:
+    """A hash over the rubric that scored this job.
+
+    Kept apart from the trial fingerprint on purpose. The trial fingerprint says
+    what was run; this says how it was judged, and a regrade changes exactly one
+    of the two. Without it, `scripts/regrade` carried the original run's
+    fingerprint forward unchanged and a later comparison could not tell that one
+    side had been re-scored against a rubric the other never saw.
+    """
+    tests = case_dir / "tests"
+    if not tests.is_dir():
+        return ""
+    digest = hashlib.sha256()
+    for path in sorted(tests.rglob("*")):
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        digest.update(str(path.relative_to(tests)).encode())
+        digest.update(path.read_bytes())
+    return digest.hexdigest()[:16]
+
+
+def grade_snapshot(case_dir: Path, judge: str) -> dict:
+    return {
+        "rubric_digest": rubric_digest(case_dir),
+        "judge": judge,
+        "rewardkit": pinned_version("harbor-rewardkit"),
+        "graded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
+def pinned_version(name: str) -> str | None:
+    lock = ROOT / "versions.lock"
+    for line in lock.read_text().splitlines() if lock.is_file() else []:
+        key, _, value = line.partition("=")
+        if key.strip() == name:
+            return value.strip()
+    return None
 
 
 def check_fleet_fits_the_case(name: str, case_dir: Path) -> None:
@@ -610,6 +674,9 @@ def main() -> int:
             "mcp_server": mcp_server[0] if mcp_server else None,
             "fleet_declares": fleet_versions(args.fleet),
             **fingerprints(job_dir),
+            # How this job was scored, separate from what it ran. A regrade
+            # replaces this block and leaves everything above it alone.
+            "grade": grade_snapshot(case_dir, judge),
             "agent_env": agent_env,
             "agent": args.agent,
             "model": args.model,

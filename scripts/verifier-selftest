@@ -7,9 +7,15 @@
 # against recorded fixtures, and asserts the resulting scores separate a
 # thorough run from one that did nothing.
 #
-# Judge criteria are excluded: they cost an API call each and are calibrated
-# separately by scripts/calibrate-judges. Everything here is free and
-# deterministic, so it runs on every pull request.
+# Judge criteria are excluded: they cost an API call each. Everything here is
+# free and deterministic, so it runs on every pull request.
+#
+# This comment used to say they were "calibrated separately by
+# scripts/calibrate-judges". No such script has ever existed, and the judges
+# are not calibrated at all: nothing measures how far one disagrees with itself
+# on a re-run, or with a human, and no acceptance threshold is written down.
+# Tracked in issue #5. The sentence read as coverage and was the reason nobody
+# looked.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

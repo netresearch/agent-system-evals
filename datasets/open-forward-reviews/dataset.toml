@@ -1,7 +1,10 @@
 # Public Open Forward Review cases.
 #
-# Public means the targets and prompts are public. It does not mean the
-# expectations are: known-concerns files stay verifier-side (ADR 0005).
+# Targets, prompts, rubrics and expectations are all public here. The
+# known-concerns files are verifier-side — the agent's container never holds
+# them — but they are committed and anyone can read them, so a stack developed
+# against this dataset may have seen the findings its cases expect. This comment
+# claimed the opposite until 20 August 2026; see ADR 0005 and issue #7.
 #
 # The [[files]] digest is maintained by `harbor sync`; a stale digest means the
 # published dataset and this manifest disagree about what the metric computes.
@@ -13,8 +16,15 @@ description = "Open forward reviews of real repositories with a system-level rub
 authors = [{ name = "Netresearch DTT GmbH" }]
 keywords = ["open-forward-review", "agent-system", "typo3"]
 
+# Every open case, not the one that existed when this file was written. A
+# manifest that names one of five describes a dataset nobody has, and the metric
+# it points at then aggregates a fifth of the evidence.
 tasks = [
     "netresearch/ofr-typo3-extension-review",
+    "netresearch/ofr-typo3-extension-upgrade",
+    "netresearch/ofr-typo3-runtime-save-bug",
+    "netresearch/ofr-typo3-version-metadata",
+    "netresearch/ofr-typo3-version-metadata-bare",
 ]
 
 [[files]]

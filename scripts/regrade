@@ -51,14 +51,44 @@ fi
 harbor job regrade "$SOURCE" -p "$CASE" -o "$ROOT/jobs" --job-name "$name"
 
 if [ -f "$SOURCE/nr-snapshot.json" ]; then
-    python3 - "$SOURCE/nr-snapshot.json" "$ROOT/jobs/$name/nr-snapshot.json" <<'PY'
-import json, sys
+    python3 - "$SOURCE/nr-snapshot.json" "$ROOT/jobs/$name/nr-snapshot.json" \
+             "$CASE" "$ROOT" <<'PY'
+import hashlib, json, pathlib, sys
+from datetime import datetime, timezone
 
 snapshot = json.load(open(sys.argv[1]))
+case, root = pathlib.Path(sys.argv[3]), pathlib.Path(sys.argv[4])
+
 # Marked, so a regraded result is never mistaken for a fresh run: the trials
 # are the originals, only the scoring is new.
 snapshot["regraded_from"] = sys.argv[1].rsplit("/", 2)[-2]
+
+# The grade is replaced; the trial fingerprint is not. Copying the whole
+# snapshot forward — which is all this did — left a job re-scored with today's
+# rubric carrying the identity of the rubric that scored it months ago, and
+# scripts/compare then read the two as having been graded alike. What was run
+# has not changed. How it was judged has, and only this block says so.
+tests = case / "tests"
+digest = hashlib.sha256()
+for path in sorted(tests.rglob("*")) if tests.is_dir() else []:
+    if path.is_file() and "__pycache__" not in path.parts:
+        digest.update(str(path.relative_to(tests)).encode())
+        digest.update(path.read_bytes())
+
+pinned = {}
+lock = root / "versions.lock"
+if lock.is_file():
+    for line in lock.read_text().splitlines():
+        key, _, value = line.partition("=")
+        pinned[key.strip()] = value.strip()
+
+snapshot["grade"] = {
+    "rubric_digest": digest.hexdigest()[:16],
+    "judge": snapshot.get("judge"),
+    "rewardkit": pinned.get("harbor-rewardkit"),
+    "graded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+}
 json.dump(snapshot, open(sys.argv[2], "w"), indent=2)
 PY
-    echo "provenance carried over to jobs/$name/nr-snapshot.json"
+    echo "trial provenance carried over, grade snapshot replaced, in jobs/$name/nr-snapshot.json"
 fi

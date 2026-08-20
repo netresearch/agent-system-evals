@@ -2,15 +2,23 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Run an A/B properly: interleaved, and only as deep as the answer needs.
+"""Run an A/B in alternating blocks, and only as deep as the answer needs.
 
-Two problems this fixes, both found in this repository's own results.
+Two problems this addresses, both found in this repository's own results.
 
-**Order.** Every comparison so far ran one arm to completion and then the
+**Order.** Every comparison before this ran one arm to completion and then the
 other, hours apart. A model update, a caching change or a quiet backend
 migration in between arrives as a difference between arms and is
-indistinguishable from one. Trials are interleaved here — A B, B A, A B — so a
-drift over the session spreads across both arms instead of landing on one.
+indistinguishable from one. Here the arms alternate per stage in a shuffled
+order, so a drift over the session is split across them rather than landing on
+one.
+
+That is *block* randomisation, not trial-level interleaving: a stage still runs
+one arm's three trials back to back, because a job is the unit `scripts/compare`
+reads. Within a stage, a drift can still fall on one side. The docstring used to
+claim `A B, B A, A B` — trial by trial — which this has never done; saying so
+here rather than in an issue alone, because a comment that overstates the method
+is how a reader stops checking. Tracked in issue #2.
 
 **Depth.** Three trials per arm was treated as the measurement. It is not: on
 the runtime case the spread inside one arm covered the gap between arms, and a
@@ -18,6 +26,10 @@ median difference got published as a 53% saving before the per-trial figures
 were looked at. Three trials answer "is anything obviously happening"; nothing
 more. So the run starts at three, and continues only where the result is close
 enough that more trials could settle it.
+
+Every run writes `experiments/<stamp>-<case>.json`: the seed, the arms, the
+stage sizes, the jobs each stage produced and why it stopped. Without it the
+seed is unrecoverable and the run is not reproducible even in principle.
 
     scripts/run-comparison <case-id> --arms control,nr [--max-trials 12]
 """
@@ -37,9 +49,19 @@ MET = 0.75
 
 # Three is enough to notice a difference and never enough to establish one.
 DISCOVERY = 3
-# Complete separation of two groups of three happens by chance one time in
-# twenty. That is the most three trials can say, so anything that separates
-# cleanly is worth spending more on; anything that overlaps heavily is not.
+# Complete separation of two groups of three happens by chance one time in ten.
+# Six exchangeable observations admit C(6,3) = 20 orderings and two of them are
+# completely separated — all of A below all of B, or all of B below all of A.
+# The check below tests both directions, so the figure is 2/20 and not the 1/20
+# this comment, docs/open-forward-review.md and the published page all used to
+# state. One in twenty is the one-sided figure, and would only apply to a
+# direction named before the data were seen, which none of them was.
+#
+# It is also read across every dimension a case grades. Eight independent
+# dimensions at one in ten would produce at least one separation by chance in
+# roughly half of all runs; they are not independent, but nothing here corrects
+# for the multiplicity either. So separation is a reason to spend more trials
+# and is never itself a result. Tracked in issue #3.
 STAGES = (3, 4, 5)
 
 
@@ -141,62 +163,117 @@ def main() -> int:
 
     collected: dict[str, list[Path]] = {arm: [] for arm in arms}
     spent = 0
+    stop_reason = "stages exhausted"
+    record: dict = {
+        "case": args.case_id,
+        "arms": arms,
+        "seed": args.seed,
+        "max_trials": args.max_trials,
+        "stages": [],
+    }
+    experiments = ROOT / "experiments"
+    experiments.mkdir(exist_ok=True)
+    log = experiments / f"{args.case_id}-{len(list(experiments.iterdir())):03d}.json"
+
+    def save() -> None:
+        record["stop_reason"] = stop_reason
+        record["trials_spent"] = spent
+        record["jobs"] = {
+            arm: [str(job.relative_to(ROOT)) for job in jobs]
+            for arm, jobs in collected.items()
+        }
+        log.write_text(json.dumps(record, indent=2))
 
     for stage, size in enumerate(STAGES, start=1):
-        if spent >= args.max_trials:
+        # Checked against what a full stage would cost, not against what has
+        # already been spent. The first version tested `spent >= max_trials`
+        # before a stage and then let the stage run in full, so `--max-trials
+        # 12` with two arms ran fourteen: 3+3 leaves six spent, under the
+        # limit, and stage two adds eight more. A budget that can be exceeded
+        # by two thirds of a stage is not a budget.
+        remaining = args.max_trials - spent
+        if remaining < len(arms):
+            stop_reason = f"budget exhausted ({spent} of {args.max_trials} trials)"
+            print(f"\n{stop_reason}")
             break
-        # Interleaved rather than arm-by-arm, and shuffled within the round so
-        # a systematic drift does not always favour the same side.
+        size = min(size, remaining // len(arms))
+
+        # Shuffled per stage so a systematic drift over the session does not
+        # always favour the same side.
         order = list(arms)
         rng.shuffle(order)
         print(f"\nstage {stage}: {size} trial(s) per arm, order {' '.join(order)}")
+        record["stages"].append({"stage": stage, "size": size, "order": order})
         for fleet in order:
             job = run_arm(args.case_id, fleet, size, env)
-            if job:
-                collected[fleet].append(job)
+            if job is None:
+                # Fail closed. Continuing would leave one arm with fewer trials
+                # than the other and no note in the output saying so, and the
+                # comparison would read the imbalance as a result.
+                stop_reason = f"arm {fleet} failed in stage {stage}"
+                print(f"\n{stop_reason}; stopping rather than comparing "
+                      f"unequal arms.", file=sys.stderr)
+                save()
+                print(f"experiment record: {log.relative_to(ROOT)}")
+                return 1
+            collected[fleet].append(job)
             spent += size
 
         if stage == 1:
             # Stop unless something looks like it is happening. A dimension
             # that already separates completely is worth more trials; one that
             # overlaps is not going to be settled by them either.
-            interesting = False
-            first, second = arms[0], arms[1]
-            scores_a = merged(collected[first])
-            scores_b = merged(collected[second])
+            #
+            # Every pair of arms, not the first two. `--arms a,b,c` was accepted
+            # and then decided on `a` against `b` alone, so a third arm's trials
+            # were paid for and could neither trigger the deepening nor stop it.
+            interesting: list[str] = []
 
-            # Ground truth first, where the case has any, and judged by a
-            # different rule. Complete separation is meaningless for a pass/fail
-            # outcome — [0,1,1] against [1,1,1] can never separate, though the
-            # difference is exactly the finding. Any gap in the pass rate is
-            # worth more trials, because it is the one number no judge decided.
             def outcome_of(jobs):
                 runs = [o for o in (mechanical_outcome(j) for j in jobs) if o]
                 return [v for run in runs for v in run]
 
-            out_a, out_b = outcome_of(collected[first]), outcome_of(collected[second])
-            if out_a and out_b and sum(out_a) / len(out_a) != sum(out_b) / len(out_b):
-                print(
-                    f"  mechanical outcome differs — {sum(out_a):.0f}/{len(out_a)} "
-                    f"against {sum(out_b):.0f}/{len(out_b)} — continuing"
-                )
-                interesting = True
+            for i, first in enumerate(arms):
+                for second in arms[i + 1:]:
+                    scores_a, scores_b = merged(collected[first]), merged(collected[second])
 
-            for dimension in sorted(set(scores_a) | set(scores_b)):
-                if separated(scores_a.get(dimension, []), scores_b.get(dimension, [])):
-                    print(f"  {dimension} separates completely — continuing")
-                    interesting = True
+                    # Ground truth first, where the case has any, and judged by
+                    # a different rule. Complete separation is meaningless for a
+                    # pass/fail outcome — [0,1,1] against [1,1,1] can never
+                    # separate, though the difference is exactly the finding.
+                    # Any gap in the pass rate is worth more trials, because it
+                    # is the one number no judge decided.
+                    out_a, out_b = outcome_of(collected[first]), outcome_of(collected[second])
+                    if out_a and out_b and sum(out_a) / len(out_a) != sum(out_b) / len(out_b):
+                        note = (
+                            f"{first} vs {second}: mechanical outcome differs — "
+                            f"{sum(out_a):.0f}/{len(out_a)} against "
+                            f"{sum(out_b):.0f}/{len(out_b)}"
+                        )
+                        print(f"  {note} — continuing")
+                        interesting.append(note)
+
+                    for dimension in sorted(set(scores_a) | set(scores_b)):
+                        if separated(scores_a.get(dimension, []), scores_b.get(dimension, [])):
+                            note = f"{first} vs {second}: {dimension} separates completely"
+                            print(f"  {note} — continuing")
+                            interesting.append(note)
+
+            record["stages"][-1]["separations"] = interesting
             if not interesting:
-                print("\nnothing separates after the discovery stage; stopping.")
+                stop_reason = "nothing separated after the discovery stage"
+                print(f"\n{stop_reason}; stopping.")
                 print("Three trials per arm cannot establish a difference, and "
                       "nothing here suggests one is there to establish.")
                 break
 
+    save()
     print("\njobs:")
     for fleet, jobs in collected.items():
         for job in jobs:
             print(f"  {fleet}: {job.relative_to(ROOT)}")
-    print("\nCompare them with scripts/compare, and read the per-trial figures "
+    print(f"\nexperiment record: {log.relative_to(ROOT)}")
+    print("Compare them with scripts/compare, and read the per-trial figures "
           "before any median.")
     return 0
 

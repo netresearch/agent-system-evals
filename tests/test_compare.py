@@ -1,0 +1,189 @@
+"""The comparability gate, and the two states it used to conflate.
+
+`scripts/compare` decides whether two recorded jobs may be set beside each
+other. Everything it gets wrong is invisible in its output: a refusal that
+should have been an acceptance looks like a configuration mistake, and an
+acceptance that should have been a refusal looks like a result.
+"""
+
+from __future__ import annotations
+
+import importlib.util
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load(name: str):
+    """Import a script that has no .py extension."""
+    spec = importlib.util.spec_from_loader(
+        name,
+        importlib.machinery.SourceFileLoader(name, str(ROOT / "scripts" / name)),
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+compare = load("compare")
+
+
+def snapshot(**overrides) -> dict:
+    base = {
+        "case_id": "OFR-TEST-001",
+        "fleet": "control",
+        "agent": "claude-code",
+        "model": "claude-opus-5",
+        "judge": "claude-opus-5",
+        "trials": 3,
+        "comparison": {"task_digest": "aaa", "agent": "claude-code"},
+        "provision_digest": "p1",
+        "grade": {
+            "rubric_digest": "r1",
+            "judge": "claude-opus-5",
+            "rewardkit": "0.1.7",
+        },
+    }
+    base.update(overrides)
+    return base
+
+
+# --- counts: missing is not failure -----------------------------------------
+
+
+def test_missing_dimension_is_not_counted_as_not_met():
+    """`t.get(dimension, 0.0)` made these two states one.
+
+    A case that grades one dimension printed seven confident `0/3` rows for
+    dimensions it does not grade, which reads as a run that failed them.
+    """
+    trials = [{"consistency": 1.0}, {"consistency": 1.0}, {"consistency": 1.0}]
+    met, scored, missing = compare.counts(trials, "verification")
+    assert (met, scored, missing) == (0, 0, 3)
+
+    met, scored, missing = compare.counts(trials, "consistency")
+    assert (met, scored, missing) == (3, 3, 0)
+
+
+def test_partial_scores_do_not_count_as_met():
+    trials = [{"evidence": 0.5}, {"evidence": 1.0}]
+    assert compare.counts(trials, "evidence") == (1, 2, 0)
+
+
+def test_dimensions_present_follows_the_registry_not_a_literal():
+    present = compare.dimensions_present(
+        [{"consistency": 1.0, "evidence": 1.0}], [{"authority": 1.0}]
+    )
+    # Registry order, and `consistency` appears at all — a fixed list of eight
+    # reported nothing for the cases that grade it.
+    assert present == ["authority", "evidence", "consistency"]
+
+
+def test_dimensions_present_keeps_unknown_names():
+    present = compare.dimensions_present([{"zzz_new": 1.0, "evidence": 1.0}])
+    assert present == ["evidence", "zzz_new"]
+
+
+# --- comparability ----------------------------------------------------------
+
+
+def test_identical_configuration_is_comparable():
+    compare.check_comparable(snapshot(), snapshot(fleet="nr", provision_digest="p2"))
+
+
+def test_differing_task_digest_is_refused(capsys):
+    with pytest.raises(SystemExit) as exit_info:
+        compare.check_comparable(
+            snapshot(),
+            snapshot(
+                fleet="nr",
+                provision_digest="p2",
+                comparison={"task_digest": "bbb", "agent": "claude-code"},
+            ),
+        )
+    assert exit_info.value.code == 2
+
+
+def test_variant_pair_is_comparable_despite_a_differing_task_digest():
+    """The feature that had never worked.
+
+    A variant pair varies the repository, so the task directory and its digest
+    differ by construction. The fingerprint difference was collected before the
+    pair was recognised, so the check written to permit the comparison rejected
+    it every time.
+    """
+    a = snapshot(variant_of="OFR-TEST-001", variant="prepared")
+    b = snapshot(
+        case_id="OFR-TEST-001-BARE",
+        variant_of="OFR-TEST-001",
+        variant="bare",
+        comparison={"task_digest": "bbb", "agent": "claude-code"},
+    )
+    compare.check_comparable(a, b)
+
+
+def test_variant_pair_with_two_variables_is_refused():
+    a = snapshot(variant_of="OFR-TEST-001", variant="prepared")
+    b = snapshot(
+        case_id="OFR-TEST-001-BARE",
+        variant_of="OFR-TEST-001",
+        variant="bare",
+        fleet="nr",
+        comparison={"task_digest": "bbb", "agent": "claude-code"},
+    )
+    with pytest.raises(SystemExit):
+        compare.check_comparable(a, b)
+
+
+def test_same_provision_is_refused_without_the_placebo_flag():
+    with pytest.raises(SystemExit) as exit_info:
+        compare.check_comparable(snapshot(), snapshot())
+    assert exit_info.value.code == 2
+
+
+def test_placebo_permits_two_identical_arms():
+    """The measurement the ordinary refusal made impossible.
+
+    Same fleet against itself is the only way to learn how far this instrument
+    moves on its own, which is the scale every real difference has to clear.
+    """
+    compare.check_comparable(snapshot(), snapshot(), placebo=True)
+
+
+def test_placebo_refuses_arms_that_actually_differ():
+    with pytest.raises(SystemExit):
+        compare.check_comparable(
+            snapshot(), snapshot(fleet="nr", provision_digest="p2"), placebo=True
+        )
+
+
+# --- grade identity ---------------------------------------------------------
+
+
+def test_jobs_graded_by_different_rubrics_are_refused():
+    """A regrade used to carry the original rubric's identity forward."""
+    with pytest.raises(SystemExit) as exit_info:
+        compare.check_graded_alike(
+            snapshot(),
+            snapshot(
+                grade={
+                    "rubric_digest": "r2",
+                    "judge": "claude-opus-5",
+                    "rewardkit": "0.1.7",
+                }
+            ),
+        )
+    assert exit_info.value.code == 2
+
+
+def test_jobs_graded_alike_pass():
+    compare.check_graded_alike(snapshot(), snapshot())
+
+
+def test_a_job_without_a_grade_snapshot_is_noted_not_refused(capsys):
+    compare.check_graded_alike(snapshot(), snapshot(grade=None))
+    assert "predates the grade snapshot" in capsys.readouterr().err

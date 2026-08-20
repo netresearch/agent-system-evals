@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --quiet --with harbor-rewardkit==0.1.* --script
+#!/usr/bin/env -S uv run --quiet --with harbor-rewardkit==0.1.7 --script
 # Upper bound on purpose: RewardKit's pydantic calls a typing internal that
 # Python 3.14 removed, and an unbounded floor silently selects it.
 # /// script
@@ -14,7 +14,8 @@ surfaces in CI for free.
 Also enforces the repository's own rules about rubric shape, which RewardKit
 has no reason to know:
 
-- every dimension is one of the eight in docs/scoring.md
+- every dimension is defined in dimensions.toml
+- the copy of that registry inside datasets/*/metric.py has not drifted
 - qualitative criteria are three-point, so PARTIAL is reachable
 - every judge is pinned to a named model
 - every judge uses the shared anti-bias prompt template
@@ -22,27 +23,60 @@ has no reason to know:
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
 from rewardkit.runner import discover
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from dimensions import all_ids, ids_for, met_threshold  # noqa: E402
 
-DIMENSIONS = {
-    "context_discovery",
-    "capability_selection",
-    "authority",
-    "evidence",
-    "verification",
-    "prioritization",
-    "unsupported_claims",
-    "outcome_quality",
-}
+DIMENSIONS = set(ids_for("open"))
+
+
+def check_metric_copies() -> list[str]:
+    """The dataset metric carries a literal copy of the registry. Is it current?
+
+    It has to be literal: the dataset manifest publishes `metric.py` as a
+    standalone file, so it cannot read `dimensions.toml`. The copy is the reason
+    the metric aggregated `skill_routing` for weeks after the dimension was
+    renamed — it named a dimension no case emits and ignored the one every case
+    does, and the CI smoke test fed it the old name too, so the run stayed
+    green. This is the gate that would have caught it.
+    """
+    problems = []
+    expected = all_ids()
+    for path in sorted(ROOT.glob("datasets/*/metric.py")):
+        block = re.search(
+            r"# BEGIN GENERATED: dimensions\.toml(.*?)# END GENERATED",
+            path.read_text(),
+            re.S,
+        )
+        if not block:
+            problems.append(
+                f"{path.relative_to(ROOT)}: no generated block; it must carry a "
+                f"copy of dimensions.toml between the BEGIN/END markers"
+            )
+            continue
+        found = re.findall(r'"([a-z_]+)"', block.group(1))
+        if found != expected:
+            problems.append(
+                f"{path.relative_to(ROOT)}: dimension copy is stale — has "
+                f"{found}, dimensions.toml says {expected}"
+            )
+        threshold = re.search(r"^MET = ([0-9.]+)", block.group(1), re.M)
+        if not threshold or float(threshold.group(1)) != met_threshold():
+            problems.append(
+                f"{path.relative_to(ROOT)}: MET is {threshold and threshold.group(1)}, "
+                f"dimensions.toml says {met_threshold()}"
+            )
+    return problems
 
 
 def main() -> int:
-    problems: list[str] = []
+    problems: list[str] = check_metric_copies()
     checked = 0
 
     for tests_dir in sorted(ROOT.glob("tasks/*/*/tests")):
@@ -73,11 +107,16 @@ def main() -> int:
             meta = tomllib.loads(config.read_text()).get("metadata", {})
             if meta.get("dimensions"):
                 declared = set(meta["dimensions"])
-                unknown_declared = declared - DIMENSIONS - {"consistency", "contract"}
+                # Against the registry, not against a set literal plus a
+                # hand-maintained exception list. `consistency` was allowed
+                # here by exception while the comparator and the metric had
+                # never heard of it, so two cases graded a dimension nothing
+                # downstream could report.
+                unknown_declared = declared - set(all_ids())
                 if unknown_declared:
                     problems.append(
                         f"{case}: metadata.dimensions names {sorted(unknown_declared)}, "
-                        f"which docs/scoring.md does not define"
+                        f"which dimensions.toml does not define"
                     )
 
         expected = {"contract"} if contract else (declared or DIMENSIONS)

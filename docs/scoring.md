@@ -13,6 +13,16 @@ failure modes it separates are the ones worth acting on:
 A single score maps all three onto the same middle band and tells you to look
 into it. The vector tells you which one happened.
 
+## Where a dimension is defined
+
+In [`dimensions.toml`](../dimensions.toml), and nowhere else. The list used to
+live in four places — the validator, the comparator, the dataset metric and this
+document — and they drifted in the direction that hides errors: the metric kept
+aggregating `skill_routing` for weeks after the rename, and `consistency` graded
+two cases while neither the comparator nor the metric had heard of it. Adding a
+dimension anywhere but the registry is how that happens again;
+`scripts/validate-rubric` fails when a consumer's copy diverges.
+
 ## The eight dimensions
 
 Each is a directory under a case's `tests/`, which is how RewardKit derives
@@ -34,6 +44,21 @@ reward.
 `outcome_quality` exists to close an obvious gaming route. Without it, a run
 that performs the process perfectly and produces nothing of value scores well on
 seven dimensions.
+
+## Case dimensions beside the eight
+
+The eight exist for an open review. A low-level maintenance task does not have
+eight things worth judging, and forcing them prices a cheap case out of being
+one — so a case may declare a narrower set in `metadata.dimensions`, and the
+registry marks such a dimension `applies_to = "case"`.
+
+| Dimension | Asks | Used by |
+|---|---|---|
+| `consistency` | Do the statements that have to agree agree, and against something established rather than assumed? | the version-metadata pair |
+| `contract` | Mechanical: is the known answer present and are the known non-answers absent? | contract evals (ADR 0002) |
+
+Declared rather than inferred from the directory listing, because two cases
+graded on different subsets can otherwise be compared by mistake.
 
 ## Mechanical first, judge second
 

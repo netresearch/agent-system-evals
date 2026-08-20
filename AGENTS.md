@@ -9,12 +9,16 @@ the cases and the rubric.
 
 | Path | Contents |
 |------|----------|
+| `dimensions.toml` | The dimension registry. A dimension exists here or nowhere. |
 | `docs/` | Methodology. `open-forward-review.md` is normative. |
 | `docs/adr/` | Decisions, numbered. Read 0003 and 0004 before changing a case. |
 | `tasks/open/` | Open Forward Review cases |
-| `tasks/contracts/` | Known-failure-mode checks (not yet populated) |
+| `tasks/contracts/` | Known-failure-mode checks |
 | `verifier/common/nreval.py` | Canonical evidence library; copied into each case |
 | `verifier/tests/` | Verifier self-test and fixtures |
+| `tests/` | Unit tests for the analysis core (metric, comparator) |
+| `scripts/lib/` | Shared readers for the scripts |
+| `experiments/` | One record per comparison run: seed, arms, jobs, stop reason |
 | `fleets/` | Pinned skill fleets: `control`, `nr`, `candidate` |
 | `datasets/` | Harbor dataset manifests and aggregation metrics |
 | `scripts/` | Everything runnable |
@@ -33,8 +37,9 @@ the cases and the rubric.
 | `./scripts/run-smoke <CASE-ID> --fleet <name>` | One trial. Pipeline check only, not evidence. |
 | `./scripts/run-evaluation <CASE-ID> --fleet <name>` | Three trials. Costs money. |
 | `./scripts/compare <job-a> <job-b>` | Per-dimension counts across two jobs |
+| `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
-| `uv run --with pytest python -m pytest verifier/tests -q` | Verifier unit tests |
+| `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
 
 `run-smoke` and `run-evaluation` need one credential, used by both the agent
 and the verifier's judge:

@@ -10,9 +10,9 @@ artifacts = [
 [task]
 name = "netresearch/ofr-typo3-version-metadata"
 version = "1.0.0"
-description = "Open forward review: diagnose a reported save failure in a running TYPO3 instance"
+description = "Open forward review: reconcile an extension's disagreeing TYPO3 version declarations"
 authors = [{ name = "Netresearch DTT GmbH" }]
-keywords = ["open-forward-review", "typo3", "runtime", "debugging", "agent-system"]
+keywords = ["open-forward-review", "typo3", "maintenance", "metadata", "agent-system"]
 
 [metadata]
 case_id = "OFR-TYPO3-METADATA-001"
@@ -25,11 +25,11 @@ category = "open-forward-review"
 domain = "typo3"
 target_type = "extension"
 target_repository = "https://github.com/netresearch/t3x-nr-xliff-streaming.git"
-target_package = "netresearch/nr-textdb"
+target_package = "netresearch/nr-xliff-streaming"
 target_sha = "ddb49ea837e7e784afa0cd3f5964decff2b13229"
-# The first runtime case. The agent works against an installed TYPO3 13.4
-# instance with the extension active and a database in the state a real bug
-# report described. See docs/adr/0006-runtime-fidelity.md.
+# Every case runs against an installed instance with the extension active —
+# that is the baseline, not a property of this case. See
+# docs/adr/0006-runtime-fidelity.md.
 runtime = true
 source_learning_id = "retro-20260820-metadata-drift-in-production"
 # Graded on one dimension rather than the full eight. The eight exist for an

@@ -3,5 +3,20 @@
 # variable under study. See docs/reproducibility.md.
 
 harbor=0.21.0
-harbor-rewardkit=0.1
+# Exact, not `0.1.*`. Until 20 August 2026 every verifier resolved
+# `harbor-rewardkit==0.1.*` at build time, so two jobs weeks apart could have
+# been scored by different judge harnesses with nothing recording which — in a
+# file whose own header says changing a version invalidates comparison.
+# Results recorded before that date name a minor version only.
+harbor-rewardkit=0.1.7
 task_schema_version=1.4
+
+# The verifier image's base, pinned by digest. The tag alone moves.
+verifier_base=ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7de595f299855d7385fe7fca39b8a74baa261ba1b7147afa78e58
+
+# Not pinned, and known not to be: the verifier installs the Claude Code CLI
+# with `curl -fsSL https://claude.ai/install.sh | bash`, which has no version
+# argument and no published checksum in use here. The judge's own binary is
+# therefore the one part of a recorded result that cannot be reconstructed.
+# Tracked in issue #6.
+claude_code=unpinned

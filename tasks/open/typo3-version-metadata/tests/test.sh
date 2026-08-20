@@ -50,7 +50,7 @@ PY
 # The cap still matters, because RewardKit retries only on a schema mismatch.
 # A judge that raises aborts the whole run and discards every dimension that
 # had already scored, so one throttled call can cost an entire agent trial.
-uvx --from 'harbor-rewardkit==0.1.*' rewardkit /tests --max-concurrent-agent 2
+uvx --from 'harbor-rewardkit==0.1.7' rewardkit /tests --max-concurrent-agent 2
 
 # A judge that could not see the evidence scores everything not-met, and the
 # result is a complete, well-formed, entirely wrong vector. That happened here:
