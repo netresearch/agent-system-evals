@@ -151,6 +151,17 @@ def report(job_dir: Path) -> None:
             used[key] = used.get(key, 0) + n
             trials_using[key] = trials_using.get(key, 0) + 1
 
+    # Usage settles it. The probe launches a server itself and asks it to
+    # describe itself; that can fail for reasons the agent never meets — a
+    # working directory, a timeout, a stdio handshake — and it did: the
+    # companion was marked unreachable in an arm whose agent called it 57
+    # times. A capability that was demonstrably used was provisioned,
+    # whatever the probe concluded, and the probe decides only for the ones
+    # nobody touched.
+    for key, count in used.items():
+        if count and provided.get(key) == "unreachable":
+            provided[key] = "yes (used)"
+
     fleet = snapshot.get("fleet", job_dir.name)
     print(f"\n{fleet}  ({len(rows)} trials)")
     print(f"  {'capability':28} {'provided':>12} {'trials used':>12} {'calls':>7}")
