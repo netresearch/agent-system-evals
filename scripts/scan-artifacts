@@ -1,0 +1,129 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Look for credentials in what a run recorded, before any of it is published.
+
+Job artifacts hold complete transcripts of an agent working inside a container:
+every command, every file it printed, every environment it dumped. Harbor
+removes the values declared in `[verifier.env]` from captured output, which
+covers the credentials this framework supplies and nothing else — not a key the
+agent found in the target repository, not one it generated, not one printed by
+a tool.
+
+`jobs/` is ignored by git and nothing publishes it today. This is the gate for
+the day something does, and for the moment someone attaches a transcript to an
+issue.
+
+    scripts/scan-artifacts jobs/<job>
+    scripts/scan-artifacts --all
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Shapes, not entropy. A high-entropy string in a transcript is usually a
+# digest, and a scanner that reports every digest gets skipped — which is worse
+# than not having one.
+PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("Anthropic API key", re.compile(r"sk-ant-api\d{2}-[A-Za-z0-9_-]{20,}")),
+    ("Claude subscription token", re.compile(r"sk-ant-oat\d{2}-[A-Za-z0-9_-]{20,}")),
+    ("OpenAI key", re.compile(r"\bsk-[A-Za-z0-9]{32,}\b")),
+    ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}")),
+    ("GitLab token", re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}")),
+    ("AWS access key", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
+    ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}")),
+    ("private key block", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY")),
+    ("Fernet-shaped key in a URL or assignment",
+     re.compile(r"EVALS_EXPECTATIONS_KEY\s*[=:]\s*\S{40,}")),
+]
+
+# Text-ish files only. A hit inside a compiled binary is noise, and reading
+# every byte of a job directory is slow enough that people stop running this.
+SUFFIXES = {".json", ".txt", ".log", ".md", ".patch", ".jsonl", ".yaml", ".yml"}
+
+# Documentation placeholders. The first run over the recorded jobs produced 764
+# hits and every one of them was an example inside an injected skill's own
+# reference pages — 573 of AWS's documented `AKIAIOSFODNN7EXAMPLE` and 191 of a
+# row of x's. A scanner that reports those gets ignored, and then it reports
+# nothing anyone reads.
+PLACEHOLDERS = (
+    re.compile(r"^AKIAIOSFODNN7EXAMPLE$"),
+    re.compile(r"^wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY$"),
+    # A placeholder is a repeated character or an obvious word, not a secret.
+    re.compile(r"(?i)(x{8,}|0{8,}|1234567890|example|placeholder|redacted|your[-_]?token)"),
+)
+
+
+def is_placeholder(value: str) -> bool:
+    return any(p.search(value) for p in PLACEHOLDERS)
+
+
+def scan(path: Path) -> list[tuple[str, int, str]]:
+    try:
+        text = path.read_text(errors="ignore")
+    except OSError:
+        return []
+    hits = []
+    for name, pattern in PATTERNS:
+        for match in pattern.finditer(text):
+            if is_placeholder(match.group(0)):
+                continue
+            line = text.count("\n", 0, match.start()) + 1
+            # Never print the secret. The first six characters identify the
+            # kind and are already in the pattern name.
+            hits.append((name, line, match.group(0)[:6] + "…"))
+    return hits
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("paths", nargs="*", type=Path)
+    parser.add_argument("--all", action="store_true", help="every recorded job")
+    args = parser.parse_args()
+
+    targets = list(args.paths)
+    if args.all:
+        targets = [ROOT / "jobs"]
+    if not targets:
+        sys.exit(__doc__)
+
+    files = 0
+    findings: list[tuple[Path, str, int, str]] = []
+    for target in targets:
+        candidates = (
+            [target]
+            if target.is_file()
+            else [p for p in target.rglob("*") if p.suffix in SUFFIXES and p.is_file()]
+        )
+        for path in candidates:
+            files += 1
+            for name, line, prefix in scan(path):
+                findings.append((path, name, line, prefix))
+
+    if findings:
+        print(f"{len(findings)} possible credential(s) in {files} file(s):",
+              file=sys.stderr)
+        for path, name, line, prefix in findings[:40]:
+            relative = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+            print(f"  {relative}:{line}: {name} ({prefix})", file=sys.stderr)
+        print(
+            "\nNothing here is published automatically. Do not attach these "
+            "files anywhere until each hit is either removed or established as "
+            "a false positive — and rotate anything that turns out to be real.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"no credential shapes found in {files} file(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

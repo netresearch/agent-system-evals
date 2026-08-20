@@ -41,6 +41,8 @@ the cases and the rubric.
 | `./scripts/analyze experiments/<file>.json` | Effect sizes, intervals and validity for a whole experiment |
 | `./scripts/trial-validity --all` | Which trials may enter a statistic, and why not |
 | `./scripts/expectations decrypt\|encrypt\|check` | The encrypted case expectations |
+| `./scripts/judge-blinding --case <id>` | Can the judge tell which arm it graded? |
+| `./scripts/scan-artifacts --all` | Credential shapes in recorded jobs, before anything is published |
 | `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
 | `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
