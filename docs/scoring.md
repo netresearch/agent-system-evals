@@ -129,6 +129,30 @@ alongside cost signals (median tool calls, duration, tokens). The means are for
 trend lines on the dashboard. They are not the unit of decision; the per-case
 counts are.
 
+**There is no figure that averages across dimensions.** There used to be, called
+`mean`, described in the metric's own docstring as "a technical summary rather
+than the result" — a disclaimer that travels with the docstring and not with the
+number. Two assumptions have to hold for such an average to mean anything, and
+neither is validated:
+
+- **The steps are equal.** `NOT_MET`, `PARTIAL` and `MET` are ordinal. Mapping
+  them to 0, 0.5 and 1 asserts that the distance from failing to partial equals
+  the distance from partial to meeting. Nobody has checked that, and for most of
+  these criteria it is plainly false.
+- **The dimensions weigh the same.** They do not, and the weight is an accident
+  of how many criteria each carries. Measured on one recorded pair: `evidence`
+  scores three criteria per trial, `verification` eight. The fixed 0.75
+  threshold therefore means "missed at most one quarter of three things" in one
+  dimension and "missed at most two of eight" in another.
+
+So the reporting is the distribution, not the average. `scripts/analyze` prints
+the criteria behind every dimension — met, partial, not met — beside the counts.
+That is what a mean cannot say: on the upgrade case's `authority`, both arms
+show 3/3 met while the criteria behind them are 20/1/0 against 16/3/2.
+
+Anything that needs a single number can compute one and own the assumption. The
+tooling will not hand one out.
+
 ## capability_selection, and why it is not `skill_routing`
 
 The dimension used to be called `skill_routing`, and its mechanical half asked

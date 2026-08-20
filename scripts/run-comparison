@@ -62,6 +62,32 @@ from dimensions import ids_for  # noqa: E402
 # seen.
 ROUNDS = (3, 4, 5)
 
+# A case's own pass/fail check, where it declares one. Not a graded dimension:
+# no judge decides it, which is exactly why it may be the endpoint worth being
+# powered for.
+MECHANICAL = "mechanical_outcome"
+
+
+def mechanical_outcomes(jobs: list[Path], case_id: str) -> list[float]:
+    """Pass/fail per valid trial, from the check the case declares itself."""
+    check = cases.metadata(case_id).get("mechanical_outcome") or {}
+    pattern, tokens = check.get("artifacts"), check.get("all_of")
+    if not pattern or not tokens:
+        return []
+    outcomes = []
+    for trial in gated(jobs, case_id):
+        legs = sorted((trial / "artifacts" / "logs" / "artifacts").glob(pattern))
+        outcomes.append(
+            1.0
+            if legs
+            and all(
+                all(token in leg.read_text(errors="ignore") for token in tokens)
+                for leg in legs
+            )
+            else 0.0
+        )
+    return outcomes
+
 
 def resolve_job(output: str) -> Path | None:
     """The job directory this run wrote, from its own report.
@@ -142,11 +168,18 @@ def main() -> int:
     graded = cases.graded_dimensions(args.case_id)
     if not graded:
         sys.exit(f"no case {args.case_id!r}")
-    if args.primary not in graded:
+
+    # A case that decides its own ground truth may be powered for that instead
+    # of for a judged dimension, and normally should be: on the upgrade case
+    # the matrix outcome reproduced across two independent runs while the
+    # dimension that separated once did not.
+    has_ground_truth = bool(cases.metadata(args.case_id).get("mechanical_outcome"))
+    allowed = graded | ({MECHANICAL} if has_ground_truth else set())
+    if args.primary not in allowed:
         sys.exit(
-            f"--primary {args.primary!r} is not graded by {args.case_id}, which "
-            f"grades {sorted(graded)}. An endpoint the case cannot produce is "
-            f"not a plan."
+            f"--primary {args.primary!r} is not available for {args.case_id}, "
+            f"which offers {sorted(allowed)}. An endpoint the case cannot "
+            f"produce is not a plan."
         )
 
     seed = args.seed if args.seed is not None else random.randrange(1_000_000)
@@ -254,16 +287,38 @@ def main() -> int:
         # elsewhere is exploratory and is not worth more trials on its own —
         # eight looks at a one-in-ten event separate somewhere in most runs.
         first, second = arms[0], arms[1]
-        primary_a = scores(collected[first], args.case_id).get(args.primary, [])
-        primary_b = scores(collected[second], args.case_id).get(args.primary, [])
-        p, _ = stats.permutation_p(primary_a, primary_b)
+        if args.primary == MECHANICAL:
+            # Pass/fail, so complete separation is the wrong test: [0,1,1]
+            # against [1,1,1] can never separate, and that difference is
+            # exactly the finding. Any gap in the rate is worth more trials,
+            # because it is the one number no judge decided.
+            primary_a = mechanical_outcomes(collected[first], args.case_id)
+            primary_b = mechanical_outcomes(collected[second], args.case_id)
+            p = stats.fisher_p(
+                int(sum(primary_a)), len(primary_a),
+                int(sum(primary_b)), len(primary_b),
+            )
+            moved = bool(primary_a) and bool(primary_b) and (
+                sum(primary_a) / len(primary_a) != sum(primary_b) / len(primary_b)
+            )
+            summary = (
+                f"{sum(primary_a):.0f}/{len(primary_a)} against "
+                f"{sum(primary_b):.0f}/{len(primary_b)}"
+            )
+        else:
+            primary_a = scores(collected[first], args.case_id).get(args.primary, [])
+            primary_b = scores(collected[second], args.case_id).get(args.primary, [])
+            p, _ = stats.permutation_p(primary_a, primary_b)
+            moved = stats.separated(primary_a, primary_b)
+            summary = "separates completely" if moved else "overlaps"
+
         record["blocks"][-1]["primary_p"] = p
-        if stats.separated(primary_a, primary_b):
-            print(f"\n{args.primary} separates completely (p {p:.3f}) — continuing")
+        if moved:
+            print(f"\n{args.primary}: {summary} (p {p:.3f}) — continuing")
         else:
             record["stop_reason"] = (
-                f"{args.primary} did not separate after the discovery round "
-                f"(p {p:.3f})"
+                f"{args.primary} did not move after the discovery round "
+                f"({summary}, p {p:.3f})"
             )
             print(f"\n{record['stop_reason']}; stopping.")
             print("Three trials per arm cannot establish a difference, and "

@@ -113,6 +113,44 @@ class Arm:
             )
         return values
 
+    def categories(self, dimension: str) -> dict[str, int]:
+        """How the individual criteria of this dimension actually landed.
+
+        The dimension's reward is a mean of criterion scores, and a mean of
+        ordinal categories is not a measurement: `NOT_MET`/`PARTIAL`/`MET` at
+        0/0.5/1 assumes the two steps are equal, which nobody has checked. The
+        distribution says what the mean cannot — whether 0.67 is two clean
+        passes and a failure or three shrugs.
+
+        It also exposes the weighting nobody chose: a dimension carried by six
+        mechanical criteria and one carried by a single judge criterion behave
+        differently at the same 0.75 threshold.
+        """
+        counts = {"met": 0, "partial": 0, "not_met": 0, "other": 0}
+        for trial in self.trials:
+            details = validity.read_json(trial / "verifier" / "reward-details.json")
+            if not isinstance(details, dict):
+                continue
+            groups = details.get(dimension) or []
+            # One dimension can be recorded as a list of reward groups or as a
+            # single group. Reading only the list shape silently dropped three
+            # dimensions from this table, which looked like dimensions that
+            # have no criteria rather than a reader that could not see them.
+            for group in groups if isinstance(groups, list) else [groups]:
+                if not isinstance(group, dict):
+                    continue
+                for criterion in group.get("criteria") or []:
+                    value = criterion.get("value")
+                    if value == 1.0:
+                        counts["met"] += 1
+                    elif value == 0.5:
+                        counts["partial"] += 1
+                    elif value == 0.0:
+                        counts["not_met"] += 1
+                    else:
+                        counts["other"] += 1
+        return counts
+
     def mechanical(self) -> list[float]:
         """Pass/fail per trial where the case declares a ground-truth check."""
         check = cases.metadata(self.case_id or "").get("mechanical_outcome") or {}
@@ -316,6 +354,20 @@ def main() -> int:
             f"{row['met_b']}/{row['n_b']}   delta {row['cliffs_delta']:+.2f}   "
             f"{suffix}   [{tag}]"
         )
+        # The criteria behind the number. A dimension's reward is a mean of
+        # ordinal categories, and the mean cannot say whether 0.67 is two clean
+        # passes and a failure or three shrugs.
+        cat_a, cat_b = a.categories(dimension), b.categories(dimension)
+        if any(cat_a.values()) or any(cat_b.values()):
+            def render(counts):
+                return (
+                    f"{counts['met']} met / {counts['partial']} partial / "
+                    f"{counts['not_met']} not met"
+                    + (f" / {counts['other']} other" if counts["other"] else "")
+                )
+            print(
+                f"  {' ' * width}  criteria: {render(cat_a)}  →  {render(cat_b)}"
+            )
 
     print("\ncost — every trial, then the effect")
     show_continuous(continuous_row("agent cost (USD)", a, b, a.cost(), b.cost()), a.name, b.name)

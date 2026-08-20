@@ -27,7 +27,22 @@ careful while being wrong.
 **Unknown dimensions are reported, never dropped.** A rubric can introduce one
 faster than this file learns about it — `consistency` existed in two cases for a
 week before any aggregation knew the name. Anything present in the rewards and
-absent from `DIMENSIONS` is listed under `dimensions_unexpected`.
+absent from `DIMENSIONS` is counted under `dimensions_unexpected` and named
+under `dimensions_unexpected_names`.
+
+**There is no overall mean.** There used to be, computed across dimensions and
+described in this file as "a technical summary rather than the result" — a
+disclaimer that travels with the docstring and not with the number. It cannot
+be defended: `NOT_MET`/`PARTIAL`/`MET` are ordinal, mapping them to 0/0.5/1 and
+averaging assumes the steps are equal, and averaging *across* dimensions
+assumes they weigh the same. Neither is validated, and the number of criteria
+in a dimension silently becomes its weight — so the fixed 0.75 threshold means
+something different in each. Anything that needs one number can compute it and
+own the assumption; this file will not hand one out.
+
+Harbor formats the *first* key of this output with `:.3f`, so the first key
+must be a number. `trials` is. Everything after it is informational and read as
+JSON.
 
 `DIMENSIONS` is a literal copy of `dimensions.toml`, which is the definition.
 The copy exists because the dataset manifest publishes this file on its own and
@@ -76,19 +91,17 @@ def main(input_path: Path, output_path: Path) -> None:
         "trials_without_reward": failed,
     }
 
-    scored: list[float] = []
-    covered: list[str] = []
-
     for dimension in DIMENSIONS:
         values = [t[dimension] for t in trials if dimension in t]
         missing = len(trials) - len(values)
 
         if values:
-            mean = round(sum(values) / len(values), 4)
-            result[dimension] = mean
+            # The per-dimension mean stays: within one dimension the criteria
+            # are at least comparable, and a trend line over the same rubric is
+            # what it is for. `_met` is the number a decision gets made on.
+            result[dimension] = round(sum(values) / len(values), 4)
             result[f"{dimension}_met"] = sum(1 for v in values if v >= MET)
-            scored.append(mean)
-            covered.append(dimension)
+            result[f"{dimension}_n"] = len(values)
         elif not trials:
             continue
         else:
@@ -105,12 +118,8 @@ def main(input_path: Path, output_path: Path) -> None:
 
     unexpected = sorted({key for trial in trials for key in trial} - set(DIMENSIONS))
     if unexpected:
-        result["dimensions_unexpected"] = unexpected
-
-    # Named, because a mean over a different set of dimensions is a different
-    # number and nothing else in the output would say so.
-    result["mean_over"] = covered
-    result["mean"] = round(sum(scored) / len(scored), 4) if scored else None
+        result["dimensions_unexpected"] = len(unexpected)
+        result["dimensions_unexpected_names"] = ",".join(unexpected)
 
     output_path.write_text(json.dumps(result, indent=2))
 
