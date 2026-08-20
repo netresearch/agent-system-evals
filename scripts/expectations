@@ -81,16 +81,24 @@ def encrypt(_: argparse.Namespace) -> int:
         plaintext = STORE / f"{case_id}.md"
         if not plaintext.is_file():
             continue
-        (STORE / f"{case_id}.md.enc").write_bytes(
-            fernet.encrypt(plaintext.read_bytes())
-        )
+        target = STORE / f"{case_id}.md.enc"
+
+        # Only where the content actually changed. Fernet uses a random IV, so
+        # re-encrypting identical text produces a different ciphertext every
+        # time — running this after editing one file rewrote all five and the
+        # diff then claimed five expectations had changed when one had.
+        if target.is_file():
+            try:
+                if fernet.decrypt(target.read_bytes()) == plaintext.read_bytes():
+                    continue
+            except InvalidToken:
+                pass  # written with another key; re-encrypting is the fix
+
+        target.write_bytes(fernet.encrypt(plaintext.read_bytes()))
         written += 1
         print(f"encrypted {case_id}")
     if not written:
-        print(
-            f"nothing to encrypt: no plaintext under {STORE.relative_to(ROOT)}. "
-            f"Run `decrypt` first, or write one."
-        )
+        print("nothing to encrypt: every ciphertext already matches its plaintext.")
     return 0
 
 

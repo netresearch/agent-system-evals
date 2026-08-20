@@ -1,0 +1,19 @@
+# The extension under review, pinned. See docs/reproducibility.md.
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-universal-messenger.git
+TARGET_COMMIT=1b635df63402d8998e7daf6c1e238b44bbb2f186
+TARGET_PACKAGE=netresearch/universal-messenger
+TARGET_EXTENSION_KEY=universal_messenger
+TARGET_TYPE=typo3-cms-extension
+
+# --- the instance every case runs against -----------------------------------
+# A developer working on this extension has it installed in a running TYPO3.
+# Both declarations name the 14 line and agree, so the instance follows them
+# without any interpretation being needed — which is the case's whole point.
+TYPO3_LINE=14.3
+SITE_IDENTIFIER=universal
+SITE_HOSTNAME=v14.universal-messenger.ddev.site
+INSTANCE_DIR=/instance
+DB_NAME=${DB_NAME:-typo3}
+DB_USER=${DB_USER:-typo3}
+DB_PASSWORD=${DB_PASSWORD:-typo3-dev-password}
+DB_HOST=${DB_HOST:-127.0.0.1}

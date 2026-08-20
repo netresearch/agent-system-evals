@@ -1,0 +1,41 @@
+# Extra services for the runtime case.
+#
+# Harbor supplies the `main` service from environment/Dockerfile and applies
+# this file last, so `main` can be overridden here. DDEV is not used: it
+# provides a web server, a database and hostnames, and of those a runtime case
+# needs the database — see docs/adr/0006-runtime-fidelity.md.
+
+#
+# Neither service declares `networks` or `network_mode`, and that is
+# deliberate: under egress control Harbor moves exactly those services into the
+# sidecar's network namespace, which is what gives `main` its allowlist. The
+# database comes along, so the two reach each other over localhost. Adding a
+# network here would take `db` out of that namespace and out of `main`'s reach.
+
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: typo3-dev-root
+      MARIADB_DATABASE: typo3
+      MARIADB_USER: typo3
+      MARIADB_PASSWORD: typo3-dev-password
+    # Own healthcheck as well as the environment-level one: this says the
+    # server is up, the environment healthcheck says the *instance* is
+    # installed. Conflating them would let the agent start against an empty
+    # TYPO3.
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  main:
+    # The installation cannot happen at build time: it needs the database, and
+    # the database only exists once Compose has started. So it runs here, then
+    # the container stays alive for the agent. The environment healthcheck in
+    # task.toml holds the agent back until this has finished.
+    command: ["/bin/bash", "-lc", "/usr/local/bin/install-instance; tail -f /dev/null"]
+    depends_on:
+      db:
+        condition: service_healthy

@@ -26,8 +26,17 @@ changes what every future number means; the regrade that repairs comparability
 costs judge calls and no agent time, which is the entire argument for
 `environment_mode = "separate"` (ADR 0004).
 
-`scripts/benchmark-version` prints the version and refuses when the working
-tree contains a change that should have bumped it.
+**While the leading zero stands, the parts shift one place.** At `0.x.y` the
+project is not claiming stability, so a case addition moves `0.3.0` to `0.4.0`
+rather than to `1.0.0`, a rubric change moves `0.4.0` to `0.4.1`, and a patch
+change does not move the version at all — there is nowhere left for it to go.
+This is the ordinary `0.x` convention and is written down because the table
+above would otherwise read as an instruction to declare 1.0.
+
+`scripts/benchmark-version` prints the version and names the part a change
+demands. It does not compute the next number: which digit that lands on depends
+on the paragraph above, and a script that guessed would be wrong on the day the
+leading zero goes.
 
 ## Cases
 

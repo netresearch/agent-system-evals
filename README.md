@@ -11,6 +11,30 @@ What lives here is the part Harbor cannot know: the review methodology, the real
 benchmark cases, the system-level rubric, and the conventions that make results
 comparable over time.
 
+## What the evidence covers
+
+Six cases. All TYPO3, all PHP, all Netresearch repositories, all under Claude
+Code on one model, all judged by a model from the same family. That supports
+statements about **this stack, in this context** and nothing wider, and the name
+of this repository is broader than its evidence.
+
+Three specific gaps, none of them closed:
+
+- **One domain.** Nothing here says how the stack behaves on an API, a data
+  migration, a CI pipeline or a frontend, in Go or TypeScript or anything that
+  is not PHP.
+- **One harness.** Every figure comes from Claude Code. Whether a result is
+  about the stack or about the stack inside one harness is what
+  `scripts/sentinel` exists to answer, and it has not been run.
+- **Findings, not restraint.** Every case contains a real defect, so the
+  benchmark has never asked whether an agent knows when to leave something
+  alone. A benchmark whose targets always have something wrong teaches finding
+  things.
+
+Tracked as [issue #16](https://github.com/netresearch/agent-system-evals/issues/16).
+Until it closes, read every result here as scoped to TYPO3 extension work at
+Netresearch.
+
 ## Open Forward Reviews
 
 An Open Forward Review gives the agent a prompt a colleague might actually send:

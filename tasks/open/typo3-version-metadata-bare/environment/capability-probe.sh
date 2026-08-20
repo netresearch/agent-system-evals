@@ -37,6 +37,7 @@ cli_entries="${cli_entries#,}"
 # is the failure this file exists to prevent, one level up.
 skill_count=0
 skill_digest=""
+skill_names=""
 found_dir=""
 for skill_dir in \
         "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" \
@@ -52,6 +53,12 @@ for skill_dir in \
     found_dir="$skill_dir"
     skill_digest="$(find "$skill_dir" -name 'SKILL.md' -exec sha256sum {} + 2>/dev/null \
         | awk '{print $1}' | sort | sha256sum | cut -c1-16)"
+    # The names, not only the count. The verifier needs them to blind the
+    # transcript it hands the judge: a skill that was offered and never invoked
+    # still names itself in a listing, and a skill's own text names its
+    # siblings, so neither can be found from the trajectory alone.
+    skill_names="$(find "$skill_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null \
+        | sort | awk '{printf "%s\"%s\"", sep, $0; sep=","}')"
     break
 done
 
@@ -106,7 +113,7 @@ mcp_entries="${mcp_entries#,}"
 cat > "$OUT" <<JSON
 {
   "cli": {$cli_entries},
-  "skills": {"count": $skill_count, "digest": "$skill_digest", "location": "$found_dir"},
+  "skills": {"count": $skill_count, "digest": "$skill_digest", "location": "$found_dir", "names": [$skill_names]},
   "mcp": {${mcp_entries}}
 }
 JSON
