@@ -114,10 +114,23 @@ jobs:
       # checks the generic markers, and says on stderr that it covered less —
       # a quiet fall back to a narrower question is how a check keeps passing
       # while measuring nothing.
-      - name: Fleet carries no case-specific knowledge
+      # Every fleet, not only `nr`. Checking one of five meant the largest —
+      # `nr-full`, twelve skills — was never checked at all, and it carried a
+      # hit for months: typo3-ddev-skill names the upgrade case's target in a
+      # source attribution. A check that covers a fifth of the population
+      # reports on that fifth and reads as a clean bill.
+      - name: Fleets carry no case-specific knowledge
         env:
           EVALS_EXPECTATIONS_KEY: ${{ secrets.EVALS_EXPECTATIONS_KEY }}
-        run: ./scripts/contamination-check --fleet nr
+        run: |
+          status=0
+          for fleet in fleets/*.yaml; do
+            name="$(basename "$fleet" .yaml)"
+            echo "::group::$name"
+            ./scripts/contamination-check --fleet "$name" || status=1
+            echo "::endgroup::"
+          done
+          exit $status
 
       - name: Expectations are encrypted and complete
         run: ./scripts/expectations check

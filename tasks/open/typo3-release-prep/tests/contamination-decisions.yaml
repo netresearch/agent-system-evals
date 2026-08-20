@@ -14,9 +14,10 @@
 # has started corrupting the thing it measures. An example attribution is
 # decoration and can go; a citation is evidence and stays.
 #
-# The php-modernization one is a bare attribution label of the kind issue #3 and
-# #21 cover, and lapses when netresearch/php-modernization-skill#94 is released
-# and the fleet moves (issue #22).
+# The php-modernization entry that stood here lapsed with v1.22.1: its
+# attribution was generalised upstream and the fleet moved. The two below are
+# re-pinned to v5.20.3 rather than deleted — a decision is pinned to the ref it
+# was judged at, and this text is unchanged in the new version.
 #
 # The php-modernization one was read line by line before being recorded, because
 # it is the closest to real contamination in this repository so far. It
@@ -32,19 +33,13 @@
 # regardless.
 
 - skill: netresearch/typo3-testing-skill
-  ref: v5.20.2
-  path: typo3-testing-skill-5.20.2/skills/typo3-testing/references/ci-cd.md
+  ref: v5.20.3
+  path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/ci-cd.md
   marker: netresearch/t3x-nr-image-optimize
   reason: Attribution on a note about PHPUnit strict coverage metadata; names the target and nothing about its release.
 
 - skill: netresearch/typo3-testing-skill
-  ref: v5.20.2
-  path: typo3-testing-skill-5.20.2/skills/typo3-testing/references/ci-cd.md
+  ref: v5.20.3
+  path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/ci-cd.md
   marker: t3x-nr-image-optimize
   reason: The same attribution, matched by the shorter repository marker.
-
-- skill: netresearch/php-modernization-skill
-  ref: v1.22.0
-  path: php-modernization-skill-1.22.0/skills/php-modernization/references/multi-version-adapters.md
-  marker: t3x-nr-image-optimize
-  reason: Attribution on the multi-version adapter pattern, derived from a different fix in the same dependency; does not name or describe the change this case is about.
