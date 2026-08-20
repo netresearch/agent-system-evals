@@ -58,6 +58,12 @@ jobs:
       # the output. It passed for weeks while the metric aggregated a dimension
       # no case emits, ignored the one every case does, and scored missing
       # dimensions as zero against its own docstring.
+      # The page is rendered from recorded jobs, which are not on this runner.
+      # What is checkable without them: every placeholder names a field the
+      # generator can resolve, and the committed page has none left in it.
+      - name: Published page is generated, not typed
+        run: ./scripts/build-site --lint
+
       - name: Analysis core behaves as specified
         run: uv run --with pytest python -m pytest tests -q
 

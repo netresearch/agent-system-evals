@@ -1,0 +1,51 @@
+# Which recorded jobs the published page is built from.
+#
+# Every figure on the page is resolved from these directories by
+# `scripts/build-site`. Nothing on the page may be typed by hand: a placeholder
+# that does not resolve fails the build, and a job named here that is not on
+# disk fails it too.
+#
+# Before this file the page was written by hand and published as-is. Nothing
+# bound a number to the trial that produced it, and one figure that had to be
+# withdrawn had been sitting there with no way to trace where it came from.
+#
+# Job directories are not committed (`jobs/` is ignored), so a build needs the
+# machine that produced them. That is the honest state: the page is
+# reproducible where the evidence is, and the alternative — committing every
+# artifact — publishes agent transcripts wholesale.
+
+[cases.review]
+case_id = "OFR-TYPO3-EXT-001"
+label = "a review"
+[cases.review.arms]
+control = "OFR-TYPO3-EXT-001-control-20260819-202726"
+nr = "OFR-TYPO3-EXT-001-nr-20260819-194445"
+nr-full = "OFR-TYPO3-EXT-001-nr-full-20260819-201626"
+companion = "OFR-TYPO3-EXT-001-companion-20260819-195659"
+
+[cases.runtime]
+case_id = "OFR-TYPO3-RUNTIME-001"
+label = "a runtime bug"
+[cases.runtime.arms]
+control = "OFR-TYPO3-RUNTIME-001-control-20260819-215744"
+nr = "OFR-TYPO3-RUNTIME-001-nr-20260819-222346"
+companion = "OFR-TYPO3-RUNTIME-001-companion-20260819-204159"
+dev-mcp = "OFR-TYPO3-RUNTIME-001-dev-mcp-20260819-210018"
+nr-full = "OFR-TYPO3-RUNTIME-001-nr-full-20260819-212937"
+
+[cases.upgrade]
+case_id = "OFR-TYPO3-UPGRADE-001"
+label = "an upgrade"
+[cases.upgrade.arms]
+control = "OFR-TYPO3-UPGRADE-001-control-20260820-011849"
+nr = "OFR-TYPO3-UPGRADE-001-nr-20260820-040438"
+companion = "OFR-TYPO3-UPGRADE-001-companion-20260820-020124"
+dev-mcp = "OFR-TYPO3-UPGRADE-001-dev-mcp-20260820-022802"
+nr-full = "OFR-TYPO3-UPGRADE-001-nr-full-20260820-031544"
+
+[cases.contract]
+case_id = "CON-TYPO3-EXTBASE-001"
+label = "a contract eval"
+[cases.contract.arms]
+control = "CON-TYPO3-EXTBASE-001-control-20260820-011529"
+nr = "CON-TYPO3-EXTBASE-001-nr-20260820-011146"

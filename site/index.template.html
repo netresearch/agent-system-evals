@@ -168,9 +168,9 @@ produces a substantive review and nothing separates. The cost does separate, and
     <tr><th>Per run</th><th class="num">control</th><th class="num">nr</th><th class="num">nr-full</th><th class="num">companion</th></tr>
   </thead>
   <tbody>
-    <tr><td>Agent cost</td><td class="num">2.21 / 2.80 / 3.54</td><td class="num delta-down">1.27 / 1.40 / 1.55</td><td class="num delta-down">1.08 / 1.34 / 1.43</td><td class="num">4.52 / 5.83 / 9.26</td></tr>
-    <tr><td>Input tokens (M)</td><td class="num">1.39 / 1.79 / 3.29</td><td class="num delta-down">0.80 / 0.93 / 1.11</td><td class="num delta-down">0.73 / 0.88 / 1.00</td><td class="num">3.77 / 5.95 / 10.60</td></tr>
-    <tr><td>Tool calls</td><td class="num">32 / 34 / 41</td><td class="num">24 / 31 / 34</td><td class="num">27 / 27 / 35</td><td class="num">52 / 63 / 69</td></tr>
+    <tr><td>Agent cost</td><td class="num">{{ review.control.cost }}</td><td class="num delta-down">{{ review.nr.cost }}</td><td class="num delta-down">{{ review.nr-full.cost }}</td><td class="num">{{ review.companion.cost }}</td></tr>
+    <tr><td>Input tokens (M)</td><td class="num">{{ review.control.tokens }}</td><td class="num delta-down">{{ review.nr.tokens }}</td><td class="num delta-down">{{ review.nr-full.tokens }}</td><td class="num">{{ review.companion.tokens }}</td></tr>
+    <tr><td>Tool calls</td><td class="num">{{ review.control.tools }}</td><td class="num">{{ review.nr.tools }}</td><td class="num">{{ review.nr-full.tools }}</td><td class="num">{{ review.companion.tools }}</td></tr>
   </tbody>
 </table>
 </div>
@@ -216,7 +216,7 @@ either produced something that installs and passes on both lines, or it did not.
     <tr><th>Upgrade completed</th><th class="num">control</th><th class="num">nr</th><th class="num">nr-full</th><th class="num">dev-mcp</th><th class="num">companion</th></tr>
   </thead>
   <tbody>
-    <tr><td>Runs completed</td><td class="num">2/3</td><td class="num delta-down">3/3</td><td class="num delta-down">3/3</td><td class="num">0/2</td><td class="num">0/3</td></tr>
+    <tr><td>Runs completed</td><td class="num">{{ upgrade.control.complete }}</td><td class="num delta-down">{{ upgrade.nr.complete }}</td><td class="num delta-down">{{ upgrade.nr-full.complete }}</td><td class="num">{{ upgrade.dev-mcp.complete }}</td><td class="num">{{ upgrade.companion.complete }}</td></tr>
   </tbody>
 </table>
 </div>
@@ -281,9 +281,9 @@ that reports one number for it is answering a question nobody asked.</p>
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">4</span><span class="lbl">cases, one environment baseline</span></div>
-  <div class="card"><span class="big">47</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">18</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">{{ totals.cases }}</span><span class="lbl">cases, one environment baseline</span></div>
+  <div class="card"><span class="big">{{ totals.runs }}</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">{{ totals.failures }}</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by

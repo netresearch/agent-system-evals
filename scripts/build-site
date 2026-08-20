@@ -1,0 +1,303 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Render the published page from the recorded jobs, or fail.
+
+The page used to be written by hand and published as-is. Nothing bound a figure
+to the trial that produced it, so a number could drift from its evidence
+without anything noticing, and one that had to be withdrawn had been sitting
+there with no way to trace where it came from.
+
+Now every figure is a placeholder resolved from the jobs named in
+`site/report.toml`. Three failure modes are turned into build failures:
+
+- a placeholder that resolves to nothing — a figure with no source
+- a job named in the manifest that is not on disk
+- a trial the validity gate rejects, counted rather than silently averaged in
+
+Placeholders are `{{ case.arm.field }}`:
+
+    {{ review.control.cost }}      per-trial agent cost, ascending
+    {{ review.control.tokens }}    per-trial input tokens, in millions
+    {{ review.control.tools }}     per-trial tool calls
+    {{ review.control.valid }}     valid trials over total
+    {{ upgrade.nr.complete }}      mechanical outcome, where the case declares one
+    {{ review.nr.met.evidence }}   trials meeting one dimension
+    {{ totals.cases }}             cases, graded runs, instrument failures
+    {{ totals.runs }}
+    {{ totals.failures }}
+
+    scripts/build-site [--check]
+
+`--check` renders and compares against the committed `site/index.html` without
+writing, which is what CI runs where the jobs are absent.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import cases as case_lib  # noqa: E402
+import validity  # noqa: E402
+from dimensions import met_threshold  # noqa: E402
+
+TEMPLATE = ROOT / "site" / "index.template.html"
+OUTPUT = ROOT / "site" / "index.html"
+MANIFEST = ROOT / "site" / "report.toml"
+PLACEHOLDER = re.compile(r"\{\{\s*([a-z0-9_.-]+)\s*\}\}", re.I)
+
+
+class Arm:
+    def __init__(self, case_id: str, job: Path):
+        self.case_id = case_id
+        self.job = job
+        self.valid, self.verdicts = validity.gate(
+            job,
+            expected_dimensions=case_lib.graded_dimensions(case_id),
+            required_artifacts=case_lib.required_artifacts(case_id),
+        )
+
+    def _agent(self, field: str) -> list[float]:
+        values = []
+        for trial in self.valid:
+            result = validity.read_json(trial / "result.json") or {}
+            value = (result.get("agent_result") or {}).get(field)
+            if value is not None:
+                values.append(float(value))
+        return sorted(values)
+
+    def cost(self) -> str:
+        return " / ".join(f"{v:.2f}" for v in self._agent("cost_usd"))
+
+    def tokens(self) -> str:
+        return " / ".join(f"{v / 1_000_000:.2f}" for v in self._agent("n_input_tokens"))
+
+    def tools(self) -> str:
+        counts = []
+        for trial in self.valid:
+            trajectory = validity.read_json(trial / "verifier" / "trajectory.json")
+            if isinstance(trajectory, dict):
+                counts.append(
+                    sum(
+                        len(step.get("tool_calls") or [])
+                        for step in trajectory.get("steps", [])
+                    )
+                )
+        return " / ".join(str(c) for c in sorted(counts))
+
+    def valid_count(self) -> str:
+        return f"{len(self.valid)}/{len(self.verdicts)}"
+
+    def met(self, dimension: str) -> str:
+        scored = []
+        for trial in self.valid:
+            reward = validity.read_json(trial / "verifier" / "reward.json")
+            if reward is None:
+                result = validity.read_json(trial / "result.json") or {}
+                reward = (result.get("verifier_result") or {}).get("rewards") or {}
+            if dimension in reward:
+                scored.append(reward[dimension])
+        if not scored:
+            return "—"
+        return f"{sum(1 for v in scored if v >= met_threshold())}/{len(scored)}"
+
+    def mean(self, dimension: str) -> str:
+        scored = []
+        for trial in self.valid:
+            result = validity.read_json(trial / "result.json") or {}
+            reward = (result.get("verifier_result") or {}).get("rewards") or {}
+            if dimension in reward:
+                scored.append(reward[dimension])
+        return f"{sum(scored) / len(scored):.2f}" if scored else "—"
+
+    def complete(self) -> str:
+        check = case_lib.metadata(self.case_id).get("mechanical_outcome") or {}
+        pattern, tokens = check.get("artifacts"), check.get("all_of")
+        if not pattern or not tokens:
+            return "—"
+        hits = 0
+        for trial in self.valid:
+            legs = sorted((trial / "artifacts" / "logs" / "artifacts").glob(pattern))
+            if legs and all(
+                all(t in leg.read_text(errors="ignore") for t in tokens)
+                for leg in legs
+            ):
+                hits += 1
+        return f"{hits}/{len(self.valid)}"
+
+
+def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
+    built: dict[str, dict[str, Arm]] = {}
+    missing: list[str] = []
+    for name, case in manifest["cases"].items():
+        built[name] = {}
+        for arm, job_name in case["arms"].items():
+            job = ROOT / "jobs" / job_name
+            if not (job / "nr-snapshot.json").is_file():
+                missing.append(f"{name}.{arm}: {job_name}")
+                continue
+            built[name][arm] = Arm(case["case_id"], job)
+    if missing:
+        raise SystemExit(
+            "jobs named in site/report.toml are not on this machine:\n  "
+            + "\n  ".join(missing)
+            + "\n\nThe page is built from recorded evidence; without it there is "
+            "nothing to publish. Build on the machine that holds the jobs."
+        )
+    return built
+
+
+def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
+    parts = key.split(".")
+    if parts[0] == "totals":
+        return totals(parts[1], arms)
+    if len(parts) < 3:
+        raise KeyError(key)
+    case, arm, field, *rest = parts
+    if case not in arms or arm not in arms[case]:
+        raise KeyError(key)
+    target = arms[case][arm]
+    if field == "met" and rest:
+        return target.met(rest[0])
+    if field == "mean" and rest:
+        return target.mean(rest[0])
+    return {
+        "cost": target.cost,
+        "tokens": target.tokens,
+        "tools": target.tools,
+        "valid": target.valid_count,
+        "complete": target.complete,
+    }[field]()
+
+
+def totals(field: str, arms: dict[str, dict[str, Arm]]) -> str:
+    if field == "cases":
+        return str(len(arms))
+    if field == "runs":
+        return str(sum(len(a.valid) for case in arms.values() for a in case.values()))
+    if field == "failures":
+        # Counted from the document rather than typed: the two disagreed once,
+        # and the page was the one that was wrong.
+        text = (ROOT / "docs" / "instrument-failures.md").read_text()
+        return str(len(re.findall(r"^## \d+\. ", text, re.M)))
+    raise KeyError(f"totals.{field}")
+
+
+KNOWN_FIELDS = {"cost", "tokens", "tools", "valid", "complete", "met", "mean"}
+
+
+def lint() -> int:
+    """What CI can check: the jobs are not on the runner.
+
+    Two things that do not need evidence to verify — that every placeholder
+    names a field this script knows how to resolve, and that the committed page
+    carries none. A page published with a literal `{{ … }}` in it is the most
+    visible way this could fail and the easiest to prevent.
+    """
+    problems: list[str] = []
+    manifest = tomllib.loads(MANIFEST.read_text())
+    for key in PLACEHOLDER.findall(TEMPLATE.read_text()):
+        parts = key.split(".")
+        if parts[0] == "totals":
+            if parts[1] not in {"cases", "runs", "failures"}:
+                problems.append(f"{key}: unknown total")
+            continue
+        if len(parts) < 3 or parts[2] not in KNOWN_FIELDS:
+            problems.append(f"{key}: not a field build-site can resolve")
+            continue
+        case, arm = parts[0], parts[1]
+        if case not in manifest["cases"]:
+            problems.append(f"{key}: no case {case!r} in site/report.toml")
+        elif arm not in manifest["cases"][case]["arms"]:
+            problems.append(f"{key}: no arm {arm!r} for {case}")
+
+    leftover = PLACEHOLDER.findall(OUTPUT.read_text()) if OUTPUT.is_file() else []
+    if leftover:
+        problems.append(
+            f"site/index.html still contains {len(leftover)} unresolved "
+            f"placeholder(s): {leftover[:3]}"
+        )
+
+    if problems:
+        print("template problems:", file=sys.stderr)
+        for problem in problems:
+            print(f"  - {problem}", file=sys.stderr)
+        return 1
+    print("template resolves against site/report.toml; published page is rendered")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(usage=__doc__)
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument(
+        "--lint",
+        action="store_true",
+        help="check the template and the committed page without reading jobs",
+    )
+    args = parser.parse_args()
+
+    if args.lint:
+        return lint()
+
+    if not TEMPLATE.is_file():
+        sys.exit(f"no template at {TEMPLATE.relative_to(ROOT)}")
+    manifest = tomllib.loads(MANIFEST.read_text())
+    arms = load_arms(manifest)
+
+    unresolved: list[str] = []
+
+    def substitute(match: re.Match) -> str:
+        key = match.group(1)
+        try:
+            value = resolve(key, arms, manifest)
+        except (KeyError, IndexError):
+            unresolved.append(key)
+            return match.group(0)
+        if not value or value == "—":
+            unresolved.append(f"{key} (resolved to nothing)")
+        return value
+
+    rendered = PLACEHOLDER.sub(substitute, TEMPLATE.read_text())
+
+    if unresolved:
+        print("placeholders with no evidence behind them:", file=sys.stderr)
+        for key in unresolved:
+            print(f"  {{{{ {key} }}}}", file=sys.stderr)
+        print(
+            "\nA figure the artifacts cannot produce does not get published. "
+            "Either the manifest names the wrong job, or the page is claiming "
+            "something no run measured.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.check:
+        if not OUTPUT.is_file():
+            sys.exit("no site/index.html to check against")
+        if OUTPUT.read_text() != rendered:
+            print(
+                "site/index.html does not match what the artifacts produce. "
+                "Run scripts/build-site and commit the result.",
+                file=sys.stderr,
+            )
+            return 1
+        print("site/index.html matches the recorded evidence")
+        return 0
+
+    OUTPUT.write_text(rendered)
+    print(f"wrote {OUTPUT.relative_to(ROOT)} from {sum(len(a) for a in arms.values())} arm(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

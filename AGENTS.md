@@ -45,6 +45,7 @@ the cases and the rubric.
 | `./scripts/scan-artifacts --all` | Credential shapes in recorded jobs, before anything is published |
 | `./scripts/calibrate-judges --dry-run` | What a judge calibration would cost; drop the flag to record one |
 | `./scripts/check-calibration` | Is the recorded calibration current and within threshold? |
+| `./scripts/build-site` | Render the published page from the jobs it names |
 | `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
 | `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |

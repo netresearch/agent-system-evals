@@ -16,11 +16,17 @@ passes on both lines, or it did not.
 | `control` | 2/3 | one tree resolved on 14.3 and failed its tests |
 | **`nr`** | **3/3** | — |
 | `companion` | 0/3 | one would not resolve at all, two failed tests |
-| `dev-mcp` | 1/3 | two failed tests |
+| `dev-mcp` | 0/2 | two failed tests; a third trial never called its server and is excluded |
 | **`nr-full`** | **3/3** | — |
 
 Both Netresearch arms completed the upgrade in every trial. The unaided agent
-managed two of three. That is the first result in this repository where a
+managed two of three.
+
+`dev-mcp` read 1/3 here until 20 August 2026. The validity gate then found that
+the one trial of the three that completed the upgrade is the one where the MCP
+server was never called — an arm that consists of nothing but that server, in a
+run indistinguishable from a control. Counted, it credited the tool with a
+success achieved without it. That is the first result in this repository where a
 difference rests on something the framework itself decides rather than on a
 rubric.
 
