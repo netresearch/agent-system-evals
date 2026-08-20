@@ -1,0 +1,140 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-version-metadata-bare"
+version = "1.0.0"
+description = "Open forward review: diagnose a reported save failure in a running TYPO3 instance"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "runtime", "debugging", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-METADATA-001-BARE"
+# The same case against the same commit, with the repository's agent-facing
+# scaffolding removed. The variable here is not the fleet but the repository's
+# readiness, so a comparison against the prepared variant is legitimate while a
+# comparison against any other case is not.
+variant_of = "OFR-TYPO3-METADATA-001"
+variant = "bare"
+category = "open-forward-review"
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-nr-xliff-streaming.git"
+target_package = "netresearch/nr-textdb"
+target_sha = "ddb49ea837e7e784afa0cd3f5964decff2b13229"
+# The first runtime case. The agent works against an installed TYPO3 13.4
+# instance with the extension active and a database in the state a real bug
+# report described. See docs/adr/0006-runtime-fidelity.md.
+runtime = true
+source_learning_id = "retro-20260820-metadata-drift-in-production"
+# Graded on one dimension rather than the full eight. The eight exist for an
+# open review; this is a maintenance task with a fact at the end of it, and
+# judging it on prioritisation or context discovery would price a low-level
+# case out of being one. Declared here so no comparison can mix rubrics
+# silently — see docs/scoring.md.
+dimensions = ["consistency"]
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.typo3.org",
+    "api.typo3.org",
+    "get.typo3.org",
+    "typo3.org",
+    "extensions.typo3.org",
+    "packagist.org",
+    "repo.packagist.org",
+]
+
+# The agent must not start against a half-installed instance. The installation
+# runs at container start because it needs the database; this holds the agent
+# phase until it has finished, and fails the trial if it never does.
+[environment.healthcheck]
+command = "test -f /instance/.instance-ready && cd /instance && vendor/bin/typo3 site:list >/dev/null && curl -fsS -o /dev/null http://v14.nr-xliff-streaming.ddev.site/typo3/"
+interval_sec = 10.0
+timeout_sec = 60.0
+start_period_sec = 240.0
+start_interval_sec = 10.0
+retries = 5
+
+[environment.env]
+# Not the service name. This case runs under `network_mode = "allowlist"`, and
+# Harbor then puts every service without its own `networks`/`network_mode` —
+# `main` and `db` alike — into the egress sidecar's network namespace. They
+# share one localhost, and the name `db` resolves nowhere. Changing this back
+# to "db" fails with `getaddrinfo for db failed`.
+DB_HOST = "127.0.0.1"
+DB_NAME = "typo3"
+DB_USER = "typo3"
+DB_PASSWORD = "typo3-dev-password"
+# What this arm installs into the instance, resolved from the host environment
+# the way the credentials are. Empty for an arm that provisions nothing, which
+# is what control has to mean: the products are not baked into the image for
+# every fleet.
+PROVISION_PACKAGES = "${PROVISION_PACKAGES}"
+PROVISION_COMPANION_REF = "${PROVISION_COMPANION_REF}"
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+# Snapshot the runtime state the agent leaves behind. For a diagnosis case the
+# database is part of the evidence: whether the agent only looked, or also
+# changed something, is visible nowhere else.
+# What the arm was actually given. Run after the agent phase because Harbor
+# hands the MCP configuration to the agent process, not to the container — so
+# this is the earliest point at which the servers can be asked to describe
+# themselves. It records provisioning only; what the agent did with it is
+# counted from the trajectory, separately, and the two must not be conflated:
+# a server that never answered makes a run void, a server that answered and
+# went unused is a result.
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+
+
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 30720
+network_mode = "public"
+
+# The two declarations in their final state. The judge reads these rather than
+# reconstructing them from a diff, because what matters is what the files say
+# when the agent has finished, not how they got there.
+[[verifier.collect]]
+command = "cp /app/composer.json /logs/artifacts/composer.after.json 2>&1 || true"
+
+[[verifier.collect]]
+command = "grep -A6 \"'depends'\" /app/ext_emconf.php > /logs/artifacts/emconf.after.txt 2>&1 || true"

@@ -1,0 +1,44 @@
+# Verifier image.
+#
+# Harbor uses the tests/ directory itself as this image's build context and
+# expects the verifier to find its files at /tests. Setting
+# `[verifier.environment] docker_image` instead skips the build entirely, so
+# nothing is ever copied in and the run fails with
+# `bash: /tests/test.sh: No such file or directory` — which describes the
+# symptom and not the cause. Measured, not assumed.
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# The judge runs through the Claude Code CLI rather than through direct API
+# calls. A subscription token is scoped for the CLI session, and LiteLLM's
+# direct calls with it are rate-limited hard enough that judging is not
+# possible: eight dimensions failed at concurrency 8, and one still failed at
+# concurrency 1. The CLI is the authenticated path that subscription actually
+# grants.
+#
+# Installed at build time on purpose. The verifier's run-time allowlist does
+# not include claude.ai, so an install during the run would fail — and it
+# should not be reaching out mid-verification anyway.
+RUN curl -fsSL https://claude.ai/install.sh | bash \
+    && /root/.local/bin/claude --version \
+    && mv /root/.local/bin/claude /root/.local/bin/claude-real
+
+# A wrapper around the CLI rather than the CLI itself, so a failing judge
+# leaves a readable error behind: RewardKit truncates the CLI's error envelope
+# at 200 characters, which stops before the field naming what went wrong.
+#
+# It has to take the place of the real binary in /root/.local/bin. test.sh puts
+# that directory at the front of PATH, so a wrapper installed anywhere else is
+# shadowed and silently never runs — which is how the first version of this
+# failed: the image built, the judges ran, and no log appeared.
+COPY judge-cli.sh /root/.local/bin/claude
+RUN chmod +x /root/.local/bin/claude \
+    && ln -sf /root/.local/bin/claude /usr/local/bin/claude \
+    && claude --version
+
+# uv resolves and caches RewardKit at run time; test.sh pins the version.
+COPY . /tests
+WORKDIR /tests

@@ -460,6 +460,7 @@ def main() -> int:
     check_token_outlives_the_run(oauth_token, args)
     check_fleet_fits_the_case(args.fleet, case_dir)
 
+    case_meta = tomllib.loads((case_dir / "task.toml").read_text()).get("metadata", {})
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     # The agent belongs in the name as soon as it is not the recorded default.
     # Two harnesses writing jobs/<case>-<fleet>-<stamp> are indistinguishable in
@@ -597,6 +598,8 @@ def main() -> int:
     if job_dir.exists():
         snapshot = {
             "case_id": args.case_id,
+            "variant_of": case_meta.get("variant_of"),
+            "variant": case_meta.get("variant"),
             "fleet": args.fleet,
             "fleet_requested": skills,
             "companion": (

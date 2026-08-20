@@ -58,7 +58,29 @@ def main() -> int:
         # A contract eval is graded pass/fail on a named condition and has no
         # eight-dimension rubric to satisfy (ADR 0002). Demanding one would be
         # demanding that it be an open review.
-        expected = {"contract"} if contract else DIMENSIONS
+        # A case may grade fewer dimensions than the full eight, and must say
+        # so in its own metadata. The eight exist for an open review; a
+        # low-level maintenance task does not have eight things worth judging,
+        # and forcing them makes it expensive enough to stop being low-level.
+        #
+        # Declared rather than inferred from the directory listing: two cases
+        # graded on different subsets can be compared by mistake, and a
+        # declaration is what a reader and a script can both check.
+        declared = None
+        if config.is_file():
+            import tomllib
+
+            meta = tomllib.loads(config.read_text()).get("metadata", {})
+            if meta.get("dimensions"):
+                declared = set(meta["dimensions"])
+                unknown_declared = declared - DIMENSIONS - {"consistency", "contract"}
+                if unknown_declared:
+                    problems.append(
+                        f"{case}: metadata.dimensions names {sorted(unknown_declared)}, "
+                        f"which docs/scoring.md does not define"
+                    )
+
+        expected = {"contract"} if contract else (declared or DIMENSIONS)
         unknown = subdirs - expected
         if unknown:
             problems.append(

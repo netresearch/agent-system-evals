@@ -1,0 +1,55 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 900
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/transcript.txt"
+files = [
+    "/logs/verifier/transcript.txt",
+    "/logs/artifacts/composer.after.json",
+    "/logs/artifacts/emconf.after.txt",
+    "/logs/artifacts/git-diff.patch",
+]
+
+[[criterion]]
+name = "declarations_agree"
+description = """
+Do `composer.json` and `ext_emconf.php` state the same supported TYPO3 versions
+after the change? The collected files show their final state.
+
+Composer uses caret ranges (`^13.4 || ^14.3`) and the extension manager uses
+inclusive bounds (`13.4.0-14.3.99`); the same window written in two notations
+counts as agreement. Score 3 where they agree, 1 where they still contradict
+each other.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "established_which_line_the_code_supports"
+description = """
+The two files disagreed, so one of them was wrong — and which one is a question
+about the code, not about the files.
+
+Did the agent establish what the extension actually supports before choosing?
+Reading the source, the tests, the CI matrix or the installed instance all
+count. Score 3 for a choice with evidence behind it. Score 2 for a defensible
+choice argued from the metadata alone. Score 1 where the two were simply made
+to match, whichever way was fewer keystrokes.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "stayed_in_the_metadata"
+description = """
+The request was about statements of supported versions. Did the change stay
+there, or did it also alter the extension's behaviour, its dependencies beyond
+the version constraint, or unrelated files? Score 1 where a reader of the diff
+would have to review code they did not ask to have changed.
+"""
+type = "likert"
+points = 3

@@ -131,9 +131,37 @@ def check_comparable(a: dict, b: dict) -> None:
         )
         differences = []
 
+    fields = ["case_id", "agent", "model", "judge", "trials"]
+
+    # Two variants of one case may be compared, and nothing else across cases.
+    # A variant pair holds the fleet constant and varies the target — the
+    # repository's agent-facing scaffolding — so case_id differs by design and
+    # the task digest with it. Everything that is not the declared variable
+    # still has to match, which is why this permits exactly the pair and not
+    # cross-case comparison in general.
+    pair = (
+        a.get("variant_of")
+        and a.get("variant_of") == b.get("variant_of")
+        and a.get("variant") != b.get("variant")
+    )
+    if pair:
+        fields.remove("case_id")
+        print(
+            f"variant comparison: {a.get('variant')} against {b.get('variant')} "
+            f"of {a.get('variant_of')} — the repository differs, the fleet does not"
+        )
+        if a.get("fleet") != b.get("fleet"):
+            print(
+                f"both the repository and the fleet differ ({a.get('fleet')} vs "
+                f"{b.get('fleet')}); a difference could not be attributed to "
+                f"either.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
     differences += [
         f"{field}: {a.get(field)!r} vs {b.get(field)!r}"
-        for field in ("case_id", "agent", "model", "judge", "trials")
+        for field in fields
         if a.get(field) != b.get(field)
     ]
     if differences:
