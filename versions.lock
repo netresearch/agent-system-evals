@@ -18,5 +18,5 @@ verifier_base=ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:e5b65587bce7d
 # with `curl -fsSL https://claude.ai/install.sh | bash`, which has no version
 # argument and no published checksum in use here. The judge's own binary is
 # therefore the one part of a recorded result that cannot be reconstructed.
-# Tracked in issue #6.
+# Tracked in issue #10.
 claude_code=unpinned

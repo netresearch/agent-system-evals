@@ -14,7 +14,7 @@
 # scripts/calibrate-judges". No such script has ever existed, and the judges
 # are not calibrated at all: nothing measures how far one disagrees with itself
 # on a re-run, or with a human, and no acceptance threshold is written down.
-# Tracked in issue #5. The sentence read as coverage and was the reason nobody
+# Tracked in issue #9. The sentence read as coverage and was the reason nobody
 # looked.
 set -euo pipefail
 

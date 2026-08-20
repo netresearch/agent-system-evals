@@ -18,7 +18,7 @@ one arm's three trials back to back, because a job is the unit `scripts/compare`
 reads. Within a stage, a drift can still fall on one side. The docstring used to
 claim `A B, B A, A B` — trial by trial — which this has never done; saying so
 here rather than in an issue alone, because a comment that overstates the method
-is how a reader stops checking. Tracked in issue #2.
+is how a reader stops checking. Tracked in issue #5.
 
 **Depth.** Three trials per arm was treated as the measurement. It is not: on
 the runtime case the spread inside one arm covered the gap between arms, and a
@@ -27,7 +27,7 @@ were looked at. Three trials answer "is anything obviously happening"; nothing
 more. So the run starts at three, and continues only where the result is close
 enough that more trials could settle it.
 
-Every run writes `experiments/<stamp>-<case>.json`: the seed, the arms, the
+Every run writes `experiments/<case>-<n>.json`: the seed, the arms, the
 stage sizes, the jobs each stage produced and why it stopped. Without it the
 seed is unrecoverable and the run is not reproducible even in principle.
 
@@ -61,7 +61,7 @@ DISCOVERY = 3
 # dimensions at one in ten would produce at least one separation by chance in
 # roughly half of all runs; they are not independent, but nothing here corrects
 # for the multiplicity either. So separation is a reason to spend more trials
-# and is never itself a result. Tracked in issue #3.
+# and is never itself a result. Tracked in issue #6.
 STAGES = (3, 4, 5)
 
 

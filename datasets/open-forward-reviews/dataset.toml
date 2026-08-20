@@ -4,7 +4,7 @@
 # known-concerns files are verifier-side — the agent's container never holds
 # them — but they are committed and anyone can read them, so a stack developed
 # against this dataset may have seen the findings its cases expect. This comment
-# claimed the opposite until 20 August 2026; see ADR 0005 and issue #7.
+# claimed the opposite until 20 August 2026; see ADR 0005 and issue #8.
 #
 # The [[files]] digest is maintained by `harbor sync`; a stale digest means the
 # published dataset and this manifest disagree about what the metric computes.

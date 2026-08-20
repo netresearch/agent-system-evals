@@ -145,7 +145,7 @@ detail. "Determine installed versions from the lockfile before reading
 constraints" is a learning. "When reviewing t3x-sync, check
 DumpFileTrait.php" is contamination wearing a learning's clothes.
 
-## 9. Trials are interleaved, and three of them are not a measurement
+## 11. Arms alternate, and three trials are not a measurement
 
 Two rules that come from this repository's own results rather than from theory.
 
@@ -158,7 +158,7 @@ the order shuffled, so a drift across the session spreads over both arms.
 That is block randomisation and not trial-level interleaving: within a stage,
 one arm's trials still run back to back, because a Harbor job is the unit the
 comparator reads. A drift inside a single stage still lands on one side. Tracked
-in [issue #2](https://github.com/netresearch/agent-system-evals/issues/2).
+in [issue #5](https://github.com/netresearch/agent-system-evals/issues/5).
 
 **Three trials answer one question: is anything obviously happening.** They
 cannot establish that something is. On the runtime case the spread inside a

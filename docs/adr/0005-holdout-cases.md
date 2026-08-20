@@ -50,6 +50,6 @@ contamination check cannot detect either.
 
 The decision above stands. The claim about the public dataset does not. Moving
 expectations into a private verifier store is
-[issue #7](https://github.com/netresearch/agent-system-evals/issues/7); until
+[issue #8](https://github.com/netresearch/agent-system-evals/issues/8); until
 that lands, the public cases are development instruments and their scores are
 not evidence about a stack that could have read them.
