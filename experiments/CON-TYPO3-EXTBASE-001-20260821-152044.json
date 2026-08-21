@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "experiment_id": "CON-TYPO3-EXTBASE-001-20260821-152044",
+  "case": "CON-TYPO3-EXTBASE-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "contract",
+  "secondary_endpoints": [],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 71,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-21T15:20:44+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/CON-TYPO3-EXTBASE-001-control-20260821-152044",
+        "nr": "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-152304"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-152526",
+        "control": "jobs/CON-TYPO3-EXTBASE-001-control-20260821-152748"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/CON-TYPO3-EXTBASE-001-control-20260821-153007",
+        "nr": "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-153224"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "contract did not move after the discovery round (overlaps, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/CON-TYPO3-EXTBASE-001-control-20260821-152044",
+      "jobs/CON-TYPO3-EXTBASE-001-control-20260821-152748",
+      "jobs/CON-TYPO3-EXTBASE-001-control-20260821-153007"
+    ],
+    "nr": [
+      "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-152304",
+      "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-152526",
+      "jobs/CON-TYPO3-EXTBASE-001-nr-20260821-153224"
+    ]
+  },
+  "finished_at": "2026-08-21T15:34:51+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
