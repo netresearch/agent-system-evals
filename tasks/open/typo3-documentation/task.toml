@@ -171,12 +171,16 @@ problems = []
 
 
 def toctree_entries(text):
-    """Documents a toctree points at, read line by line.
+    """Documents a toctree points at, with the block's :glob: flag, read line by line.
 
     Not one regex. The first version was, and it matched nothing against an
     ordinary toctree — the blank line between the options and the entries ends
     the block for a contiguous pattern, and every real index has one. A check
     that silently finds zero entries reports a skeleton as complete.
+
+    The :glob: flag is carried out rather than discarded with the other
+    options, because it changes what an entry means: under it, `*` is a pattern
+    and not a filename.
     """
     entries = []
     lines = text.splitlines()
@@ -184,6 +188,7 @@ def toctree_entries(text):
         if line.strip() != ".. toctree::":
             continue
         indent = len(line) - len(line.lstrip())
+        glob = False
         for candidate in lines[index + 1:]:
             if not candidate.strip():
                 continue
@@ -192,8 +197,10 @@ def toctree_entries(text):
                 break
             entry = candidate.strip()
             if entry.startswith(":"):
+                if entry.startswith(":glob:"):
+                    glob = True
                 continue
-            entries.append(entry)
+            entries.append((entry, glob))
     return entries
 
 
@@ -242,12 +249,37 @@ else:
 
     referenced = 0
     for rst in sorted(root.rglob("*.rst")):
-        for entry in toctree_entries(rst.read_text(errors="ignore")):
+        for entry, glob in toctree_entries(rst.read_text(errors="ignore")):
             referenced += 1
-            target = rst.parent / entry
-            if not (target.with_suffix(".rst").is_file()
-                    or (target / "Index.rst").is_file()
-                    or target.is_file()):
+            # A leading slash means "from the documentation root", not "from
+            # the filesystem root" — and `Path("/a/b") / "/c"` silently gives
+            # "/c", so the naive join resolved such an entry outside the tree
+            # entirely. Measured against georgringer/news, where
+            # `/Misc/Changelog/Index` was reported as missing from a
+            # documentation set that renders.
+            # `Title <target>` is ordinary toctree syntax; read whole it is a
+            # filename that can never exist. One recorded trial was penalised
+            # twice for it. An external URL in that position is a link rather
+            # than a document — it is not missing, and it is not something the
+            # documentation reaches either, so it counts as neither.
+            if entry.endswith(">") and "<" in entry:
+                entry = entry[entry.rindex("<") + 1:-1].strip()
+            if entry.startswith(("http://", "https://", "mailto:")):
+                referenced -= 1
+                continue
+            base = root if entry.startswith("/") else rst.parent
+            relative = entry.lstrip("/")
+            if glob or any(ch in relative for ch in "*?["):
+                # TYPO3CMS-Reference-TCA lists a bare `*` under :glob:. Read as
+                # a filename it is always missing; read as a pattern it is the
+                # ordinary way to include every sibling.
+                found = any(base.glob(relative + ".rst")) or any(base.glob(relative))
+            else:
+                target = base / relative
+                found = (target.with_suffix(".rst").is_file()
+                         or (target / "Index.rst").is_file()
+                         or target.is_file())
+            if not found:
                 problems.append(
                     rst.name + " toctree references " + entry + ", which does not exist"
                 )
