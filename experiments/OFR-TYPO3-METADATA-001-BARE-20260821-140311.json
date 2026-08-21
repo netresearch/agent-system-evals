@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-METADATA-001-BARE-20260821-140311",
+  "case": "OFR-TYPO3-METADATA-001-BARE",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "consistency",
+  "secondary_endpoints": [],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 51,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-21T14:03:11+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-140311",
+        "control": "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-140748"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-141150",
+        "control": "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-141610"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-141938",
+        "control": "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-142308"
+      },
+      "primary_p": 0.3
+    }
+  ],
+  "stop_reason": "consistency did not move after the discovery round (overlaps, p 0.300)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-140748",
+      "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-141610",
+      "jobs/OFR-TYPO3-METADATA-001-BARE-control-20260821-142308"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-140311",
+      "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-141150",
+      "jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-141938"
+    ]
+  },
+  "finished_at": "2026-08-21T14:26:21+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
