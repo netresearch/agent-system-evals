@@ -763,9 +763,23 @@ def nr_artifact_matches(workspace: Path, name: str, pattern: str) -> bool:
     not in the trajectory but in the tree the agent left, so collect hooks run
     that tree and write their verdict to a file; this reads the verdict.
 
-    Absence raises rather than returning False. A missing artifact means the
-    hook did not run — an infrastructure failure — and scoring it as the
-    agent's failure would convert a broken harness into evidence about the
-    system under test.
+    **Absence is False, not an exception.** It used to raise, on the reasoning
+    that a missing artifact means the collector did not run. That holds for a
+    verdict file a collector always writes, and not at all for a `cp` of a file
+    the agent may never create: `cp` leaves no target when its source is
+    missing. The documentation case hit this on its first trial — the agent
+    wrote no `guides.xml`, so `guides.after.xml` was absent, the criterion
+    raised, RewardKit aborted the whole reward, and a plain agent shortcoming
+    was recorded as `INVALID_INFRASTRUCTURE`. The measurement was destroyed by
+    the thing it was measuring.
+
+    The infrastructure question has its own home now: a case declares in
+    `metadata.required_artifacts` what must exist, and the validity gate voids
+    the trial by name when it does not. Declare a `cp` artifact there only if
+    its source is part of the environment rather than of the agent's work.
     """
-    return bool(re.search(pattern, artifact(name), re.MULTILINE))
+    try:
+        contents = artifact(name)
+    except MissingEvidence:
+        return False
+    return bool(re.search(pattern, contents, re.MULTILINE))

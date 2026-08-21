@@ -26,8 +26,11 @@ required_artifacts = [
     "git-status.txt",
     "git-diff.patch",
     "docs-check.txt",
+    # `docs-listing.txt` is a redirect and exists even when the find fails.
     "docs-listing.txt",
-    "guides.after.xml",
+    # `guides.after.xml` is deliberately NOT here: it is a `cp` of a file the
+    # agent may never write, and `cp` leaves no target when its source is
+    # missing. Requiring it would void a trial for the agent not doing the work.
     "capability-inventory.json",
 ]
 

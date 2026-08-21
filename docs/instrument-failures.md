@@ -1,6 +1,6 @@
 # Instrument failures
 
-Eighteen ways this benchmark measured the wrong thing while looking like it was
+Nineteen ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -291,6 +291,43 @@ A regrade changes exactly one of the two.
 **Fix:** a separate `grade` block — rubric digest, judge, RewardKit version,
 timestamp — replaced on regrade while the trial fingerprint is carried
 unchanged. `scripts/compare` refuses two jobs whose grade identities differ.
+
+## 19. An agent failure recorded as a broken harness
+
+The documentation case grades `named_the_extension` by matching a pattern
+against `guides.after.xml`, which the collector produces with
+`cp /app/Documentation/guides.xml …`. On the case's first trial the agent wrote
+ten toctree entries and no `guides.xml`, so `cp` had nothing to copy and left no
+target. `nr_artifact_matches` raised on the absent artifact, RewardKit aborted
+the entire `documentation` reward, and the validity gate recorded
+`INVALID_INFRASTRUCTURE`. The trial was discarded.
+
+The raise was deliberate and its stated reason was this repository's own
+principle: a missing artifact means the collector did not run, and scoring that
+as the agent's failure would convert a broken harness into evidence about the
+system under test. The reason simply did not apply. The collector ran. What was
+missing was the agent's work — and the criterion existed precisely to notice
+that. `guides.after.xml` was also listed under `required_artifacts`, so the gate
+would have voided the trial on its own even with the criterion fixed: the same
+mistake, made twice, in two mechanisms.
+
+This is the sharpest instance of the failure mode this document catalogues, and
+it runs in the opposite direction from the rest. Every earlier entry describes
+an instrument that reported something the system never earned. This one is an
+instrument that erased a real result — and erased it *only* when the agent
+performed badly, so the discard is correlated with the outcome. A benchmark that
+drops its worst trials as infrastructure noise reports a system better than it
+is, and reports it with a clean conscience, because the invalid trials are
+excluded by a rule everyone agrees with.
+
+**Fix:** the two questions are now asked by the two mechanisms that can answer
+them. `nr_artifact_matches` returns False for an absent artifact — absent
+behaviour, not absent infrastructure. A case declares in
+`metadata.required_artifacts` what must exist regardless of what the agent did,
+and the validity gate voids the trial by name when it does not; a `cp` artifact
+belongs there only when its source is part of the environment.
+`tests/test_nreval_artifacts.py` pins both halves, so the fix cannot be read as
+"never raise": an absent trajectory still does.
 
 ## What this cost, and what it teaches
 
