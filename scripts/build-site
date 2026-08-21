@@ -57,14 +57,32 @@ PLACEHOLDER = re.compile(r"\{\{\s*([a-z0-9_.-]+)\s*\}\}", re.I)
 
 
 class Arm:
-    def __init__(self, case_id: str, job: Path):
+    """One arm of one case, pooled across however many jobs produced it.
+
+    A job used to be an arm: `harbor run -k 3` recorded three trials in one
+    directory. A randomised block series is the opposite shape — one trial per
+    Harbor call, so an arm of three trials is three job directories, and which
+    block they came from is recorded in the experiment file rather than here.
+    Pooling them is what `scripts/analyze` already does; this makes the page
+    able to describe the same runs.
+
+    A single job name stays legal so the four cases recorded before August 2026
+    keep resolving, and so a smoke run can be published as what it is.
+    """
+
+    def __init__(self, case_id: str, jobs: list[Path]):
         self.case_id = case_id
-        self.job = job
-        self.valid, self.verdicts = validity.gate(
-            job,
-            expected_dimensions=case_lib.graded_dimensions(case_id),
-            required_artifacts=case_lib.required_artifacts(case_id),
-        )
+        self.jobs = jobs
+        self.valid = []
+        self.verdicts = []
+        for job in jobs:
+            valid, verdicts = validity.gate(
+                job,
+                expected_dimensions=case_lib.graded_dimensions(case_id),
+                required_artifacts=case_lib.required_artifacts(case_id),
+            )
+            self.valid.extend(valid)
+            self.verdicts.extend(verdicts)
 
     def _agent(self, field: str) -> list[float]:
         values = []
@@ -93,6 +111,22 @@ class Arm:
                     )
                 )
         return " / ".join(str(c) for c in sorted(counts))
+
+    def model(self) -> str:
+        """The agent model these trials ran on, read from their snapshots.
+
+        The page used to state the model in prose. Prose does not change when a
+        case is added on a different model, so the sentence "every figure comes
+        from claude-opus-5" would have gone on standing over Haiku figures.
+        """
+        seen = set()
+        for job in self.jobs:
+            snapshot = next(job.glob("*-snapshot.json"), None)
+            data = validity.read_json(snapshot) if snapshot else None
+            model = ((data or {}).get("comparison") or {}).get("model")
+            if model:
+                seen.add(model)
+        return ", ".join(sorted(seen)) if seen else "—"
 
     def valid_count(self) -> str:
         return f"{len(self.valid)}/{len(self.verdicts)}"
@@ -140,12 +174,17 @@ def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
     missing: list[str] = []
     for name, case in manifest["cases"].items():
         built[name] = {}
-        for arm, job_name in case["arms"].items():
-            job = ROOT / "jobs" / job_name
-            if not (job / "nr-snapshot.json").is_file():
-                missing.append(f"{name}.{arm}: {job_name}")
-                continue
-            built[name][arm] = Arm(case["case_id"], job)
+        for arm, named in case["arms"].items():
+            names = [named] if isinstance(named, str) else list(named)
+            jobs = []
+            for job_name in names:
+                job = ROOT / "jobs" / job_name
+                if not (job / "nr-snapshot.json").is_file():
+                    missing.append(f"{name}.{arm}: {job_name}")
+                    continue
+                jobs.append(job)
+            if jobs:
+                built[name][arm] = Arm(case["case_id"], jobs)
     if missing:
         raise SystemExit(
             "jobs named in site/report.toml are not on this machine:\n  "
@@ -176,6 +215,7 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
         "tools": target.tools,
         "valid": target.valid_count,
         "complete": target.complete,
+        "model": target.model,
     }[field]()
 
 
@@ -185,7 +225,30 @@ def totals(field: str, arms: dict[str, dict[str, Arm]]) -> str:
     if field == "runs":
         return str(sum(len(a.valid) for case in arms.values() for a in case.values()))
     if field == "version":
-        return (ROOT / "VERSION").read_text().strip()
+        # Read from the jobs, not from VERSION. The file says what the tree is
+        # today; the page has to say what produced these numbers, and the two
+        # part company the moment anything is bumped after a run — which is
+        # exactly when the claim matters. Every job on this page predates
+        # versioning and would have been published as 0.7.0.
+        recorded = set()
+        for case in arms.values():
+            for arm in case.values():
+                for job in arm.jobs:
+                    snapshot = next(job.glob("*-snapshot.json"), None)
+                    data = validity.read_json(snapshot) if snapshot else None
+                    recorded.add((data or {}).get("benchmark_version"))
+        named = sorted(v for v in recorded if v)
+        if not named:
+            return "unversioned"
+        if len(named) == 1 and None not in recorded:
+            return named[0]
+        return ", ".join(named + (["unversioned"] if None in recorded else []))
+    if field == "models":
+        seen = set()
+        for case in arms.values():
+            for arm in case.values():
+                seen.update(m for m in arm.model().split(", ") if m != "—")
+        return ", ".join(sorted(seen)) if seen else "—"
     if field == "failures":
         # Counted from the document rather than typed: the two disagreed once,
         # and the page was the one that was wrong.
@@ -194,7 +257,7 @@ def totals(field: str, arms: dict[str, dict[str, Arm]]) -> str:
     raise KeyError(f"totals.{field}")
 
 
-KNOWN_FIELDS = {"cost", "tokens", "tools", "valid", "complete", "met", "mean"}
+KNOWN_FIELDS = {"cost", "tokens", "tools", "valid", "complete", "met", "mean", "model"}
 
 
 def lint() -> int:
@@ -210,7 +273,7 @@ def lint() -> int:
     for key in PLACEHOLDER.findall(TEMPLATE.read_text()):
         parts = key.split(".")
         if parts[0] == "totals":
-            if parts[1] not in {"cases", "runs", "failures", "version"}:
+            if parts[1] not in {"cases", "runs", "failures", "version", "models"}:
                 problems.append(f"{key}: unknown total")
             continue
         if len(parts) < 3 or parts[2] not in KNOWN_FIELDS:

@@ -273,9 +273,10 @@ that reports one number for it is answering a question nobody asked.</p>
 <div class="note">
   <strong>Two things this does not show.</strong> No case here defeats the unaided agent, so none
   of them measures what tooling adds in <em>capability</em> — that needs tasks the base agent does
-  not finish. And every figure comes from Claude Code on <code>claude-opus-5</code>; whether these
-  are findings about the stack or about the stack inside one harness is a question a second agent
-  has to answer, which is what <code>scripts/sentinel</code> exists for.
+  not finish. And every figure comes from Claude Code on <code>{{ totals.models }}</code> — read from
+  the recorded jobs, so this sentence cannot go on claiming one model after a case is added on
+  another. Whether these are findings about the stack or about the stack inside one harness is a
+  question a second agent has to answer, which is what <code>scripts/sentinel</code> exists for.
 </div>
 
 <h2>Method</h2>
@@ -322,7 +323,9 @@ the public repository. Twelve further items remain
   rule.
 </div>
 
-<p>These figures were produced by benchmark version <code>{{ totals.version }}</code>. A result names
+<p>These figures were produced by benchmark <code>{{ totals.version }}</code> — read from the recorded
+jobs rather than from the repository's current VERSION, which says what the tree is today and not
+what produced a number. A result names
 the version that produced it: a case added or retired makes earlier numbers measurements of a
 different benchmark, and a rubric change makes them comparable only after a regrade
 (<a href="https://github.com/netresearch/agent-system-evals/blob/main/docs/governance.md">docs/governance.md</a>).</p>
