@@ -1,69 +1,79 @@
-# OFR-TYPO3-RUNTIME-001 — recorded results
+# OFR-TYPO3-RUNTIME-001 — recorded results (Haiku)
 
-Five fleets, three trials each, no errored trials and no errored criteria.
-Measured 19 August 2026 on the rebuilt environment.
+Two fleets, three trials each, six of six valid. Measured 21 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 0.8.0.
 
-Everything recorded before that date is withdrawn, and replaced here rather
-than corrected. The agent container had held `seed-reported-state.php`, whose
-header described the mechanism this case asks the agent to establish, and two
-trials were caught reading it. Both products were also installed for every arm,
-so there was no clean control, and the comparison checked five fields where the
-specification requires ten. See
-[docs/instrument-failures.md](../../../docs/instrument-failures.md).
+This case has an earlier series on `claude-opus-5`, recorded 19 August. The two
+are not compared here: the rubric has changed since, and a comparison across
+models needs both sides graded alike (`scripts/compare --variable model`).
 
-| Fleet | Skills delivered | MCP server reached |
+## What the run was
+
+`scripts/run-comparison OFR-TYPO3-RUNTIME-001 --arms control,nr --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 61`
+
+`outcome_quality` declared as the primary endpoint before the first trial —
+this is a diagnosis case, and whether the agent worked out what was wrong is the
+question it asks. Randomised blocks; the runner stopped after the discovery
+round.
+
+Experiment record: `experiments/OFR-TYPO3-RUNTIME-001-20260821-142708.json`.
+
+## Nobody diagnosed it
+
+| trial | tool calls | `outcome_quality` |
 |---|---|---|
-| `control` | none | — |
-| `nr` | 9 | — |
-| `companion` | 12 | 3/3 trials, 3 calls |
-| `dev-mcp` | none | 3/3 trials, 31 calls |
-| `nr-full` | 13 | — |
+| control 1 | 34 | 0.38 |
+| control 2 | 20 | 0.25 |
+| control 3 | 67 | 0.38 |
+| nr 1 | 31 | 0.38 |
+| nr 2 | 45 | 0.25 |
+| nr 3 | 56 | 0.25 |
 
-## Quality — met out of three
+`outcome_quality` met 0/3 in both arms, and no trial came within half the
+threshold. These are not non-attempts — every trial made between twenty and
+sixty-seven tool calls. The agents worked, at length, and did not arrive.
 
-Every arm solves the case. Nothing separates completely, so the comparison
-stopped after the discovery stage: three trials can say "something might be
-here", and nothing here says it.
+`verification` is the other flat line: 0/3 either side, and the criteria behind
+it are 9 met / 1 partial / 14 not met in **both** arms, digit for digit. On a
+case whose whole subject is a runtime behaviour that can be reproduced in the
+provisioned instance, neither arm establishes that its account is right.
 
-## Cost — every trial
+## The full dimension table
 
-| | control | nr | companion | dev-mcp | nr-full |
-|---|---|---|---|---|---|
-| agent cost | 4.20 / 5.03 / 10.46 | 3.63 / 4.27 / 6.21 | 4.43 / 4.88 / 6.06 | 3.19 / 6.23 / 13.37 | 6.53 / 7.43 / 9.28 |
-| tool calls | 60 / 70 / 123 | 54 / 66 / 81 | 65 / 70 / 86 | 60 / 85 / 151 | 85 / 104 / 121 |
+| dimension | control | nr | Holm p |
+|---|---|---|---|
+| `outcome_quality` (primary) | 0/3 | 0/3 | 1.000 |
+| `context_discovery` | 0/3 | 1/3 | 1.000 |
+| `authority` | 1/3 | 0/3 | 1.000 |
+| `evidence` | 2/3 | 3/3 | 1.000 |
+| `verification` | 0/3 | 0/3 | 1.000 |
+| `prioritization` | 0/3 | 1/3 | 1.000 |
+| `unsupported_claims` | 1/3 | 1/3 | 1.000 |
+| `capability_selection` | n/a | — | — |
 
-**No pair separates.** Control alone spans $4.20 to $10.46 — a factor of 2.5 on
-identical inputs — and every other arm lies inside that. No cost claim is made
-from this case, and no median is quoted: a median of three inside a spread this
-wide reads as a measurement and is not one.
+Every secondary line is exploratory and Holm-adjusted to 1.000. `analyze`
+reports `capability_selection` as not applicable rather than as a zero, because
+the control arm was offered nothing to choose among — a dimension that cannot
+apply is not a dimension the arm failed.
 
-## The finding is what was not used
+Zero `Skill(` calls in all three equipped trials. Five cases in a row on this
+model.
 
-Across all fifteen trials, **not one skill was invoked** — with nine available,
-with twelve, with thirteen. Both MCP arms did reach their servers, so the
-capabilities were demonstrably present; the skills simply went untouched.
+## Cost
 
-Set against the review case, measured the same week on the same stack, that is
-the result:
-
-| | review case | this case |
+| | control | nr |
 |---|---|---|
-| skills invoked | exactly one, in every trial | none, in any trial |
-| cost against control | ranges separate, roughly halved | ranges overlap |
+| agent cost per trial | 0.01 / 0.01 / 0.23 | 0.01 / 0.01 / 0.30 |
+| tool calls | 20 / 34 / 67 | 31 / 45 / 56 |
 
-The difference is the task. A review has a procedure to adopt — the conformance
-skill — and adopting it halves the context the agent carries through the work.
-A runtime diagnosis has no procedure on offer here: none of the nine or
-thirteen skills covers it, and the agent boots the framework itself instead,
-which it did in eight of nine trials without an MCP in the earlier measurement.
-
-Skills and servers are offers. This case shows what an offer that does not fit
-the task costs and returns: `nr-full`, the largest set, is the dearest arm here
-and the cheapest on the review case.
+The spread inside each arm is twenty-fold and covers everything between them.
+Cliff's delta +0.11, p 1.000. Exploratory, and at this spread a median would be
+a number rather than a measurement.
 
 ## Reproducing
 
 ```
-scripts/run-comparison OFR-TYPO3-RUNTIME-001 --arms control,nr,companion,dev-mcp,nr-full --seed 1
-scripts/capability-ledger jobs/<job>
+scripts/run-comparison OFR-TYPO3-RUNTIME-001 --arms control,nr \
+    --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 61
+scripts/analyze experiments/OFR-TYPO3-RUNTIME-001-20260821-142708.json
 ```
