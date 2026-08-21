@@ -3,6 +3,11 @@
 Two fleets, three trials each, six of six valid. Measured 21 August 2026 on
 **`claude-haiku-4-5-20251001`**, benchmark version 0.6.2.
 
+That version matters here. The namespace check described below was added
+*after* this series, which is why benchmark 0.7.0 exists: a run under 0.7.0
+is not comparable with the numbers on this page, because the same files
+would score differently.
+
 The first case in this repository where the equipped arm moves a dimension, and
 the first where a skill is invoked at all. Both halves matter, and the second is
 the interesting one: the skill was reached for, and the work still came out
