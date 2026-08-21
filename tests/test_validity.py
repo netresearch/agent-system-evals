@@ -213,3 +213,32 @@ def test_gate_splits_a_job(tmp_path):
 def test_every_state_is_reachable_by_name(state):
     """The vocabulary is fixed; a consumer inventing its own is the bug."""
     assert isinstance(state, str) and state.isupper()
+
+
+def test_regraded_trial_is_not_a_dead_agent(tmp_path):
+    """A regrade has no agent phase to finish, and is not an unfinished one.
+
+    Harbor stamps `agent_execution.finished_at` when the agent phase ends. A
+    regrade replays a recorded trial through a new rubric and starts no agent,
+    so the field is absent — and the gate read that absence as a killed run,
+    discarding every regraded job wholesale. The repair the documentation
+    prescribes for a changed rubric therefore produced nothing that could be
+    compared, and said only `has no valid trial to compare`.
+    """
+    trial = tmp_path / "case__abc"
+    (trial / "verifier").mkdir(parents=True)
+    (trial / "result.json").write_text(
+        json.dumps({"agent_execution": {}, "verifier_result": {"rewards": {"d": 1.0}}})
+    )
+    (trial / "verifier" / "trajectory.json").write_text(
+        json.dumps({"schema_version": "ATIF-v1.7", "steps": [{"step_id": 1}]})
+    )
+
+    regraded = validity.classify(trial, snapshot={"regraded_from": "some-job"})
+    assert regraded.state != validity.INVALID_AGENT, regraded.reason
+
+    # The counter-probe: without the marker the same trial is still refused,
+    # so the exemption cannot be read as "stop checking".
+    fresh = validity.classify(trial, snapshot={})
+    assert fresh.state == validity.INVALID_AGENT
+    assert "never finished" in fresh.reason

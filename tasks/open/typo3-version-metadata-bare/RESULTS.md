@@ -62,10 +62,41 @@ these runs were not graded alike:
 
 That refusal is the instrument working. Two numbers produced by two rubrics are
 not a difference between repositories, and nothing about the output would have
-looked wrong. The fix is a regrade of the prepared jobs with the current
-rubric — judge calls, no agent time, which is the whole argument for
-`environment_mode = "separate"` — and the comparison is added here once both
-sides are graded alike.
+looked wrong. Two of the six prepared trials did score lower under the current
+rubric, so the refusal was not a formality.
+
+The regrade cost judge calls and no agent time, which is the whole argument for
+`environment_mode = "separate"`. It then exposed a second defect: the validity
+gate discarded every regraded job as `INVALID_AGENT: agent phase never
+finished`, because a regrade starts no agent and Harbor has no finish time to
+stamp. Recorded as instrument failure 20.
+
+## Prepared against bare, which is the question
+
+With both sides graded alike, and `scripts/compare` taught to pool the three
+jobs that make up one arm of a block series:
+
+| | prepared | bare |
+|---|---|---|
+| `consistency` met, control | 3/3 | 2/3 |
+| `consistency` met, nr | 3/3 | 2/3 |
+
+Both arms drop by one trial, independently, in the same direction. That is more
+than either arm says alone and still much less than a finding: each side is
+three trials, and a one-trial difference is inside the spread a stochastic agent
+produces on its own. `compare` says so in its own output — *re-run before
+treating any of these as a finding* — and it is right.
+
+What can be said is narrower and worth stating: removing five `AGENTS.md` files,
+the Copilot instructions, `CONTRIBUTING.md` and the rendered documentation did
+not stop either arm from reconciling the two declarations in most trials. The
+scaffolding is not what makes this task solvable.
+
+```
+scripts/compare --variable repository \
+    jobs/rg-OFR-TYPO3-METADATA-001-nr-20260820-204946,jobs/rg-…-205645,jobs/rg-…-210355 \
+    jobs/OFR-TYPO3-METADATA-001-BARE-nr-20260821-140311,…-141150,…-141938
+```
 
 ## Cost
 

@@ -1,6 +1,6 @@
 # Instrument failures
 
-Nineteen ways this benchmark measured the wrong thing while looking like it was
+Twenty ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -328,6 +328,37 @@ and the validity gate voids the trial by name when it does not; a `cp` artifact
 belongs there only when its source is part of the environment.
 `tests/test_nreval_artifacts.py` pins both halves, so the fix cannot be read as
 "never raise": an absent trajectory still does.
+
+## 20. A regrade that no comparison would accept
+
+Instrument failure 18 gave a regraded job its own `grade` block so a comparison
+could tell which rubric scored it. The repair worked and the result was
+unusable: `scripts/compare` reported `has no valid trial to compare` for every
+regraded job.
+
+Harbor stamps `agent_execution.finished_at` when the agent phase ends. A regrade
+replays a recorded trial through a new rubric and starts no agent, so the field
+is absent, and the validity gate read that absence as a killed run —
+`INVALID_AGENT: agent phase never finished`. True, and entirely beside the
+point. Every trial of every regraded job was discarded.
+
+The consequence is the shape this document keeps recording. The documentation
+prescribes a regrade as the cheap repair when two runs carry different rubric
+digests — judge calls, no agent time, the whole argument for
+`environment_mode = "separate"`. That path produced nothing that could be
+compared, and the only symptom was a sentence that reads like a missing
+directory. The obvious response to it is to re-run the agent, which is the
+expensive thing the regrade exists to avoid.
+
+**Fix:** `classify()` already receives the job snapshot, and a regraded snapshot
+carries `regraded_from`. The finish-time check is skipped when it is present,
+and nothing else is: the trajectory must still be there and must still record
+steps, which is the agent-phase evidence a regrade actually carries forward.
+`tests/test_validity.py` pins both directions — the same trial without the
+marker is still refused, so the exemption cannot be read as "stop checking".
+
+Found the same day as 19, by trying to run the comparison that the bare case
+exists for.
 
 ## What this cost, and what it teaches
 

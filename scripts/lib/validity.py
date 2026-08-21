@@ -151,7 +151,16 @@ def classify(
         return Verdict(INVALID_INFRASTRUCTURE, f"trial raised: {detail}")
 
     execution = result.get("agent_execution") or {}
-    if not execution.get("finished_at"):
+    if not execution.get("finished_at") and not snapshot.get("regraded_from"):
+        # A regrade replays a recorded trial through a new rubric and never
+        # starts an agent, so Harbor has no finish time to stamp. Without this
+        # exemption every regraded trial was INVALID_AGENT — "agent phase never
+        # finished", which is true and entirely beside the point — and the gate
+        # discarded the whole job. That made the documented cheap repair for a
+        # changed rubric produce nothing usable, and the only symptom was
+        # `has no valid trial to compare`. The checks that follow still apply:
+        # the trajectory has to be there and to record steps, which is the
+        # agent-phase evidence a regrade actually carries forward.
         return Verdict(INVALID_AGENT, "agent phase never finished")
 
     trajectory = read_json(trial / "verifier" / "trajectory.json")
