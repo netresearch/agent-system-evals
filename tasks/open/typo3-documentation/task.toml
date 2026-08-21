@@ -213,6 +213,21 @@ else:
                 (e for e in tree.iter() if e.tag.rsplit("}", 1)[-1] == "project"),
                 None,
             )
+            # The namespace, not only the attributes. Every Haiku trial of the
+            # first series wrote a plausible-looking file in a namespace that
+            # does not exist (https://guides.typo3.org/xmlschema/guides-1.1),
+            # and two of them were caught only because the invented <project>
+            # carried no attributes. A wrong namespace with the right
+            # attributes would have passed. Measured against four projects
+            # that render on docs.typo3.org — georgringer/news,
+            # FriendsOfTYPO3/extension_builder, TYPO3CMS-Reference-TCA,
+            # helhum/typo3-console — all four declare the same one.
+            namespace = tree.tag.split("}")[0].lstrip("{") if "}" in tree.tag else ""
+            if namespace != "https://www.phpdoc.org/guides":
+                problems.append(
+                    "guides.xml is in namespace " + (namespace or "(none)")
+                    + ", not https://www.phpdoc.org/guides"
+                )
             if project is None:
                 problems.append("guides.xml has no <project>")
             else:

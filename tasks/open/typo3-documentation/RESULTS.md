@@ -66,9 +66,20 @@ request names documentation, and a documentation skill is on offer.
 
 Which makes the wrong output a different kind of evidence. It is not a routing
 failure and it is not the absence of a capability. The capability was reached
-for, and what came back was a `guides.xml` in an invented namespace
-(`https://guides.typo3.org/xmlschema/guides-1.1`, with `<guide>`, `<title>` and
-a `<project>` carrying the extension key as text). The real format, measured
+for, and what came back was a `guides.xml` in a namespace that does not exist —
+**a different invented one each time**:
+
+| trial | namespace declared |
+|---|---|
+| smoke | `https://guides.typo3.org/xmlschema/guides-1.1` |
+| nr 1 | `https://guides.typo3.org/2024` |
+| nr 2 | (file does not parse) |
+| nr 3 | `https://typo3.org/reST/GuideSchema/v1` |
+
+Not one wrong recollection repeated, then, but a plausible-looking URL composed
+afresh on each attempt. In all three parseable files `<project>` carries no
+attributes at all — the extension key sits in the element text. The real format,
+measured
 against four independent projects that render on docs.typo3.org — georgringer/news,
 FriendsOfTYPO3/extension_builder, TYPO3-Documentation/TYPO3CMS-Reference-TCA and
 helhum/typo3-console — is `xmlns="https://www.phpdoc.org/guides"` with
