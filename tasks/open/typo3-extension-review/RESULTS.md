@@ -1,87 +1,84 @@
-# OFR-TYPO3-EXT-001 — recorded results
+# OFR-TYPO3-EXT-001 — recorded results (Haiku)
 
-Four fleets, three trials each, no errored trials and no errored criteria.
-Measured 19 August 2026 on the rebuilt environment: the instance is served, the
-control arm provisions nothing, and the agent's sandbox was audited for
-evaluation machinery before any trial ran.
+Two fleets, three trials each, six of six valid. Measured 22 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 0.8.0.
 
-Everything recorded before that date is withdrawn. The environment had leaked
-the case's own files into the agent container, both products were installed for
-every arm including control, and the comparison checked five fields where the
-specification requires ten. None of those numbers describe this benchmark.
+## What the run was
 
-| Fleet | What it is | Skills delivered |
+`scripts/run-comparison OFR-TYPO3-EXT-001 --arms control,nr --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 81`
+
+Experiment record: `experiments/OFR-TYPO3-EXT-001-20260822-092852.json`.
+
+An earlier attempt on 21 August, same seed, stopped in its third block:
+`run-comparison` checks how much life the session token has left and refuses to
+start a trial that would run past it, because a trial that dies on a 401 is
+recorded as an errored trial rather than as a credential problem. Four trials
+from that attempt are on disk under experiment
+`OFR-TYPO3-EXT-001-20260821-153503` and are **not** pooled into the figures
+below — an abandoned experiment's trials are not spare observations for the next
+one.
+
+## Both arms do the job
+
+| | control | nr |
 |---|---|---|
-| `control` | Claude Code alone | none |
-| `nr` | eight Netresearch skill repositories | 9 |
-| `companion` | the TYPO3 Dev Companion, skills and MCP server | 12 |
-| `nr-full` | the deployed Netresearch setup plus its toolchain | 13 |
+| `outcome_quality` met | 3/3 | 3/3 |
+| criteria behind it | 10 met / 2 partial / 0 not met | 10 met / 2 partial / 0 not met |
+| permutation p | — | 1.000 |
 
-`dev-mcp` does not appear: the target declares TYPO3 `^12.4`, so its developer's
-instance is a v12.4 one, and that package requires `^13.4`. The fleet states
-this as a version floor and the case is exempt.
+The primary endpoint is at the ceiling on both sides, so the runner stopped
+after the discovery round. Every secondary dimension is Holm-adjusted to 1.000.
 
-Thirteen skills against twelve repositories is not a discrepancy — a skill
-repository may ship more than one.
+| dimension | control | nr |
+|---|---|---|
+| `context_discovery` | 3/3 | 3/3 |
+| `prioritization` | 2/3 | 2/3 |
+| `verification` | 1/3 | 0/3 |
+| `authority` | 0/3 | 0/3 |
+| `evidence` | 0/3 | 0/3 |
+| `unsupported_claims` | 0/3 | 0/3 |
 
-## Quality — met out of three
+`unsupported_claims` is worth its own line: 0 met and 9 partial in control, 1 met
+and 8 partial in the equipped arm, with nothing scored *not met* on either side.
+A review that neither overclaims nor grounds its claims is the middle of that
+dimension, and both arms sit there.
 
-| Dimension | control | nr | companion | nr-full |
-|---|---|---|---|---|
-| context_discovery | 3/3 | 3/3 | 3/3 | 3/3 |
-| evidence | 3/3 | 3/3 | 3/3 | 3/3 |
-| prioritization | 3/3 | 3/3 | 3/3 | 3/3 |
-| outcome_quality | 3/3 | 3/3 | 3/3 | 3/3 |
-| verification | 2/3 | 3/3 | 3/3 | 2/3 |
-| unsupported_claims | 1/3 | 0/3 | 0/3 | 0/3 |
-| authority | 0/3 | 0/3 | 2/3 | 1/3 |
-| capability_selection | n/a | 0/3 | 0/3 | 0/3 |
+## The cost separates completely, in the equipped arm's favour
 
-Nothing here separates completely, so nothing here is a finding. `authority`
-is weak in every arm — the dimension asks whether each claim came from the
-source that owns that fact, and no configuration reliably manages it.
+| | control | nr |
+|---|---|---|
+| agent cost per trial | 0.16 / 0.19 / 0.36 | 0.09 / 0.13 / 0.14 |
+| input tokens | 603.6k / 1.04M / 1.64M | 320.9k / 564.3k / 703.5k |
+| tool calls | 21 / 58 / 80 | 25 / 32 / 43 |
 
-`capability_selection` is n/a for control by construction: an arm offered
-nothing had no selection to get right.
+Every equipped trial costs less than every control trial: Cliff's delta −1.00,
+permutation p 0.100 — the smallest p three trials per arm can produce, and the
+strongest statement this sample size admits. The median falls by a third.
 
-## Cost — every trial, not a median
+It is still **exploratory**. `outcome_quality` was the declared endpoint and it
+did not move; reading a completely separated secondary line as the finding is
+what the declaration exists to prevent. What it does is name the next
+experiment: a series with cost declared as the primary endpoint would settle in
+six trials what this one can only suggest.
 
-| | control | nr | companion | nr-full |
-|---|---|---|---|---|
-| agent cost | 2.21 / 2.80 / 3.54 | **1.27 / 1.40 / 1.55** | 4.52 / 5.83 / 9.26 | **1.08 / 1.34 / 1.43** |
-| input tokens (M) | 1.39 / 1.79 / 3.29 | **0.80 / 0.93 / 1.11** | 3.77 / 5.95 / 10.60 | **0.73 / 0.88 / 1.00** |
-| tool calls | 32 / 34 / 41 | 24 / 31 / 34 | 52 / 63 / 69 | 27 / 27 / 35 |
+## The skill was invoked
 
-**The cost ranges do not overlap.** The dearest Netresearch run costs less than
-the cheapest unaided one — $1.55 against $2.21 — and the same holds for
-`nr-full` at $1.43. The companion runs the other way, its cheapest trial at
-$4.52 above control's dearest at $3.54.
+`typo3-conformance`, in three trials of three.
 
-Complete separation of two groups of three happens by chance one time in
-twenty. That is the strongest statement this sample size can make: enough to
-act on, not enough to call established, and the reason the comparison script
-deepens where it sees one.
+That is the second case in this sweep where routing fires — the other is the
+documentation case — and both are cases whose request names a domain a skill
+covers. "Review this TYPO3 extension and tell me what needs attention" reaches a
+conformance skill; "prepare release 2.4.2" and "check whether these two
+declarations agree" reach nothing, in six trials each.
 
-**The saving is not in doing less.** Tool calls overlap — 24 to 34 against 32
-to 41 — while input tokens separate cleanly at roughly half. The agent takes a
-similar number of steps and carries much less context through them. A procedure
-it has adopted is one it does not have to reconstruct.
-
-## What was used
-
-In all three `nr` and `nr-full` trials the agent invoked exactly one skill,
-`typo3-conformance`, and none of the other eight or twelve. The companion arms
-reached exactly one of theirs, `typo3-extension-conformance`, and called its
-MCP server 57 times.
-
-So the halved cost belongs to one skill being adopted, not to a stack being
-present. The other skills were carried and never opened — and on this case that
-still costs less than not having them.
+Taken with the cost figures, this is the clearest shape in the sweep: where the
+capability is selected, the equipped arm reaches the same result over a
+noticeably shorter path.
 
 ## Reproducing
 
 ```
-scripts/run-comparison OFR-TYPO3-EXT-001 --arms control,nr,companion,nr-full --seed 2
-scripts/capability-ledger jobs/<job>
-scripts/compare jobs/<a> jobs/<b>
+scripts/run-comparison OFR-TYPO3-EXT-001 --arms control,nr \
+    --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 81
+scripts/analyze experiments/OFR-TYPO3-EXT-001-20260822-092852.json
 ```

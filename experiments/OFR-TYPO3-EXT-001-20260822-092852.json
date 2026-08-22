@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-EXT-001-20260822-092852",
+  "case": "OFR-TYPO3-EXT-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "outcome_quality",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 81,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-22T09:28:52+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260822-092853",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-093612"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260822-094403",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-095415"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260822-100126",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-100915"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "outcome_quality did not move after the discovery round (overlaps, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-EXT-001-control-20260822-092853",
+      "jobs/OFR-TYPO3-EXT-001-control-20260822-094403",
+      "jobs/OFR-TYPO3-EXT-001-control-20260822-100126"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-093612",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-095415",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-100915"
+    ]
+  },
+  "finished_at": "2026-08-22T10:16:40+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
