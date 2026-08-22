@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-EXT-001-20260822-145242",
+  "case": "OFR-TYPO3-EXT-001",
+  "arms": [
+    "nr",
+    "nr-minus-conformance"
+  ],
+  "primary_endpoint": "outcome_quality",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 101,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-22T14:52:42+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr-minus-conformance",
+        "nr"
+      ],
+      "jobs": {
+        "nr-minus-conformance": "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-145242",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-150027"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "nr-minus-conformance"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-150825",
+        "nr-minus-conformance": "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-151627"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr",
+        "nr-minus-conformance"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260822-152347",
+        "nr-minus-conformance": "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-153124"
+      },
+      "primary_p": 0.3
+    }
+  ],
+  "stop_reason": "outcome_quality did not move after the discovery round (overlaps, p 0.300)",
+  "trials_spent": 6,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-150027",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-150825",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260822-152347"
+    ],
+    "nr-minus-conformance": [
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-145242",
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-151627",
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-153124"
+    ]
+  },
+  "finished_at": "2026-08-22T15:39:41+00:00",
+  "valid_trials": {
+    "nr": 3,
+    "nr-minus-conformance": 3
+  }
+}
