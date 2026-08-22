@@ -19,8 +19,3 @@
 # fleet retired with the fleet bump to the skill versions that generalized
 # their attributions (issue #3).
 
-- skill: netresearch/typo3-ddev-skill
-  ref: v1.22.0
-  path: typo3-ddev-skill-1.22.0/skills/typo3-ddev/references/typo3-12-cli-changes.md
-  marker: netresearch/contexts
-  reason: Attribution line on a document of TYPO3 12 setup-CLI facts; the content is the framework's, not this extension's, and this case's step is 13 to 14.
