@@ -1,97 +1,86 @@
-# OFR-TYPO3-UPGRADE-001 — recorded results
+# OFR-TYPO3-UPGRADE-001 — recorded results (Haiku)
 
-Five fleets, three trials each, no errored trials. Measured 20 August 2026 on
-the rebuilt environment, first results this case has ever produced.
+Two fleets, three trials each, six of six valid. Measured 22 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 0.8.0.
 
-This is the only case with **mechanical ground truth**. The verifier does not
-ask a judge whether the work looks right: it takes the tree the agent left,
-pins the dependency matrix to each TYPO3 line in turn, resolves it and runs the
-extension's own test suite. An arm either produced something that installs and
-passes on both lines, or it did not.
+The last case of the Haiku sweep and the one where the two arms behave least
+alike — while the declared endpoint stays flat.
 
-## Did the upgrade actually work
+## What the run was
 
-| Fleet | Trials complete | What failed in the rest |
+`scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms control,nr --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 91`
+
+Experiment record: `experiments/OFR-TYPO3-UPGRADE-001-20260822-101714.json`.
+
+## Neither arm completed the upgrade
+
+| | control | nr |
 |---|---|---|
-| `control` | 2/3 | one tree resolved on 14.3 and failed its tests |
-| **`nr`** | **3/3** | — |
-| `companion` | 0/3 | one would not resolve at all, two failed tests |
-| `dev-mcp` | 0/2 | two failed tests; a third trial never called its server and is excluded |
-| **`nr-full`** | **3/3** | — |
+| mechanical outcome | 0/3 | 0/3 |
+| `outcome_quality` met | 0/3 | 0/3 |
+| per-trial score | 0.44 / 0.50 / 0.50 | 0.46 / 0.50 / 0.56 |
+| permutation p | — | 0.700 |
 
-Both Netresearch arms completed the upgrade in every trial. The unaided agent
-managed two of three.
+The primary is flat and the runner stopped after the discovery round. Everything
+below is exploratory.
 
-`dev-mcp` read 1/3 here until 20 August 2026. The validity gate then found that
-the one trial of the three that completed the upgrade is the one where the MCP
-server was never called — an arm that consists of nothing but that server, in a
-run indistinguishable from a control. Counted, it credited the tool with a
-success achieved without it. That is the first result in this repository where a
-difference rests on something the framework itself decides rather than on a
-rubric.
+## Two dimensions separate completely
 
-**It reproduced.** A second, independent run of `control` against `nr` — three
-fresh trials each, days apart, same task digest — returned the same counts:
-2/3 and 3/3. Pooled, that is 6 of 6 against 4 of 6.
-
-And it is still not established. Fisher's exact test on those pooled counts
-gives a one-sided p of 0.23: the direction is consistent across two runs and
-the sample is too small to carry it. What is worth saying is exactly that much,
-which is why it is written here rather than on the front page as a headline.
-
-The comparison script did not notice the reproduction, and that is a gap in the
-script rather than in the result. Its separation test reads the graded
-dimensions; the matrix outcome is the case's most valuable signal and does not
-appear among them in a form the test can see.
-
-## What was used
-
-| Fleet | Skill invoked | MCP calls |
-|---|---|---|
-| `control` | — | — |
-| `nr` | `typo3-extension-upgrade`, 3/3 | — |
-| `companion` | `typo3-extension-upgrade`, 2/3 | 38 across 3/3 |
-| `dev-mcp` | — | 17 across 2/3 |
-| `nr-full` | `typo3-extension-upgrade`, 3/3 | — |
-
-**Those two skills share a name and are not the same skill.** The Netresearch
-set and the TYPO3 Dev Companion each ship one called `typo3-extension-upgrade`,
-for the same job, with different content. The capability ledger qualifies skill
-names by fleet for exactly this reason; read across arms, the row would have
-shown two different things as one.
-
-Unlike the runtime case, skills are reached here — and by the arms that
-completed the work. Unlike the review case, reaching one did not make the run
-cheaper.
-
-## Cost — every trial
-
-| | control | nr | companion | dev-mcp | nr-full |
+| dimension | control | nr | delta | p | Holm |
 |---|---|---|---|---|---|
-| agent cost | 10.88 / 34.04 / 38.47 | 20.18 / 22.81 / 26.58 | 1.23 / 14.92 / 15.40 | 24.72 / 33.11 / 35.42 | 28.60 / 29.32 / 31.03 |
-| tool calls | 128 / 265 / 271 | 180 / 210 / 229 | 24 / 145 / 163 | 223 / 272 / 275 | 222 / 248 / 250 |
+| `verification` | 0/3 | 1/3 | +1.00 | 0.100 | 0.600 |
+| `prioritization` | 0/3 | 2/3 | +1.00 | 0.100 | 0.600 |
+| `context_discovery` | 0/3 | 0/3 | +0.56 | 0.500 | 1.000 |
+| `authority` | 0/3 | 0/3 | +0.56 | 0.400 | 1.000 |
+| `evidence` | 1/3 | 1/3 | +0.11 | 1.000 | 1.000 |
+| `unsupported_claims` | 2/3 | 1/3 | −0.44 | 0.700 | 1.000 |
 
-An order of magnitude more expensive than the other cases, and no pair
-separates: control alone spans $10.88 to $38.47. The companion's cheapest trial
-at $1.23 is the one that produced a tree which would not resolve — cheap
-because it stopped, which is why cost is only readable beside the outcome
-column.
+The counts understate what moved. Behind `verification` the criteria go from
+**0 met / 5 partial / 19 not met** to **11 met / 6 partial / 7 not met**; behind
+`prioritization`, from 0 met / 8 partial / 1 not met to 5 met / 4 partial / 0 not
+met. Those are not one-trial wobbles, and both are completely separated at
+delta +1.00 — the strongest statement three trials per arm admit.
 
-## The deepening
+They are still exploratory, and Holm puts them at 0.600 precisely because eight
+dimensions were read. A confirmatory series with `verification` declared as the
+primary is what these lines are for.
 
-`verification` separated completely in the discovery stage, so the comparison
-moved to four trials per arm as designed. That stage died on the subscription's
-rate limit and is not reported.
+## What the two arms actually did
 
-The re-run that replaced it — `control` against `nr`, three trials each — found
-that `verification` no longer separates, while the mechanical outcome
-reproduced exactly. Both facts belong in the same paragraph: a rubric dimension
-that separates once and not again was noise, and an outcome that repeats across
-independent runs is not.
+| | control | nr |
+|---|---|---|
+| tool calls | 4 / 5 / 5 | 27 / 33 / 117 |
+| input tokens | 97.7k / 99.1k / 122.4k | 904.2k / 1.37M / 7.75M |
+| agent cost | 0.02 / 0.03 / 0.03 | 0.14 / 0.25 / 1.12 |
+
+Read the control column first. **Four to five tool calls on a TYPO3 major-version
+upgrade**, around 100k input tokens, two to three cents. The unaided agent barely
+engages with the task, and its `outcome_quality` of 0.44 to 0.50 is what an
+answer written from general knowledge scores. Its 2/3 on `unsupported_claims` —
+the one dimension where it leads — is easier to earn when little is claimed.
+
+The equipped arm spends between ten and seventy times the tokens and separates
+completely on cost in the other direction (delta +1.00, p 0.100), with one trial
+at 117 tool calls and $1.12. It does not finish either. What it buys, on these
+numbers, is verification and prioritisation of an upgrade it did not complete.
+
+Whether that is worth $0.25 instead of $0.03 is a question about the task, not
+about the benchmark — and it is the opposite trade from the review case measured
+the same week, where the equipped arm reached the same result for a third less.
+
+## The skill was invoked
+
+`typo3-extension-upgrade`, in three trials of three.
+
+Third and last case in the sweep where routing fires, after documentation and
+review. All three name a domain a skill covers. The five cases where nothing was
+invoked — release preparation, both version-metadata cases, the restraint case
+and the runtime bug — name a task instead.
 
 ## Reproducing
 
 ```
-scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms control,nr,companion,dev-mcp,nr-full --seed 3
-scripts/capability-ledger jobs/<job>
+scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms control,nr \
+    --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 91
+scripts/analyze experiments/OFR-TYPO3-UPGRADE-001-20260822-101714.json
 ```

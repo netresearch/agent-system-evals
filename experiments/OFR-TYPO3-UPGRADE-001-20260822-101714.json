@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-UPGRADE-001-20260822-101714",
+  "case": "OFR-TYPO3-UPGRADE-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "outcome_quality",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 91,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-22T10:17:14+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-101714",
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-102629"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-103220",
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-104651"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-105217",
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-110037"
+      },
+      "primary_p": 0.7
+    }
+  ],
+  "stop_reason": "outcome_quality did not move after the discovery round (overlaps, p 0.700)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-102629",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-104651",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260822-110037"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-101714",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-103220",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260822-105217"
+    ]
+  },
+  "finished_at": "2026-08-22T11:06:09+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
