@@ -132,3 +132,76 @@ The agent wrote no `guides.xml`, the collector's `cp` therefore left no
 False — so a plain agent shortcoming erased the measurement of itself, and only
 ever when the agent did badly. Recorded as instrument failure 19 in
 [docs/instrument-failures.md](../../../docs/instrument-failures.md).
+
+---
+
+# The skill fix, measured and disproven
+
+Two arms, three trials each, six of six valid. Measured 22 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 0.9.0.
+
+`scripts/run-comparison OFR-TYPO3-DOCS-001 --arms nr,candidate --primary documentation --model claude-haiku-4-5-20251001 --seed 111`
+
+Experiment record: `experiments/OFR-TYPO3-DOCS-001-20260822-170352.json`.
+
+`candidate` is `nr` with `netresearch/typo3-docs-skill` moved from v2.16.0 to
+v2.18.0 — the release carrying the change this case's first series produced:
+`assets/guides.xml.dist` to copy, and a step 0 in the Core Workflow reading
+*"No `Documentation/` yet? Copy `assets/guides.xml.dist` to
+`Documentation/guides.xml`; never write one from memory — the namespace is
+phpDocumentor's, not TYPO3's."*
+
+## It did not work
+
+| | nr (v2.16.0) | candidate (v2.18.0) |
+|---|---|---|
+| mechanical `docs: ok` | 0/3 | 0/3 |
+| `documentation` met | 0/3 | 0/3 |
+| criteria | 12 met / 7 partial / 11 not met | 15 met / 9 partial / 6 not met |
+| permutation p | — | 1.000 |
+
+Every candidate trial produced a `guides.xml` that will not render:
+
+| trial | outcome |
+|---|---|
+| candidate 1 | namespace `https://guides.typo3.org/xml-ns` |
+| candidate 2 | does not parse — unbound prefix, line 8 |
+| candidate 3 | `<project>` has no `title`, no `release` |
+
+Three more invented namespaces, none of them one seen before. Across the two
+series this case has now recorded **seven distinct fabricated namespaces** and
+not one correct file.
+
+## What was verified before concluding
+
+The fix reached the container: `assets/guides.xml.dist` is in the provisioned
+skill directory and `SKILL.md` carries step 0 verbatim. The skill was invoked in
+three trials of three. And **no trial referenced `guides.xml.dist` or
+`references/guides-xml.md` in a single tool call.**
+
+So the instruction was present, loaded, and ignored. The earlier reading of this
+case — *on a small model a pointer to a reference file is not the content* — was
+too generous. The correction was not a pointer. It was a direct imperative in
+the file the agent had just loaded, and it changed nothing.
+
+## Why the skill's own gates did not catch it either
+
+Both mechanical checks the skill ships give a false pass on exactly this defect:
+
+- `scripts/validate_docs.sh` tests `[ -f "$DOC_DIR/guides.xml" ]` and prints
+  `✅ guides.xml found (modern PHP-based rendering)`. It never parses the file.
+  One trial of six ran it, on a file in an invented namespace, and was told the
+  documentation was fine.
+- Checkpoint `TD-05` is `contains "<project"` against `guides.xml`. A
+  hallucinated `<project>nr-image-sitemap</project>` satisfies it.
+
+That is the lever this series actually found, and it is not prose. A check that
+parses the file, asserts the phpDocumentor namespace and requires `title` and
+`release` as attributes would fail every one of the seven recorded files. Filed
+upstream.
+
+## The honest status of the earlier fix
+
+`netresearch/typo3-docs-skill` v2.18.0 is a real improvement to a real gap — the
+skeleton was genuinely unreachable — and it does not fix this case. Both are
+true, and only the second was measured. It was shipped on the first.
