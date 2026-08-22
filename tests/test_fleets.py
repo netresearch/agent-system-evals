@@ -120,6 +120,7 @@ def test_the_resolution_records_what_was_ablated(declare):
         "of": "parent",
         "without": ["org/a-skill"],
         "only": [],
+        "at": {},
     }
 
 
@@ -135,3 +136,33 @@ def test_the_committed_ablation_removes_exactly_one_skill():
 def test_every_committed_fleet_resolves():
     for path in sorted((ROOT / "fleets").glob("*.yaml")):
         fleets.skill_refs(path.stem)
+
+
+def test_at_moves_a_ref_and_inherits_the_rest(declare):
+    """`at` exists so a candidate need not be a copy of its parent.
+
+    A copy names the parent's other versions on the day the parent moves, and
+    the arm then measures two changes while reporting one — the failure
+    `derives_from` prevents for ablations, applied to the case where a ref moves
+    rather than disappears.
+    """
+    declare("cand", {"derives_from": "parent", "at": {"org/a-skill": "v9"}})
+    resolved = fleets.read("cand")
+    assert [(s["repo"], s["ref"]) for s in resolved["skills"]] == [
+        ("org/a-skill", "v9"),
+        ("org/b-skill", "v2"),
+    ]
+    assert resolved["ablation"]["at"] == {"org/a-skill": "v9"}
+
+
+def test_at_refuses_a_ref_the_parent_already_carries(declare):
+    """The no-op case, which would read as a change that made no difference."""
+    declare("cand", {"derives_from": "parent", "at": {"org/a-skill": "v1"}})
+    with pytest.raises(fleets.FleetError, match="already"):
+        fleets.read("cand")
+
+
+def test_at_refuses_a_skill_the_parent_does_not_carry(declare):
+    declare("cand", {"derives_from": "parent", "at": {"org/zzz-skill": "v1"}})
+    with pytest.raises(fleets.FleetError, match="does not carry"):
+        fleets.read("cand")

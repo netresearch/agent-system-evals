@@ -107,11 +107,45 @@ def read(name: str, _seen: tuple[str, ...] = ()) -> dict:
             f"control run with a different name — compare against `control`."
         )
 
+    # `at` moves a skill's ref instead of dropping it. Without it a candidate
+    # fleet had to be a full copy of its parent with one line changed, which is
+    # the failure `derives_from` exists to prevent: the copy still names the
+    # parent's other versions on the day the parent moves, and the arm then
+    # measures two changes while reporting one.
+    at = dict(fleet.get("at") or {})
+    if at:
+        known = {s.get("repo") for s in skills}
+        unknown = set(at) - known
+        if unknown:
+            raise FleetError(
+                f"fleets/{name}.yaml: `at` names {sorted(unknown)}, which "
+                f"{parent_name} does not carry. A ref cannot be moved for a "
+                f"skill the parent does not have — add it to the parent, or "
+                f"name it as its own entry under `skills`."
+            )
+        moved = []
+        for skill in skills:
+            repo = skill.get("repo")
+            if repo in at:
+                if skill.get("ref") == at[repo]:
+                    # The same failure as an ablation that ablates nothing: the
+                    # arm equals its parent and reads as a change with no effect.
+                    raise FleetError(
+                        f"fleets/{name}.yaml: `at` pins {repo} to "
+                        f"{at[repo]}, which is what {parent_name} already "
+                        f"carries. The arm would have been identical to its "
+                        f"parent."
+                    )
+                skill = dict(skill, ref=at[repo])
+            moved.append(skill)
+        skills = moved
+
     resolved["skills"] = skills
     resolved["ablation"] = {
         "of": parent_name,
         "without": sorted(drop),
         "only": sorted(keep),
+        "at": dict(sorted(at.items())),
     }
     return resolved
 

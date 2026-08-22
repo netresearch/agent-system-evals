@@ -1,32 +1,24 @@
-# The stack with a proposed change. Differs from main in as few entries as
-# possible — ideally one, so a difference in results has one candidate cause.
+# The stack with a proposed change, derived from `nr` rather than copied.
 #
-# A branch ref is acceptable here and only here, because a candidate is
-# transient by definition. Record the resolved commit from the job lock with
-# the result; a branch that moves between the two runs of an A/B invalidates
-# the comparison, and the lock is the only thing that will show it.
+# A copy still names the parent's other versions on the day the parent moves,
+# so the arm measures two changes and reports one. `at` moves exactly the refs
+# named here and inherits the rest; pinning one to what the parent already
+# carries is refused, because that arm equals its parent and reads as a change
+# with no effect.
+#
+# Record the resolved commit from the job lock with the result. A branch ref is
+# acceptable here and only here, a candidate being transient by definition —
+# and a branch that moves between the two runs of an A/B invalidates the
+# comparison, which the lock is the only thing that will show.
 
 name: candidate
-description: Proposed stack change under evaluation
+description: nr with typo3-docs at v2.18.0 — the guides.xml skeleton made reachable
 
-skills:
-  # CHANGE UNDER STUDY — replace the ref below, keep everything else identical
-  # to fleets/nr.yaml.
-  - repo: netresearch/automated-assessment-skill
-    ref: v2.15.1
-  - repo: netresearch/agent-harness-skill
-    ref: v1.7.1
-
-  - repo: netresearch/typo3-conformance-skill
-    ref: v2.19.1
-  - repo: netresearch/typo3-testing-skill
-    ref: v5.20.3
-  - repo: netresearch/typo3-docs-skill
-    ref: v2.16.0
-  - repo: netresearch/typo3-extension-upgrade-skill
-    ref: v3.11.1
-
-  - repo: netresearch/php-modernization-skill
-    ref: v1.22.1
-  - repo: netresearch/security-audit-skill
-    ref: v2.11.1
+derives_from: nr
+at:
+  # v2.16.0 -> v2.18.0, which is two releases and not one change. v2.17.0 added
+  # a literalinclude checkpoint, an objects.inv.json recipe and a screenshot
+  # rule; none of them touches creating documentation from nothing, which is
+  # what OFR-TYPO3-DOCS-001 exercises. A difference here is attributable to the
+  # pair, and to v2.18.0 only by that argument.
+  netresearch/typo3-docs-skill: v2.18.0
