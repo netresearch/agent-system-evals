@@ -175,7 +175,14 @@ def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
     for name, case in manifest["cases"].items():
         built[name] = {}
         for arm, named in case["arms"].items():
-            names = [named] if isinstance(named, str) else list(named)
+            # A string, a comma-separated string, or a list. The comma form
+            # matches what `scripts/compare` takes on the command line, so a
+            # job list can be moved between the two without translation.
+            names = (
+                [n.strip() for n in named.split(",") if n.strip()]
+                if isinstance(named, str)
+                else list(named)
+            )
             jobs = []
             for job_name in names:
                 job = ROOT / "jobs" / job_name
@@ -198,7 +205,7 @@ def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
 def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
     parts = key.split(".")
     if parts[0] == "totals":
-        return totals(parts[1], arms)
+        return totals(parts[1], arms, manifest)
     if len(parts) < 3:
         raise KeyError(key)
     case, arm, field, *rest = parts
@@ -219,9 +226,15 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
     }[field]()
 
 
-def totals(field: str, arms: dict[str, dict[str, Arm]]) -> str:
+def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
     if field == "cases":
-        return str(len(arms))
+        # Distinct cases, not entries. A case measured on two models is two
+        # entries here and one case, and the card next to this number says
+        # "cases".
+        seen = set()
+        for name, case in manifest["cases"].items():
+            seen.add(case["case_id"])
+        return str(len(seen))
     if field == "runs":
         return str(sum(len(a.valid) for case in arms.values() for a in case.values()))
     if field == "version":

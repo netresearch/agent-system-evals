@@ -49,3 +49,79 @@ label = "a contract eval"
 [cases.contract.arms]
 control = "CON-TYPO3-EXTBASE-001-control-20260820-011529"
 nr = "CON-TYPO3-EXTBASE-001-nr-20260820-011146"
+
+# The Haiku sweep of 21–22 August 2026: every case in the benchmark, one model,
+# randomised block series of three trials per arm. Separate entries rather than
+# extra arms on the four above, because the model differs and mixing the two
+# into one table would put an Opus figure beside a Haiku one under a heading
+# that names neither.
+#
+# An arm is several jobs here. A block series is one trial per Harbor call, so
+# three trials are three directories, pooled through the validity gate.
+
+[cases.h_review]
+case_id = "OFR-TYPO3-EXT-001"
+label = "a review (Haiku)"
+[cases.h_review.arms]
+control = "OFR-TYPO3-EXT-001-control-20260822-092853,OFR-TYPO3-EXT-001-control-20260822-094403,OFR-TYPO3-EXT-001-control-20260822-100126"
+nr = "OFR-TYPO3-EXT-001-nr-20260822-093612,OFR-TYPO3-EXT-001-nr-20260822-095415,OFR-TYPO3-EXT-001-nr-20260822-100915"
+
+[cases.h_upgrade]
+case_id = "OFR-TYPO3-UPGRADE-001"
+label = "an upgrade (Haiku)"
+[cases.h_upgrade.arms]
+control = "OFR-TYPO3-UPGRADE-001-control-20260822-102629,OFR-TYPO3-UPGRADE-001-control-20260822-104651,OFR-TYPO3-UPGRADE-001-control-20260822-110037"
+nr = "OFR-TYPO3-UPGRADE-001-nr-20260822-101714,OFR-TYPO3-UPGRADE-001-nr-20260822-103220,OFR-TYPO3-UPGRADE-001-nr-20260822-105217"
+
+[cases.h_runtime]
+case_id = "OFR-TYPO3-RUNTIME-001"
+label = "a runtime bug (Haiku)"
+[cases.h_runtime.arms]
+control = "OFR-TYPO3-RUNTIME-001-control-20260821-142708,OFR-TYPO3-RUNTIME-001-control-20260821-145220,OFR-TYPO3-RUNTIME-001-control-20260821-150947"
+nr = "OFR-TYPO3-RUNTIME-001-nr-20260821-143433,OFR-TYPO3-RUNTIME-001-nr-20260821-144340,OFR-TYPO3-RUNTIME-001-nr-20260821-145922"
+
+[cases.h_contract]
+case_id = "CON-TYPO3-EXTBASE-001"
+label = "a contract eval (Haiku)"
+[cases.h_contract.arms]
+control = "CON-TYPO3-EXTBASE-001-control-20260821-152044,CON-TYPO3-EXTBASE-001-control-20260821-152748,CON-TYPO3-EXTBASE-001-control-20260821-153007"
+nr = "CON-TYPO3-EXTBASE-001-nr-20260821-152304,CON-TYPO3-EXTBASE-001-nr-20260821-152526,CON-TYPO3-EXTBASE-001-nr-20260821-153224"
+
+[cases.h_docs]
+case_id = "OFR-TYPO3-DOCS-001"
+label = "documentation from nothing"
+[cases.h_docs.arms]
+control = "OFR-TYPO3-DOCS-001-control-20260821-101657,OFR-TYPO3-DOCS-001-control-20260821-102257,OFR-TYPO3-DOCS-001-control-20260821-103339"
+nr = "OFR-TYPO3-DOCS-001-nr-20260821-100943,OFR-TYPO3-DOCS-001-nr-20260821-102622,OFR-TYPO3-DOCS-001-nr-20260821-104025"
+
+[cases.h_release]
+case_id = "OFR-TYPO3-RELEASE-001"
+label = "release preparation"
+[cases.h_release.arms]
+control = "OFR-TYPO3-RELEASE-001-control-20260821-130239,OFR-TYPO3-RELEASE-001-control-20260821-130702,OFR-TYPO3-RELEASE-001-control-20260821-132141"
+nr = "OFR-TYPO3-RELEASE-001-nr-20260821-125821,OFR-TYPO3-RELEASE-001-nr-20260821-131141,OFR-TYPO3-RELEASE-001-nr-20260821-131708"
+
+[cases.h_consistent]
+case_id = "OFR-TYPO3-CONSISTENT-001"
+label = "restraint: nothing to change"
+[cases.h_consistent.arms]
+control = "OFR-TYPO3-CONSISTENT-001-control-20260821-134032,OFR-TYPO3-CONSISTENT-001-control-20260821-134805,OFR-TYPO3-CONSISTENT-001-control-20260821-135818"
+nr = "OFR-TYPO3-CONSISTENT-001-nr-20260821-134348,OFR-TYPO3-CONSISTENT-001-nr-20260821-135108,OFR-TYPO3-CONSISTENT-001-nr-20260821-135451"
+
+[cases.h_bare]
+case_id = "OFR-TYPO3-METADATA-001-BARE"
+label = "version metadata, unprepared repository"
+[cases.h_bare.arms]
+control = "OFR-TYPO3-METADATA-001-BARE-control-20260821-140748,OFR-TYPO3-METADATA-001-BARE-control-20260821-141610,OFR-TYPO3-METADATA-001-BARE-control-20260821-142308"
+nr = "OFR-TYPO3-METADATA-001-BARE-nr-20260821-140311,OFR-TYPO3-METADATA-001-BARE-nr-20260821-141150,OFR-TYPO3-METADATA-001-BARE-nr-20260821-141938"
+
+# The prepared counterpart of h_bare. These are the regraded jobs: the trials
+# ran on 20 August under an older rubric, and a comparison needs both sides
+# graded alike, so they were re-scored with the current one — judge calls, no
+# agent time. The trial provenance is carried through unchanged.
+[cases.h_metadata]
+case_id = "OFR-TYPO3-METADATA-001"
+label = "version metadata, prepared repository"
+[cases.h_metadata.arms]
+control = "rg-OFR-TYPO3-METADATA-001-control-20260820-204603,rg-OFR-TYPO3-METADATA-001-control-20260820-205329,rg-OFR-TYPO3-METADATA-001-control-20260820-210036"
+nr = "rg-OFR-TYPO3-METADATA-001-nr-20260820-204946,rg-OFR-TYPO3-METADATA-001-nr-20260820-205645,rg-OFR-TYPO3-METADATA-001-nr-20260820-210355"

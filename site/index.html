@@ -250,7 +250,7 @@ seconds and can gate a merge, which an open review cannot.</p>
 <p>Graded in both directions: the four must be named and the two must not be called broken.
 Control scores 0.97, the Netresearch configuration 1.00.</p>
 
-<h2>What the four cases say together</h2>
+<h2>What the four Opus cases say together</h2>
 
 <div class="scroll">
 <table>
@@ -271,20 +271,109 @@ unaided $2.80 and $5.03. What a stack is worth is a property of the task it meet
 that reports one number for it is answering a question nobody asked.</p>
 
 <div class="note">
-  <strong>Two things this does not show.</strong> No case here defeats the unaided agent, so none
-  of them measures what tooling adds in <em>capability</em> — that needs tasks the base agent does
-  not finish. And every figure comes from Claude Code on <code>claude-opus-5</code> — read from
-  the recorded jobs, so this sentence cannot go on claiming one model after a case is added on
-  another. Whether these are findings about the stack or about the stack inside one harness is a
-  question a second agent has to answer, which is what <code>scripts/sentinel</code> exists for.
+  <strong>Two things this does not show.</strong> No case <em>above</em> defeats the unaided agent,
+  so none of the four measures what tooling adds in <em>capability</em> — that needs tasks the base
+  agent does not finish. The Haiku sweep below has one: on documentation from nothing the unaided
+  arm met the dimension in none of three trials and the equipped arm in two, which is the first
+  case in this repository where the stack does something the bare agent does not. One case, three
+  trials a side, and the declared endpoint did not separate completely — so it names an experiment
+  rather than settling one.
+  <br><br>
+  And the figures here come from Claude Code on <code>claude-haiku-4-5-20251001, claude-opus-5</code>, read from the
+  recorded jobs rather than stated in prose, so this sentence cannot go on naming one model after a
+  case is added on another. Whether these are findings about the stack or about the stack inside
+  one harness is a question a second agent has to answer, which is what
+  <code>scripts/sentinel</code> exists for.
 </div>
+
+<h2>A second model, and every case at once</h2>
+
+<p>On 21 and 22 August 2026 the whole benchmark ran on
+<code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm,
+101 graded runs in all. Every trial passed the validity gate; none was discarded.
+The four sections above stay as they are — they are Opus figures, and putting the two models in
+one table would place numbers side by side under a heading that names neither.</p>
+
+<p>The declared endpoint moved in <strong>none</strong> of the nine. That is the headline and it is
+not the interesting part, because three trials per arm cannot establish a difference and the
+stopping rule says so before the run starts. What the sweep does show is a pattern that no single
+case could.</p>
+
+<h3>Whether a skill is reached for at all</h3>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>case</th><th>request names</th><th class="num">skill invoked</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>documentation from nothing</td><td>a domain — "documentation"</td><td class="num">3 of 3</td></tr>
+    <tr><td>a review</td><td>a domain — "review this extension"</td><td class="num">3 of 3</td></tr>
+    <tr><td>an upgrade</td><td>a domain — "upgrade"</td><td class="num">3 of 3</td></tr>
+    <tr><td>release preparation</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>version metadata, prepared</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>version metadata, unprepared</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Routing keys on the vocabulary of the request, not on where the work turns out to
+live.</strong> The release case is the sharp one: two of the four places a TYPO3 extension states
+its version are documentation files, the equipped arm carries a documentation skill that ships
+<code>check-guides-xml-version-sync.sh</code> — a script whose only purpose is the check every
+trial failed — and it was never reached for, because nothing in "prepare release 2.4.2" says
+documentation.</p>
+
+<div class="note">
+  <strong>A fleet whose capability is never selected is being measured on its selection, not on
+  its content.</strong> Six of the nine cases report on routing. Only three report on what the
+  skills contain, and they are the three that disagree with each other.
+</div>
+
+<h3>Where the skill did fire, the direction is not the same</h3>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th></th><th class="num">a review</th><th class="num">an upgrade</th><th class="num">documentation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Declared endpoint</td><td class="num">3/3 both arms</td><td class="num">0/3 both arms</td><td class="num">0/3 → 2/3</td></tr>
+    <tr><td>Agent cost, control</td><td class="num">0.16 / 0.19 / 0.36</td><td class="num">0.02 / 0.03 / 0.03</td><td class="num">0.02 / 0.12 / 0.14</td></tr>
+    <tr><td>Agent cost, nr</td><td class="num">0.09 / 0.13 / 0.14</td><td class="num">0.14 / 0.25 / 1.12</td><td class="num">0.21 / 0.23 / 0.25</td></tr>
+    <tr><td>Tool calls, control</td><td class="num">21 / 58 / 80</td><td class="num">4 / 5 / 5</td><td class="num">5 / 17 / 28</td></tr>
+    <tr><td>Tool calls, nr</td><td class="num">25 / 32 / 43</td><td class="num">27 / 33 / 117</td><td class="num">27 / 32 / 33</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Three cases, three different trades. On the review the equipped arm reaches the same result for
+about a third less — every equipped trial cheaper than every control trial. On the upgrade it
+spends ten to seventy times the tokens and neither arm finishes; what it buys there is verification
+and prioritisation of an upgrade nobody completed. On documentation it costs roughly twice as much
+and is the only case in the sweep where the equipped arm moves a dimension at all.</p>
+
+<p>Read the upgrade's control column before drawing a conclusion from its cost: <strong>four to
+five tool calls on a TYPO3 major-version upgrade</strong>, about 100k input tokens, two to three
+cents. The unaided agent barely engages, and a cheap non-attempt is not a cheap answer. The same
+shape appears in the restraint case, where two control trials answered with <em>zero</em> tool
+calls — correctly, since nothing needed changing — and scored the two lowest results in that
+series. An empty diff is what both a careful check and a non-attempt produce, and only a rubric
+that asks what was established can tell them apart.</p>
+
+<p>All of these cost lines are <strong>exploratory</strong>. Each series declared one endpoint
+before its first trial, and none of them was cost. A completely separated secondary line names the
+next experiment; it is not the result of this one.</p>
 
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">4</span><span class="lbl">cases, one environment baseline</span></div>
-  <div class="card"><span class="big">47</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">19</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">9</span><span class="lbl">cases, one environment baseline</span></div>
+  <div class="card"><span class="big">101</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">20</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
@@ -323,7 +412,7 @@ the public repository. Twelve further items remain
   rule.
 </div>
 
-<p>These figures were produced by benchmark <code>unversioned</code> — read from the recorded
+<p>These figures were produced by benchmark <code>0.6.2, 0.7.0, 0.8.0, unversioned</code> — read from the recorded
 jobs rather than from the repository's current VERSION, which says what the tree is today and not
 what produced a number. A result names
 the version that produced it: a case added or retired makes earlier numbers measurements of a
