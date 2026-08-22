@@ -55,3 +55,14 @@ recorded against it, so nothing here is a result. See
 Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
 did not write it; this repository has been written by one person, so the field
 is empty rather than filled in by its author.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Establishing that two version declarations already agree, and changing nothing. Same capability
+as `typo3-version-metadata`.
+
+**Present, and not selected** — zero invocations in three trials on Haiku.

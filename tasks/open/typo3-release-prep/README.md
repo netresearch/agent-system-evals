@@ -58,3 +58,21 @@ recorded states; no trial has been recorded against it.
 Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
 did not write it; this repository has been written by one person, so the field
 is empty rather than filled in by its author.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Preparing a release: version bumps across four files, changelog entries, no push.
+`netresearch/github-release-skill` exists in the organisation and its description activates on
+the words "release", "tag" and "version bump" — the instruction here says "prepare the
+2.4.2 release".
+
+**Absent.** Neither `nr` nor `nr-full` carries a release, git or forge skill. A zero here is a
+statement about the fleet's composition and not about routing.
+
+A second, narrower reading does concern routing: `typo3-docs` *is* present and ships
+`scripts/check-guides-xml-version-sync.sh`, a script whose only purpose is the check every
+trial failed, while its description names `guides.xml` and never mentions releases.

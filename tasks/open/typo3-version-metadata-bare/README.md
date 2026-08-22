@@ -74,3 +74,14 @@ is empty rather than filled in by its author. What such a review checks is the
 four questions in CONTRIBUTING.md — whether the agent can reach the answers,
 whether the prompt is still open, whether the rubric grades behaviour rather
 than wording, and whether a failure here would mean anything.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+The same task as `typo3-version-metadata`, in a repository stripped of agent-facing
+scaffolding. Same capability, same fleet.
+
+**Present, and not selected** — zero invocations in three trials on Haiku.

@@ -81,3 +81,17 @@ is empty rather than filled in by its author. What such a review checks is the
 four questions in CONTRIBUTING.md — whether the agent can reach the answers,
 whether the prompt is still open, whether the rubric grades behaviour rather
 than wording, and whether a failure here would mean anything.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Diagnosing a runtime failure in a provisioned TYPO3 instance.
+`netresearch/typo3-ddev-skill` covers reaching and operating a running instance — and it is in
+`nr-full`, not in `nr`.
+
+**Absent from the arm that ran.** The Haiku series compared `control` against `nr`, so a zero
+here says the fleet under test had no instance-operation capability, not that one was ignored.
+This gap is why `nr-full` exists at all.

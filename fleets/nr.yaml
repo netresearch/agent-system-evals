@@ -19,7 +19,21 @@
 # the variable under study.
 
 name: nr
-description: Production Netresearch agent engineering stack
+# Not the deployed stack, whatever the earlier description claimed.
+#
+# The organisation publishes 42 skill repositories. This fleet carries eight,
+# all of them TYPO3, PHP or assessment; `nr-full` carries twelve and adds the
+# general tooling. Neither holds a release, git or forge skill, and one case was
+# decided by that absence: OFR-TYPO3-RELEASE-001 asks to "prepare the 2.4.2
+# release", `netresearch/github-release-skill` activates on that very word, and
+# it was never on offer. The result was first published as a routing finding and
+# had to be withdrawn (issue #24).
+#
+# Saying what this fleet is, rather than changing what it contains, is
+# deliberate: every recorded result was measured against these eight, and moving
+# them retires all of it. A fleet that carries the general tooling is a separate
+# arm, which is what `nr-full` is for.
+description: Netresearch TYPO3 and PHP domain skills — not the full deployed stack, which is nr-full
 
 skills:
   # Routing: the general assessment capability that should direct the specific

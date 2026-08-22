@@ -55,3 +55,15 @@ against it.
 Nobody yet. `docs/governance.md` requires a case to be admitted by someone who
 did not write it; this repository has been written by one person, so the field
 is empty rather than filled in by its author.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Writing TYPO3 extension documentation from nothing. `netresearch/typo3-docs-skill` is in `nr`
+and names creating extension documentation.
+
+**Present, and selected** — invoked in three trials of three on Haiku. What failed there was
+the second hop: the correct `guides.xml` skeleton sits behind a reference file no trial read.

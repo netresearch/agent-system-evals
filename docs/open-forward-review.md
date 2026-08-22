@@ -189,6 +189,32 @@ while reporting one. Removing a skill the parent does not carry is refused,
 because an ablation that ablates nothing reads as a component that changes
 nothing.
 
+### A zero invocation count is ambiguous
+
+`capability_selection` and the raw count of `Skill(` calls are read as evidence
+about routing. They are only that once the fleet's contents have been checked
+against the task, because a zero has three causes and they are findings about
+different things:
+
+| the capability was | what the zero says |
+|---|---|
+| on offer and not selected | a routing result — about the agent and the skill's description |
+| not on offer | a composition result — about the fleet manifest |
+| not needed | nothing; the task did not call for one |
+
+A case **MUST** record, in its README, what capability its task plausibly needs
+and whether the fleet carries it. Without that line the count cannot be read at
+all, and the failure is silent: a fleet missing the relevant skill produces the
+same zero as an agent that ignored it.
+
+This was written after publishing the opposite. Six of nine cases in the August
+2026 Haiku sweep recorded zero invocations, and the conclusion drawn — that
+routing keys on the vocabulary of the request rather than on where the work
+turns out to live — was withdrawn for the release case: the instruction says
+"prepare the 2.4.2 release", `netresearch/github-release-skill` activates on
+that word, and neither `nr` nor `nr-full` carries it. The vocabulary was there
+and the capability was not.
+
 ## 9. Case admission
 
 A case enters the benchmark only via the lifecycle in

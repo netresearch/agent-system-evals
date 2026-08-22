@@ -64,3 +64,15 @@ is empty rather than filled in by its author. What such a review checks is the
 four questions in CONTRIBUTING.md — whether the agent can reach the answers,
 whether the prompt is still open, whether the rubric grades behaviour rather
 than wording, and whether a failure here would mean anything.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Reconciling two version declarations that disagree. `netresearch/typo3-conformance-skill` is in
+`nr` and names standards compliance and TER readiness, which covers what an extension declares
+about the versions it supports.
+
+**Present, and not selected** — zero invocations in three trials on Haiku. A routing result.

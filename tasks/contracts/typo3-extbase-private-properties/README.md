@@ -34,3 +34,16 @@ is empty rather than filled in by its author. What such a review checks is the
 four questions in CONTRIBUTING.md — whether the agent can reach the answers,
 whether the prompt is still open, whether the rubric grades behaviour rather
 than wording, and whether a failure here would mean anything.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read. A zero means one of two
+things — the capability was on offer and was not selected, or it was not on offer — and
+those are findings about different things (see issue #24).
+
+Naming Extbase properties that must not be `private`. `netresearch/typo3-conformance-skill` is
+in `nr` and covers exactly this class of finding.
+
+**Present, and not selected** — zero invocations in three trials on Haiku, on a task both arms
+solved perfectly in three to seven tool calls. A capability is not needed here, which is a third
+thing a zero can mean and the only case in the benchmark where it applies.
