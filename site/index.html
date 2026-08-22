@@ -320,17 +320,29 @@ case could.</p>
 </table>
 </div>
 
-<p><strong>Routing keys on the vocabulary of the request, not on where the work turns out to
-live.</strong> The release case is the sharp one: two of the four places a TYPO3 extension states
-its version are documentation files, the equipped arm carries a documentation skill that ships
-<code>check-guides-xml-version-sync.sh</code> — a script whose only purpose is the check every
-trial failed — and it was never reached for, because nothing in "prepare release 2.4.2" says
-documentation.</p>
+<p>The table above is a real split and it does not have a single cause. Two different things
+produce a zero in the right-hand column, and telling them apart is the whole of what this sweep
+teaches.</p>
+
+<p><strong>Sometimes the capability is simply not there.</strong> The organisation publishes 42
+skill repositories; the fleet under test carries eight, and <code>nr-full</code> twelve. Neither
+holds a release, git or forge skill. The release case asks to <em>"prepare the 2.4.2 release"</em>,
+and <code>netresearch/github-release-skill</code> — which exists, and whose description activates on
+the word "release" — was not on offer. That case therefore measured fleet composition, not routing,
+and an earlier version of this page said otherwise.</p>
+
+<p><strong>Sometimes it is there and described for a different job.</strong> The same release case
+had <code>typo3-docs</code> in the fleet, shipping
+<code>scripts/check-guides-xml-version-sync.sh</code> — a script whose only purpose is the check
+every trial failed. Its description names <code>guides.xml</code> and never mentions releases or
+version bumps. That is a routing observation about one skill, and unlike the first it is testable in
+one series: change the description, re-run the case.</p>
 
 <div class="note">
-  <strong>A fleet whose capability is never selected is being measured on its selection, not on
-  its content.</strong> Six of the nine cases report on routing. Only three report on what the
-  skills contain, and they are the three that disagree with each other.
+  <strong>A fleet whose capability is never selected is being measured on its selection; a fleet
+  that does not carry the capability is being measured on its composition.</strong> Of the nine
+  cases, three report on what the skills contain. The rest report on one of those two things, and
+  the benchmark's next job is to separate them case by case rather than in one sentence.
 </div>
 
 <h3>Where the skill did fire, the direction is not the same</h3>

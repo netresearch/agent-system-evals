@@ -60,16 +60,40 @@ Eight skills present in the equipped arm, none reached for — including
 `typo3-docs`, which ships `scripts/check-guides-xml-version-sync.sh`, a script
 whose entire purpose is the check every trial failed.
 
-Held against the documentation case, measured the same day on the same model,
-this stops being a repetition of "skills go unused" and becomes something more
-specific. There, `typo3-docs` was invoked in three trials of three. The request
-was "This extension has no documentation on docs.typo3.org. Please give it
-some." Here the request is a release, and two of the four version locations
-happen to be documentation files — but nothing in the request says so.
+### Corrected 22 August: the first reading of this was wrong
 
-**Routing keys on the vocabulary of the request, not on where the work turns
-out to live.** That is a property of the whole system rather than of any skill
-in it, which is what an Open Forward Review is for.
+This section originally concluded that *routing keys on the vocabulary of the
+request rather than on where the work turns out to live* — the request says
+"release", nothing in it says "documentation", so the documentation skill was
+never considered.
+
+That reading does not survive a look at what the fleet contains. The
+organisation publishes 42 skill repositories. One of them is
+`netresearch/github-release-skill`, whose description begins:
+
+> Use when creating releases, version bumps, tagging, release health checks, or
+> when user says 'release', 'tag', 'version bump'.
+
+The instruction for this case is *"Please prepare the 2.4.2 release of this
+extension"*. The vocabulary was there. **The capability was not: neither `nr`
+(eight skills) nor `nr-full` (twelve) carries a release skill.**
+
+So this case did not measure routing. It measured fleet composition, and the
+answer is that the fleet has no release capability to select. That is a finding
+about the arm under test rather than about the agent, and it is a different and
+smaller claim than the one first written here.
+
+What survives of the original observation is narrower and still worth keeping:
+`typo3-docs` *is* in the fleet, it ships
+`scripts/check-guides-xml-version-sync.sh` — a script whose only purpose is the
+check every trial failed — and its description names `guides.xml` but never
+mentions releases or version bumps. So a relevant capability was present,
+described in a way that does not reach this task. That is a routing observation,
+about one skill, and it is testable: change the description and re-run.
+
+The documentation case remains the contrast that started this, and it still
+holds there — `typo3-docs` was invoked in three trials of three when the request
+named documentation.
 
 ## Cost
 
