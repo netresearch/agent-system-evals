@@ -112,6 +112,19 @@ def main() -> int:
                     f"{max_spread:.2f}. This criterion cannot carry a one-trial "
                     f"difference."
                 )
+            # The criterion beneath the dimension, where the report carries it.
+            # A dimension can sit inside the threshold while one criterion of
+            # it flips on every repeat and another never moves; the dimension
+            # average hides exactly the thing a rubric author can fix.
+            for criterion, per in (measured.get("criteria") or {}).items():
+                c_spread = per.get("spread")
+                if c_spread is not None and c_spread > max_spread:
+                    problems.append(
+                        f"{fixture}/{dimension}/{criterion}: spread {c_spread:.2f} "
+                        f"over {report.get('repeats')} repeats exceeds "
+                        f"{max_spread:.2f}. This criterion is noise at the "
+                        f"scale of a one-trial difference."
+                    )
             expected = measured.get("expected")
             if expected is not None:
                 deviation = abs(measured.get("median", 0.0) - expected)

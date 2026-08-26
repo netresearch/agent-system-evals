@@ -117,7 +117,40 @@ def grade(case_dir: Path, fixture: Path, work: Path, dimension: str | None) -> d
         print(result.stdout[-1500:], file=sys.stderr)
         print(result.stderr[-1500:], file=sys.stderr)
         sys.exit(f"rewardkit failed on {fixture.name}")
-    return json.loads(out.read_text())
+    # The dimension scores, and beside them what each criterion answered.
+    # RewardKit writes reward-details.json next to the output; the first
+    # calibration read only reward.json and could say a dimension was noisy
+    # without saying which of its criteria was — which is the thing a rubric
+    # author can act on, and what issue #9 asked for.
+    details = work / "reward-details.json"
+    criteria = criterion_values(json.loads(details.read_text())) if details.is_file() else {}
+    return json.loads(out.read_text()), criteria
+
+
+def criterion_values(details: dict) -> dict[str, dict[str, float]]:
+    """{dimension: {criterion: value}} out of RewardKit's reward-details.json.
+
+    Programmatic and agent criteria alike, keyed by name. A name that appears
+    twice in one dimension would shadow itself; none does, and the mechanical
+    rubric validator refuses duplicates.
+    """
+    out: dict[str, dict[str, float]] = {}
+    for dimension, blocks in details.items():
+        for block in blocks or []:
+            for criterion in block.get("criteria") or []:
+                name, value = criterion.get("name"), criterion.get("value")
+                if name is not None and value is not None:
+                    out.setdefault(dimension, {})[name] = float(value)
+    return out
+
+
+def summarise(values: list[float], expected: float | None = None) -> dict:
+    return {
+        "values": values,
+        "median": statistics.median(values),
+        "spread": max(values) - min(values),
+        "expected": expected,
+    }
 
 
 def stage_verifier_layout(fixture: Path, work: Path, tests: Path) -> None:
@@ -179,15 +212,23 @@ def main() -> int:
         sys.exit("no credential; calibration calls real judges")
 
     observed: dict[str, dict[str, list[float]]] = {}
+    observed_criteria: dict[str, dict[str, dict[str, list[float]]]] = {}
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         for name, fixture in sorted(fixtures.items()):
             for repeat in range(args.repeats):
-                rewards = grade(args.case, fixture, work, args.dimension)
+                rewards, criteria = grade(args.case, fixture, work, args.dimension)
                 print(f"  {name} repeat {repeat + 1}: "
-                      + " ".join(f"{k}={v:.2f}" for k, v in sorted(rewards.items())))
+                      + " ".join(f"{k}={v:.2f}" for k, v in sorted(rewards.items())),
+                      flush=True)
                 for dimension, value in rewards.items():
                     observed.setdefault(name, {}).setdefault(dimension, []).append(value)
+                for dimension, per_criterion in criteria.items():
+                    for criterion, value in per_criterion.items():
+                        (observed_criteria.setdefault(name, {})
+                         .setdefault(dimension, {})
+                         .setdefault(criterion, [])
+                         .append(value))
 
     report = {
         "schema_version": CALIBRATION_VERSION,
@@ -200,15 +241,16 @@ def main() -> int:
     }
     for name, dimensions in observed.items():
         expected = gold["fixture"][name].get("expect", {})
-        report["fixtures"][name] = {
-            dimension: {
-                "values": values,
-                "median": statistics.median(values),
-                "spread": max(values) - min(values),
-                "expected": expected.get(dimension),
-            }
-            for dimension, values in sorted(dimensions.items())
-        }
+        report["fixtures"][name] = {}
+        for dimension, values in sorted(dimensions.items()):
+            entry = summarise(values, expected.get(dimension))
+            per_criterion = observed_criteria.get(name, {}).get(dimension, {})
+            if per_criterion:
+                entry["criteria"] = {
+                    criterion: summarise(vals)
+                    for criterion, vals in sorted(per_criterion.items())
+                }
+            report["fixtures"][name][dimension] = entry
 
     REPORT.parent.mkdir(exist_ok=True)
     REPORT.write_text(json.dumps(report, indent=2))
