@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-one ways this benchmark measured the wrong thing while looking like it was
+Twenty-two ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -394,6 +394,33 @@ the same of every build script in the repository, against the source, so the
 next case written beside these cannot repeat it either. The two recorded trials
 are discarded by name in each case's RESULTS.md; they are not evidence about
 anything.
+
+## 22. A calibration script that could not run
+
+`scripts/calibrate-judges` was written on 20 August, described in
+`check-calibration` and in issue #9's own text as the thing that measures the
+judges, and never run. The first attempt, six days later, died on
+`No such file or directory: '/logs'`.
+
+Every `judge.toml` is written for the verifier container: `cwd = "/logs"`, the
+blind transcript at `/logs/verifier/transcript-blind.txt`, artifacts under
+`/logs/artifacts`. The script copied the rubric onto the host and pointed
+RewardKit at it, with the container's paths intact and none of the renderings
+`tests/test.sh` produces before any judge runs. It could not have worked on any
+machine, and nothing said so, because the one command that would have — running
+it — is the expensive one.
+
+This is a smaller instance of the shape entry 21 describes: a piece of the
+apparatus written beside a working sibling and not copied from it. `test.sh`
+stages the trajectory, renders the transcript and the blind transcript, and
+only then grades; the calibration script had the grading and not the staging.
+
+**Fix:** the script now builds the verifier's layout under its work directory
+from the same library the verifier uses, and rewrites each judge config to
+point at it. A one-repeat probe on one dimension separates the thorough fixture
+from the no-op one, 0.75 against 0.25, which is the first measured statement
+about these judges' repeatability this repository holds. The full calibration
+is the next entry in `calibration/report.json`, not here.
 
 ## What this cost, and what it teaches
 

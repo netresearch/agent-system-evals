@@ -90,6 +90,17 @@ def grade(case_dir: Path, fixture: Path, work: Path, dimension: str | None) -> d
     env = dict(os.environ)
     env["NREVAL_TRAJECTORY"] = str(fixture / "logs" / "trajectory.json")
     env["NREVAL_ARTIFACTS"] = str(fixture / "logs" / "artifacts")
+
+    # Every judge.toml is written for the verifier container: `cwd = "/logs"`,
+    # the transcript at /logs/verifier/transcript-blind.txt, artifacts under
+    # /logs/artifacts. On the host none of that exists, and the first attempt
+    # to run this script died on `No such file or directory: '/logs'` — after
+    # the script had sat in the repository for six days described as the
+    # thing that measures the judges. So the container's layout is built here
+    # under the work directory, the way tests/test.sh builds it in the
+    # verifier: the trajectory staged, the transcript rendered, the blind
+    # transcript rendered, and every judge.toml pointed at them.
+    stage_verifier_layout(fixture, work, tests)
     result = subprocess.run(
         [
             "uvx", "--quiet", "--python", "3.12",
@@ -107,6 +118,32 @@ def grade(case_dir: Path, fixture: Path, work: Path, dimension: str | None) -> d
         print(result.stderr[-1500:], file=sys.stderr)
         sys.exit(f"rewardkit failed on {fixture.name}")
     return json.loads(out.read_text())
+
+
+def stage_verifier_layout(fixture: Path, work: Path, tests: Path) -> None:
+    """Reproduce /logs as the verifier sees it, under `work`, and retarget the judges."""
+    logs = work / "logs"
+    if logs.exists():
+        shutil.rmtree(logs)
+    (logs / "verifier").mkdir(parents=True)
+    shutil.copytree(fixture / "logs" / "artifacts", logs / "artifacts")
+
+    # The same renderings tests/test.sh produces, from the same library, so a
+    # judge calibrated here reads what a judge in a trial reads.
+    os.environ["NREVAL_TRAJECTORY"] = str(fixture / "logs" / "trajectory.json")
+    os.environ["NREVAL_ARTIFACTS"] = str(logs / "artifacts")
+    sys.path.insert(0, str(ROOT / "verifier" / "common"))
+    import importlib
+    import nreval  # noqa: E402
+    importlib.reload(nreval)  # the env is read at import; a second fixture must not see the first
+    shutil.copy(fixture / "logs" / "trajectory.json", logs / "verifier" / "trajectory.json")
+    nreval.write_evidence_manifest(logs / "verifier" / "evidence-manifest.json")
+    nreval.write_transcript(logs / "verifier" / "transcript.txt")
+    nreval.write_blind_transcript(logs / "verifier" / "transcript-blind.txt")
+
+    for toml_path in tests.rglob("judge.toml"):
+        text = toml_path.read_text().replace("/logs", str(logs))
+        toml_path.write_text(text)
 
 
 def main() -> int:
