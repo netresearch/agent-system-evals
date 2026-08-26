@@ -290,7 +290,7 @@ that reports one number for it is answering a question nobody asked.</p>
 
 <p>On 21 and 22 August 2026 the whole benchmark ran on
 <code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm,
-101 graded runs in all. Every trial passed the validity gate; none was discarded.
+113 graded runs in all. Every trial passed the validity gate; none was discarded.
 The four sections above stay as they are — they are Opus figures, and putting the two models in
 one table would place numbers side by side under a heading that names neither.</p>
 
@@ -380,12 +380,45 @@ that asks what was established can tell them apart.</p>
 before its first trial, and none of them was cost. A completely separated secondary line names the
 next experiment; it is not the result of this one.</p>
 
+<h3>Outside TYPO3: the same model, two other languages</h3>
+
+<p>Two cases added on 26 August, one Go library with a reported timing side channel and one Python
+scripts repository whose scheduled job reports its designed hand-over as a failure. Each ran as a
+block series against a domain fleet — <code>nr-go</code>, <code>nr-general</code> — rather than
+against <code>nr</code>, because a case outside TYPO3 run against <code>nr</code> measures
+composition and nothing else.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th></th><th class="num">Go: control</th><th class="num">Go: nr-go</th><th class="num">Python: control</th><th class="num">Python: nr-general</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mechanical outcome</td><td class="num">3/3</td><td class="num">3/3</td><td class="num">0/3</td><td class="num">0/3</td></tr>
+    <tr><td>Declared endpoint met</td><td class="num">3/3</td><td class="num">2/3</td><td class="num">0/3</td><td class="num">1/3</td></tr>
+    <tr><td>Agent cost</td><td class="num">0.19 / 0.24 / 0.32</td><td class="num">0.16 / 0.17 / 0.45</td><td class="num">0.05 / 0.07 / 0.11</td><td class="num">0.05 / 0.05 / 0.11</td></tr>
+    <tr><td>Tool calls</td><td class="num">20 / 31 / 32</td><td class="num">13 / 15 / 39</td><td class="num">3 / 11 / 17</td><td class="num">4 / 4 / 17</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Go: six trials of six closed the side channel — the regression check that fails on the parent
+passes on every tree — and none of the six left a test, and none used the escaping helper the
+neighbouring code path uses. The Go skill was on offer and invoked in no trial. Python: nobody got
+all three answers right; four of six turned every give-up green, the secondary limit included, and
+two of six changed nothing. No Python skill exists to offer, so that arm's zero is composition by
+construction.</p>
+
+<p>The Python series also found instrument failure 23: a judge criterion that says "read the diff"
+was reading a transcript that never contained one, and scored a diff that makes the secondary limit
+green as having kept it red — twice. The mechanical check, which reads the tree, caught all four.</p>
+
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">9</span><span class="lbl">cases, one environment baseline</span></div>
-  <div class="card"><span class="big">101</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">20</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">11</span><span class="lbl">cases, one environment baseline</span></div>
+  <div class="card"><span class="big">113</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">23</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
@@ -424,7 +457,7 @@ the public repository. Twelve further items remain
   rule.
 </div>
 
-<p>These figures were produced by benchmark <code>0.6.2, 0.7.0, 0.8.0, unversioned</code> — read from the recorded
+<p>These figures were produced by benchmark <code>0.6.2, 0.7.0, 0.8.0, 2.0.0, unversioned</code> — read from the recorded
 jobs rather than from the repository's current VERSION, which says what the tree is today and not
 what produced a number. A result names
 the version that produced it: a case added or retired makes earlier numbers measurements of a
