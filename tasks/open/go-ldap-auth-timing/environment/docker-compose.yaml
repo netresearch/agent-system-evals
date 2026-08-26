@@ -1,0 +1,33 @@
+# The directory the library is used against.
+#
+# Harbor supplies the `main` service from environment/Dockerfile and applies
+# this file last. Neither service declares `networks` or `network_mode`, and
+# that is deliberate: under egress control Harbor moves exactly those services
+# into the sidecar's network namespace, which is what gives `main` its
+# allowlist. The directory comes along, so the two reach each other over
+# localhost — the target's own test setup connects to 127.0.0.1 too, and its
+# Go skill warns that "localhost" is treated as a mock server name by this
+# very library.
+#
+# Same image and the same values as the target's SetupTestContainer, so the
+# integration suite the agent may run expects exactly this directory.
+
+services:
+  openldap:
+    image: osixia/openldap:1.5.0
+    environment:
+      LDAP_ORGANISATION: Example Org
+      LDAP_DOMAIN: example.org
+      LDAP_ADMIN_PASSWORD: admin123
+      LDAP_CONFIG_PASSWORD: config123
+    healthcheck:
+      test: ["CMD-SHELL", "ldapsearch -x -H ldap://127.0.0.1:389 -D cn=admin,dc=example,dc=org -w admin123 -b dc=example,dc=org -s base >/dev/null"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  main:
+    command: ["/bin/bash", "-lc", "tail -f /dev/null"]
+    depends_on:
+      openldap:
+        condition: service_healthy

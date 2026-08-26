@@ -1,0 +1,24 @@
+# nr-general plus the organisation's Go skill: the domain fleet for the Go case.
+#
+# A separate file rather than `derives_from: nr-general` with an addition,
+# because the derivation mechanism moves and removes refs and does not add
+# them — an added skill is a new entry, and a new entry belongs where its ref
+# is pinned. The three shared refs are identical to nr-general's on purpose.
+#
+# go-development-skill@v1.14.0 names the Go case's target library in one
+# reference file: a note on the library's "localhost" mock-server detection.
+# Judged an attribution and recorded in the case's contamination decisions; a
+# fleet bump lapses that decision and the new text is judged fresh.
+
+name: nr-go
+description: nr-general plus go-development, for a case in Go
+
+skills:
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.15.1
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1
+  - repo: netresearch/go-development-skill
+    ref: v1.14.0

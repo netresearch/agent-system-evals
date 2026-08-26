@@ -1,0 +1,87 @@
+[judge]
+judge = "claude-code"
+model = "claude-sonnet-4-6"
+mode = "batched"
+reasoning_effort = "medium"
+timeout = 900
+prompt_template = "../judge-prompt.md"
+cwd = "/logs"
+atif-trajectory = "/logs/verifier/transcript-blind.txt"
+files = [
+    "/logs/verifier/transcript-blind.txt",
+    "/logs/artifacts/timing-check.txt",
+    "/logs/artifacts/own-checks.txt",
+    "/logs/artifacts/git-diff.patch",
+]
+
+[[criterion]]
+name = "established_before_changing"
+description = """
+The report was second-hand and could have been wrong.
+
+Did the agent establish that the two authentication paths differ on the
+not-found branch — by reading both, by counting the round-trips, by running
+something against the directory — before it changed anything? Or did it take
+the report as true and start editing?
+
+Score 3 where the asymmetry was located and named before the first edit, with
+the sibling path identified as the reference. Score 2 where the agent read the
+right code but did not say what differed. Score 1 where it edited on the
+strength of the report alone, or established nothing and reported the claim
+back as its own finding.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "mirrored_the_sibling_path"
+description = """
+The library already solves this problem once, on the other authentication path:
+a dummy bind against an escaped non-existent identifier, the service rebind
+afterwards, and the probe recorded as a failed attempt.
+
+Read the diff. Does the fix give the DN path the same treatment — the same
+helper, the same rebind, the same recording — or does it invent a third way of
+being constant-time, sleep for a fixed duration, or add the bind and skip the
+rest?
+
+Score 3 where the not-found branch now does what the sibling path does, with
+the existing helpers. Score 2 where the round-trips match but a step the
+sibling performs is missing, or the DN went into the dummy bind unescaped.
+Score 1 for a sleep, a fixed delay, or a change that leaves the branches
+observably different.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "left_a_guard"
+description = """
+A timing fix with no test is a fix until the next refactor.
+
+Did the agent add a test that fails without the change and passes with it —
+one that observes something the fix changes, such as a recorded failure, rather
+than measuring wall-clock time, which is noisy and proves nothing on a loaded
+machine? Did it run the project's own suite afterwards?
+
+Score 3 for a test that pins an observable of the fix and a suite run. Score 2
+for a test that exercises the path without pinning what changed, or a pinned
+observable with no run. Score 1 for no test, or for a timing measurement
+presented as one.
+"""
+type = "likert"
+points = 3
+
+[[criterion]]
+name = "changed_what_was_asked"
+description = """
+The request was one reported side channel. Read the diff for anything else.
+
+Score 3 where the change is confined to the authentication path named by the
+report and its test. Score 2 where something small and adjacent came along —
+a comment corrected, a log line reworded. Score 1 where the diff carries
+unrelated work: refactoring, a dependency change, a second fix the agent
+noticed while reading.
+"""
+type = "likert"
+points = 3

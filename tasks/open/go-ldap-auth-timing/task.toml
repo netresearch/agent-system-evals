@@ -1,0 +1,222 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-go-ldap-auth-timing"
+version = "1.0.0"
+description = "Open forward review: a reported timing side channel in an authentication library, in Go"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "go", "security", "authentication", "agent-system"]
+
+[metadata]
+case_id = "OFR-GO-LDAP-001"
+category = "open-forward-review"
+# Artifacts without which this trial says nothing, checked by the validity gate
+# in scripts/lib/validity.py. Existence only: every collector redirects into its
+# file before running, so the file is there if and only if the collector ran.
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "timing-check.txt",
+    "own-checks.txt",
+    "capability-inventory.json",
+]
+
+# The first case outside TYPO3 and outside PHP (issue #16). `domain` is read by
+# scripts/validate-tasks, whose runtime checks are about TYPO3 instances and
+# skip a case that is not one.
+domain = "go"
+target_type = "library"
+target_repository = "https://github.com/netresearch/simple-ldap-go.git"
+target_package = "github.com/netresearch/simple-ldap-go"
+target_sha = "3aef601d9e44a4238ed69dd6279de81eb8387112"
+# The directory the library talks to is part of the environment, so the
+# project's integration suite can run. Not a TYPO3 instance: the companion
+# and dev-mcp fleets have nothing to provision here, and the PROVISION_
+# variables below are declared because Harbor resolves every name against the
+# host and aborts on an unset one.
+runtime = true
+writing_task = true
+# No learning store exists in which a retro id could be looked up; the eight
+# earlier ids are declared in their task.toml files and nowhere else. This one
+# is coined the same way and its origin is on record: issue #219 and fix
+# f14711be in the target, both of 26 August 2026, and PR #92 of
+# netresearch/typo3-docs-skill the same week, which is where "a validator that
+# reassures on the defect it exists to catch" was last seen.
+source_learning_id = "retro-20260826-sibling-paths-diverge-on-the-failure-branch"
+# Graded on one dimension rather than the full eight. The eight exist for an
+# open review; this is a fix with a fact at the end of it. Declared here so no
+# comparison can mix rubrics silently — see docs/scoring.md.
+dimensions = ["timing_parity"]
+
+# The mechanical half of the answer, decided by the framework and not by a
+# judge: the verifier's own regression check passes against the tree the agent
+# left behind. It is the upstream regression test with the container setup
+# replaced by the directory Compose already runs.
+[metadata.mechanical_outcome]
+artifacts = "timing-check.txt"
+all_of = ["timing parity: ok"]
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future. The module proxy is
+# reachable so an added dependency resolves the way it would on a developer's
+# machine.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "proxy.golang.org",
+    "sum.golang.org",
+    "pkg.go.dev",
+    "go.dev",
+    "golang.org",
+    "datatracker.ietf.org",
+    "www.rfc-editor.org",
+]
+
+# The directory has to answer a bind before the agent starts. The values are
+# the target's own test setup's; see environment/target.lock.
+[environment.healthcheck]
+command = "ldapsearch -x -H ldap://127.0.0.1:389 -D cn=admin,dc=example,dc=org -w admin123 -b dc=example,dc=org -s base >/dev/null"
+interval_sec = 5.0
+timeout_sec = 30.0
+start_period_sec = 120.0
+start_interval_sec = 5.0
+retries = 10
+
+[environment.env]
+PROVISION_PACKAGES = "${PROVISION_PACKAGES}"
+PROVISION_COMPANION_REF = "${PROVISION_COMPANION_REF}"
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
+# The tree first, before anything is copied or compiled next to it.
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+# The project's own checks, in a scratch copy so nothing the verifier compiles
+# lands in the tree the rubric inspects (ADR 0007). `|| true` on the outer
+# command only; the verdict is carried in the file.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-own && cp -a /app /tmp/nreval-own && cd /tmp/nreval-own \
+  && export GOFLAGS=-mod=mod GOPROXY=off GOTOOLCHAIN=local \
+  && go build ./... && go vet ./... \
+  && go test -short -count=1 -timeout 120s ./... \
+  && echo "own checks: ok" || echo "own checks: failed"
+} > /logs/artifacts/own-checks.txt 2>&1 || true
+'''
+timeout_sec = 600.0
+
+# The regression check. It is the upstream test for this defect with the
+# container setup replaced by the directory Compose already runs, and it lives
+# here rather than in the image because a test that names the mechanism is an
+# answer key, and the environment image is the agent's. Build-tagged so only it
+# and the untagged unit tests compile — the integration files pull in
+# testcontainers, which has nothing to talk to here.
+#
+# The observable is the rate limiter's FailedAuth metric: before the fix the
+# not-found path returned before any bind and any recording, so the metric
+# stayed at zero. An agent that adds the bind but not the recording fails this
+# too, and that is deliberate — the sibling path records the probe, and parity
+# with it is the point.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-check && cp -a /app /tmp/nreval-check && cd /tmp/nreval-check \
+  && cat > nreval_timing_parity_test.go <<'GOTEST'
+//go:build nreval
+
+package ldap
+
+import (
+	"log/slog"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+)
+
+func nrevalClient(t *testing.T) *LDAP {
+	t.Helper()
+	config := Config{
+		Server:            "ldap://127.0.0.1:389",
+		BaseDN:            "dc=example,dc=org",
+		IsActiveDirectory: false,
+	}
+	client, err := New(config, "cn=admin,dc=example,dc=org", "admin123")
+	require.NoError(t, err)
+	return client
+}
+
+func TestNREvalTimingParity(t *testing.T) {
+	t.Run("nonexistent DN records a failed attempt", func(t *testing.T) {
+		client := nrevalClient(t)
+		client.rateLimiter = NewRateLimiter(&RateLimiterConfig{
+			MaxAttempts:     10,
+			Window:          15 * time.Minute,
+			LockoutDuration: 30 * time.Minute,
+			CleanupInterval: 5 * time.Minute,
+			MaxEntries:      100,
+		}, slog.Default())
+
+		_, err := client.CheckPasswordForDN("cn=definitely-not-there,dc=example,dc=org", "irrelevant")
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrUserNotFound)
+		require.Equal(t, int64(1), client.rateLimiter.GetMetrics().FailedAuth,
+			"a probe against a nonexistent DN must be recorded as a failed attempt, as on the sAMAccountName path")
+	})
+
+	t.Run("DN with metacharacters is handled without injection or panic", func(t *testing.T) {
+		client := nrevalClient(t)
+		_, err := client.CheckPasswordForDN("cn=x,cn=admin,dc=example,dc=org", "irrelevant")
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrUserNotFound)
+	})
+}
+GOTEST
+  export GOFLAGS=-mod=mod GOPROXY=off GOTOOLCHAIN=local
+  if go test -tags=nreval -run TestNREvalTimingParity -count=1 -timeout 180s . ; then
+    echo "timing parity: ok"
+  else
+    echo "timing parity: not established"
+  fi
+} > /logs/artifacts/timing-check.txt 2>&1 || true
+'''
+timeout_sec = 600.0
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 2
+memory_mb = 4096
+storage_mb = 10240
+network_mode = "public"

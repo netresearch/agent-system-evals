@@ -121,6 +121,13 @@ def check_runtime_mcp_servers(
 
     if not config.get("metadata", {}).get("runtime"):
         return
+    # The fleets this checks are TYPO3 products installed into a TYPO3
+    # instance, and TYPO3_LINE is what it reads to decide whether they fit. A
+    # runtime case in another domain has a directory or a service to run
+    # against, not an instance; without this line the Go case was told to
+    # install typo3-dev-mcp into an OpenLDAP.
+    if config.get("metadata", {}).get("domain", "typo3") != "typo3":
+        return
 
     # What the instance runs, from the case's own lock file.
     lock = case_dir / "environment" / "target.lock"

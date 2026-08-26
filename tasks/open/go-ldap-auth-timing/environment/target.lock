@@ -1,0 +1,15 @@
+# The library under review, pinned. See docs/reproducibility.md.
+TARGET_REPOSITORY=https://github.com/netresearch/simple-ldap-go.git
+TARGET_COMMIT=3aef601d9e44a4238ed69dd6279de81eb8387112
+TARGET_PACKAGE=github.com/netresearch/simple-ldap-go
+TARGET_TYPE=go-module
+
+# --- the directory every trial runs against ----------------------------------
+# A developer working on this library has an OpenLDAP to run the integration
+# suite against; the target's own test setup starts osixia/openldap:1.5.0 with
+# exactly these values. Compose starts the same image with the same values, so
+# the agent's directory is the one the project's tests expect.
+LDAP_URL=ldap://127.0.0.1:389
+LDAP_BASE_DN=dc=example,dc=org
+LDAP_ADMIN_DN=cn=admin,dc=example,dc=org
+LDAP_ADMIN_PASSWORD=admin123

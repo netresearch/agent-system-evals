@@ -13,27 +13,31 @@ comparable over time.
 
 ## What the evidence covers
 
-Six cases. All TYPO3, all PHP, all Netresearch repositories, all under Claude
-Code on one model, all judged by a model from the same family. That supports
-statements about **this stack, in this context** and nothing wider, and the name
-of this repository is broader than its evidence.
+Nine TYPO3 cases and two outside it — one Go library, one Python scripts
+repository — all Netresearch repositories, all under Claude Code, all judged by
+a model from the same family. Recorded results exist on two agent models, Opus
+and Haiku, and every figure names which. That supports statements about
+**this stack, in this context** and nothing wider, and the name of this
+repository is still broader than its evidence.
 
-Three specific gaps, none of them closed:
+Where the gaps stand:
 
-- **One domain.** Nothing here says how the stack behaves on an API, a data
-  migration, a CI pipeline or a frontend, in Go or TypeScript or anything that
-  is not PHP.
+- **Domain.** Two cases sit outside TYPO3 and PHP, and neither has a recorded
+  result yet. Until they do, nothing here says how the stack behaves in Go or
+  Python. Nothing says anything about an API, a data migration or a frontend.
 - **One harness.** Every figure comes from Claude Code. Whether a result is
   about the stack or about the stack inside one harness is what
   `scripts/sentinel` exists to answer, and it has not been run.
-- **Findings, not restraint.** Every case contains a real defect, so the
-  benchmark has never asked whether an agent knows when to leave something
-  alone. A benchmark whose targets always have something wrong teaches finding
+- **Restraint, now asked.** One case's correct answer is to change nothing, and
+  it has a recorded series: the two control trials that answered without
+  looking scored lowest in it. The benchmark no longer only rewards finding
   things.
+- **Composition before routing.** Six of the nine TYPO3 cases on Haiku recorded
+  zero skill invocations, and for two of them the relevant skill was not in the
+  fleet at all. A zero is read against the fleet's contents before it is read
+  as a choice — see issue #24 and each case's README.
 
 Tracked as [issue #16](https://github.com/netresearch/agent-system-evals/issues/16).
-Until it closes, read every result here as scoped to TYPO3 extension work at
-Netresearch.
 
 ## Open Forward Reviews
 

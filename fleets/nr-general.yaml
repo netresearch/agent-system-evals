@@ -1,0 +1,26 @@
+# The parts of `nr` that are not about TYPO3 or PHP.
+#
+# Exists because of issue #24. A case outside TYPO3 run against `nr` measures
+# composition — six of its eight skills cannot apply — and a zero invocation
+# count there says nothing about routing. This fleet is what `nr` has to offer
+# such a case: the routing skill, the harness skill and the security skill.
+#
+# What it does not contain is as much a finding as what it does. The
+# organisation publishes no Python skill; `github-project-skill` covers Actions
+# workflows and is in no fleet. A Python case run against this fleet therefore
+# has no domain capability on offer, and its README says so.
+#
+# Pinned by tag; see fleets/nr.yaml for why. The refs are the ones `nr`
+# carries, kept identical on purpose — a difference between this fleet and
+# `nr` on a TYPO3 case must be the absent skills and nothing else.
+
+name: nr-general
+description: The routing, harness and security skills of nr, without the TYPO3 and PHP ones
+
+skills:
+  - repo: netresearch/automated-assessment-skill
+    ref: v2.15.1
+  - repo: netresearch/agent-harness-skill
+    ref: v1.7.1
+  - repo: netresearch/security-audit-skill
+    ref: v2.11.1

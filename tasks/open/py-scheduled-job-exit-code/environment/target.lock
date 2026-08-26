@@ -1,0 +1,5 @@
+# The repository under review, pinned. See docs/reproducibility.md.
+TARGET_REPOSITORY=https://github.com/netresearch/maint.git
+TARGET_COMMIT=681f2c397610f6414b1304fe37474bfa459f6ca7
+TARGET_PACKAGE=netresearch/maint
+TARGET_TYPE=python-scripts

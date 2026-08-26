@@ -1,0 +1,14 @@
+# Recorded human decisions on contamination-check hits for this case.
+#
+# Every entry is a hit that scripts/contamination-check reported and a human
+# judged a learning by the test in docs/contamination.md: the text helps an
+# agent on a repository it has never seen. An entry is pinned to the skill ref
+# it was judged at — bumping the skill in a fleet lapses the decision, and the
+# new version's text is judged fresh. A hit judged contamination is never
+# recorded here; the skill is fixed instead.
+
+- skill: netresearch/go-development-skill
+  ref: v1.14.0
+  path: go-development-skill-1.14.0/skills/go-development/references/ldap.md
+  marker: simple-ldap-go
+  reason: Names the library as a library — its "localhost" mock-server detection, and the advice to connect to 127.0.0.1 instead. Nothing about its authentication paths, the DN branch, dummy binds or timing. A user of the library needs that note on any repository; it says nothing about this case's defect.

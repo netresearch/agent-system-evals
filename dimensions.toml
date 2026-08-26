@@ -85,6 +85,16 @@ applies_to = "case"
 asks = "Does the documentation render, and does it describe this extension rather than a template?"
 
 [[dimension]]
+id = "timing_parity"
+applies_to = "case"
+asks = "Do the two authentication paths cost the same observable work when the account is missing as when it is present, and was that established against the running directory rather than asserted?"
+
+[[dimension]]
+id = "exit_semantics"
+applies_to = "case"
+asks = "Does the job's exit status say what happened — designed hand-over green, genuine failure red — and does the change keep every red that still matters?"
+
+[[dimension]]
 id = "contract"
 applies_to = "contract"
 asks = "Mechanical: is the known answer present and are the known non-answers absent?"

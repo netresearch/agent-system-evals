@@ -67,6 +67,8 @@ DIMENSIONS = [
     "consistency",
     "release",
     "documentation",
+    "timing_parity",
+    "exit_semantics",
     "contract",
 ]
 MET = 0.75

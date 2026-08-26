@@ -1,0 +1,208 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-py-scheduled-job-exit-code"
+version = "1.0.0"
+description = "Open forward review: a scheduled job that reports its designed hand-over as a failure, in Python"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "python", "ci", "automation", "agent-system"]
+
+[metadata]
+case_id = "OFR-PY-CI-001"
+category = "open-forward-review"
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "exit-check.txt",
+    "own-checks.txt",
+    "capability-inventory.json",
+]
+
+# The second case outside TYPO3 and PHP (issue #16), in a domain the earlier
+# ones never touch: a scheduled CI job and what its exit status means.
+domain = "python"
+target_type = "scripts"
+target_repository = "https://github.com/netresearch/maint.git"
+target_package = "netresearch/maint"
+target_sha = "681f2c397610f6414b1304fe37474bfa459f6ca7"
+# Nothing to run against. The script talks to the GitHub API, and the case is
+# about what it does when the API says no; the verifier stands in for the API.
+runtime = false
+writing_task = true
+# Coined the way the earlier ids were — no learning store exists to look one up
+# in. Origin: netresearch/maint run 13078 of 13 August 2026, PR #52 the next
+# day, and PR #53 a week later, which found the first fix to be half of one.
+source_learning_id = "retro-20260814-designed-giveup-reported-as-failure"
+dimensions = ["exit_semantics"]
+
+# The mechanical half of the answer. Decided by driving the script the way its
+# tests do — a fake API that always answers the same way, no real sleeping —
+# and reading the process exit status the workflow would see. Three answers
+# have to come out right at once: the designed hand-over is green, a limit with
+# no promised end is still red, and a bad token is still red.
+[metadata.mechanical_outcome]
+artifacts = "exit-check.txt"
+all_of = ["exit semantics: ok"]
+
+[agent]
+timeout_sec = 5400.0
+
+# Canonical upstream sources stay reachable; the target's own forge does not,
+# because the fix for this defect lives in its future. The GitHub API itself is
+# not reachable either: the case is about a script that cannot get through, and
+# a trial that could get through would be measuring a different day.
+network_mode = "allowlist"
+allowed_hosts = [
+    "api.anthropic.com",
+    "docs.github.com",
+    "docs.python.org",
+    "peps.python.org",
+    "pypi.org",
+    "files.pythonhosted.org",
+]
+
+[verifier]
+timeout_sec = 5400.0
+environment_mode = "separate"
+
+[verifier.env]
+# Nothing short or low-entropy here: Harbor removes every value in this table
+# from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+[[verifier.collect]]
+command = "MCP_CONFIG=$(ls /logs/agent/*mcp*.json 2>/dev/null | head -1) /opt/probe/capability-probe /logs/artifacts/capability-inventory.json > /logs/artifacts/capability-probe.log 2>&1 || true"
+timeout_sec = 180.0
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+# The project's own suite, in a scratch copy (ADR 0007). Whatever the agent
+# added to tests/ runs too, which is the point: a fix that came with a test that
+# does not pass has not been run.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-own && cp -a /app /tmp/nreval-own && cd /tmp/nreval-own \
+  && MATRIX_WEBHOOK_URL=https://example.invalid/webhook pytest tests/ -q \
+  && echo "own checks: ok" || echo "own checks: failed"
+} > /logs/artifacts/own-checks.txt 2>&1 || true
+'''
+timeout_sec = 600.0
+
+# The behavioural check. It runs the script as the workflow would — as
+# __main__, reading its exit status — against a fake API, with sleeping
+# disabled. Deliberately shape-agnostic: it does not import a function the fix
+# might have named, because a correct fix can keep the __main__ block, add a
+# run() wrapper, or do something else entirely, and the workflow only ever
+# sees the exit status and the annotations.
+#
+# Three drives, each in a fresh state directory so a counter written by one
+# cannot leak into the next:
+#   A  primary limit, budget spent, reset further away than the run can wait —
+#      the DESIGNED hand-over. Must exit 0 and annotate a warning.
+#   B  a secondary limit that outlasts the budget — abuse detection with no
+#      promised reset. Must still exit non-zero with an error annotation.
+#   C  an authentication failure. Must still exit non-zero.
+# B and C are what separates "fixed it" from "made it green".
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-check && cp -a /app /tmp/nreval-check && cd /tmp/nreval-check \
+  && MATRIX_WEBHOOK_URL=https://example.invalid/webhook GITHUB_TOKEN=nreval-not-a-token python3 - <<'PYCHECK'
+import contextlib, io, os, runpy, shutil, time
+
+import requests
+
+SCRIPT = "scripts/check-stars.py"
+
+
+class Resp:
+    def __init__(self, status, headers=None, text="", payload=None, reason="Forbidden"):
+        self.status_code = status
+        self.headers = headers or {}
+        self.text = text
+        self.reason = reason
+        self.links = {}
+        self._payload = payload
+
+    def json(self):
+        if self._payload is None:
+            raise ValueError("no json body")
+        return self._payload
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError(f"{self.status_code} Client Error", response=self)
+
+
+def drive(resp):
+    shutil.rmtree("state", ignore_errors=True)
+    os.makedirs("state", exist_ok=True)
+    requests.get = lambda *a, **k: resp
+    time.sleep = lambda s: None
+    out = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(out):
+            runpy.run_path(SCRIPT, run_name="__main__")
+        code = 0
+    except SystemExit as e:
+        code = 0 if e.code is None else (e.code if isinstance(e.code, int) else 1)
+    except BaseException as e:
+        code = f"raised {type(e).__name__}: {e}"
+    return code, out.getvalue()
+
+
+reset_at = int(time.time()) + 1523
+cases = {
+    "A designed hand-over (primary limit, reset beyond the budget)": (
+        Resp(403, headers={"X-RateLimit-Remaining": "0", "X-RateLimit-Limit": "5000",
+                           "X-RateLimit-Reset": str(reset_at)}),
+        lambda code, out: code == 0 and "::warning::" in out and "::error::" not in out,
+    ),
+    "B secondary limit outlasting the budget": (
+        Resp(403, text="You have exceeded a secondary rate limit. Please wait a few minutes"),
+        lambda code, out: code not in (0, None) and "::error::" in out,
+    ),
+    "C authentication failure": (
+        Resp(401, payload={"message": "Bad credentials"}, reason="Unauthorized"),
+        lambda code, out: code not in (0, None),
+    ),
+}
+
+ok = True
+for label, (resp, expect) in cases.items():
+    code, out = drive(resp)
+    passed = bool(expect(code, out))
+    ok = ok and passed
+    tail = out.strip().splitlines()[-1][:160] if out.strip() else "(no output)"
+    print(f"{'ok ' if passed else 'NOT'} {label}: exit={code!r}; last line: {tail}")
+
+print("exit semantics: ok" if ok else "exit semantics: not established")
+PYCHECK
+} > /logs/artifacts/exit-check.txt 2>&1 || true
+'''
+timeout_sec = 300.0
+
+[environment]
+build_timeout_sec = 3600.0
+os = "linux"
+cpus = 2
+memory_mb = 2048
+storage_mb = 5120
+network_mode = "public"

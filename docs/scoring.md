@@ -55,6 +55,8 @@ registry marks such a dimension `applies_to = "case"`.
 | Dimension | Asks | Used by |
 |---|---|---|
 | `consistency` | Do the statements that have to agree agree, and against something established rather than assumed? | the version-metadata pair |
+| `timing_parity` | Do the two authentication paths cost the same observable work when the account is missing as when it is present, and was that established against the running directory rather than asserted? | the Go auth case |
+| `exit_semantics` | Does the job's exit status say what happened — designed hand-over green, genuine failure red — and does the change keep every red that still matters? | the Python scheduled-job case |
 | `contract` | Mechanical: is the known answer present and are the known non-answers absent? | contract evals (ADR 0002) |
 
 Declared rather than inferred from the directory listing, because two cases
