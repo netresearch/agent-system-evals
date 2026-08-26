@@ -12,7 +12,7 @@
 # comparison, which the lock is the only thing that will show.
 
 name: candidate
-description: nr with typo3-docs at v2.19.0 — guides.xml parsed rather than named
+description: nr with typo3-docs at v2.19.1 — guides.xml parsed rather than named, without the benchmark's identifiers
 
 derives_from: nr
 at:
@@ -30,4 +30,9 @@ at:
   # expected NOT to move, and a run that confirms that is evidence about where
   # the lever has to sit, not about whether the check works — that was settled
   # against ten recorded files before the release.
-  netresearch/typo3-docs-skill: v2.19.0
+  # v2.19.1 over v2.19.0: the same checks, minus three comments that named
+  # this benchmark's case id and repository. The contamination check flagged
+  # the id in CI the moment this fleet carried v2.19.0 — a skill written from
+  # a measurement had carried the measurement's identifiers back into the arm
+  # under test, which is the route to a leak docs/contamination.md describes.
+  netresearch/typo3-docs-skill: v2.19.1

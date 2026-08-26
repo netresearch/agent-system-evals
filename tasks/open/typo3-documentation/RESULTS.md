@@ -205,3 +205,59 @@ upstream.
 `netresearch/typo3-docs-skill` v2.18.0 is a real improvement to a real gap — the
 skeleton was genuinely unreachable — and it does not fix this case. Both are
 true, and only the second was measured. It was shipped on the first.
+
+
+---
+
+# The second skill fix, measured against the expectation written before it ran
+
+Two arms, three trials each, six of six valid. Measured 26 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 0.9.0.
+
+`scripts/run-comparison OFR-TYPO3-DOCS-001 --arms nr,candidate --primary documentation --model claude-haiku-4-5-20251001 --seed 121`
+
+Experiment record: `experiments/OFR-TYPO3-DOCS-001-20260826-100039.json`.
+
+`candidate` is `nr` with `typo3-docs` at v2.19.0, where `validate_docs.sh` and
+checkpoint `TD-05` parse `guides.xml` instead of looking at its name. Before
+the run, `fleets/candidate.yaml` stated what to expect: **`documentation` would
+not move**, because the change is a check and not a generator — it fails when
+`guides.xml` is wrong and writes no correct one — and nothing in a trial
+executes checkpoints, while the validator had been run in one recorded trial
+of six.
+
+## It did not move
+
+| | nr (v2.16.0) | candidate (v2.19.0) |
+|---|---|---|
+| mechanical `docs: ok` | 0/3 | 0/3 |
+| `documentation` met | 1/3 | 1/3 |
+| criteria | 15 met / 5 partial / 10 not met | 17 met / 5 partial / 8 not met |
+| permutation p | — | 1.000 |
+
+**No candidate trial ran the validator.** Three of three invoked the skill,
+none invoked `validate_docs.sh`, so the check that now refuses a fabricated
+namespace was never reached. That is the result the expectation named, and it
+says where the lever sits: not in the skill's checks, which are correct, but
+in whatever makes an agent run them.
+
+Four more namespaces were invented across the six trials, none seen before —
+one of them `https://www.phpdoc.org/guide`, the singular of the real one, the
+closest miss on record. Eleven distinct fabricated namespaces now stand across
+three series of this case.
+
+## What this run is evidence of
+
+Not that v2.19.0's check is wrong: that was settled against ten recorded files
+before the release, nine refused and the one correct file passed. This run
+shows that a correct check an agent does not run has no effect on what the
+agent produces — which is a statement about the second hop, and the same
+statement v2.18.0's failure made about prose.
+
+## One instrument note
+
+CI flagged v2.19.0 for contamination as soon as the candidate fleet carried
+it: a comment in the new check named this case's id. A skill written from a
+measurement had carried the measurement's identifiers back into the arm under
+test. Fixed upstream in v2.19.1, which the candidate now pins; the checks are
+byte-identical apart from three comments.
