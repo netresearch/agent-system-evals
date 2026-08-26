@@ -68,11 +68,10 @@ cannot get through, and a trial that could would be measuring a different day.
 
 ## Status
 
-**One trial recorded and discarded.** The first environment build left the
-target's future in `.git`, and the trial ran with the upstream fix a `git log`
-away — see RESULTS.md and instrument failure 21. The build is fixed and proved
-at build time; no valid trial has been recorded yet, so nothing here is a
-result.
+**One valid smoke trial, no series.** An earlier trial was discarded because
+the first environment build left the target's future in `.git` (instrument
+failure 21); the rebuilt environment has one commit and no remote, proved at
+build time. RESULTS.md has the trial. Nothing here is a comparison.
 
 ## Reviewed by
 
