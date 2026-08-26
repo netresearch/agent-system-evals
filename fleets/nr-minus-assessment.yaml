@@ -1,0 +1,13 @@
+# nr without its routing skill.
+#
+# The first ablation (nr minus conformance, review case) found that when the
+# domain skill was gone the agent reached for automated-assessment and then for
+# a *different* domain skill — an upgrade skill, a security skill — on a review
+# task, and scored lower than the arm with nothing. So the question this arm
+# asks is whether the router causes that substitution or whether it happens
+# without it: same case, conformance present, assessment absent.
+name: nr-minus-assessment
+description: The Netresearch fleet with the assessment (routing) skill removed
+derives_from: nr
+without:
+  - netresearch/automated-assessment-skill
