@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-EXT-001-20260826-110325",
+  "case": "OFR-TYPO3-EXT-001",
+  "arms": [
+    "nr",
+    "nr-minus-assessment"
+  ],
+  "primary_endpoint": "outcome_quality",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 131,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-26T11:03:25+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "nr-minus-assessment"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260826-110325",
+        "nr-minus-assessment": "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-111202"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "nr-minus-assessment"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260826-112152",
+        "nr-minus-assessment": "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-112959"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr-minus-assessment",
+        "nr"
+      ],
+      "jobs": {
+        "nr-minus-assessment": "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-113823",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260826-114654"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "outcome_quality did not move after the discovery round (overlaps, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-EXT-001-nr-20260826-110325",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260826-112152",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260826-114654"
+    ],
+    "nr-minus-assessment": [
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-111202",
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-112959",
+      "jobs/OFR-TYPO3-EXT-001-nr-minus-assessment-20260826-113823"
+    ]
+  },
+  "finished_at": "2026-08-26T11:56:39+00:00",
+  "valid_trials": {
+    "nr": 3,
+    "nr-minus-assessment": 3
+  }
+}

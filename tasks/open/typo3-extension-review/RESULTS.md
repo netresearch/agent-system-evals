@@ -162,3 +162,51 @@ which is the skill whose job is exactly this choice.
 Overlapping in both directions, p 0.700. Removing the skill does not
 reliably save anything, and the arm that kept it still costs a third less than
 the unequipped control measured on this case the same week.
+
+---
+
+# Ablation 2: `nr` without its routing skill
+
+Two arms, three trials each, six of six valid. Measured 26 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 1.0.0.
+
+`scripts/run-comparison OFR-TYPO3-EXT-001 --arms nr,nr-minus-assessment --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 131`
+
+Experiment record: `experiments/OFR-TYPO3-EXT-001-20260826-110325.json`.
+
+## The question, from the first ablation
+
+With `typo3-conformance` removed, the agent reached for `automated-assessment`
+and then for a *different* domain skill — an upgrade skill, a security skill —
+on a review task, and scored below the arm with nothing. Was the router
+causing that substitution, or would it happen without it? Same case,
+conformance present, assessment absent.
+
+## Removing the router changes nothing that matters
+
+| | `nr` | minus assessment |
+|---|---|---|
+| `outcome_quality` (primary) | 3/3 | 3/3 |
+| `capability_selection` criteria | 12 met / 0 / 0 | 12 met / 0 / 0 |
+| `typo3-conformance` invoked | 3 of 3 | 3 of 3 |
+| agent cost | 0.10 / 0.11 / 0.14 | 0.11 / 0.11 / 0.15 |
+
+Six trials of six selected the conformance skill, with or without the router
+in the fleet. The primary is at the ceiling on both sides, capability
+selection is identical to the criterion, and cost is identical to the cent.
+The one line that separates — `unsupported_claims`, 0/8/1 → 3/6/0, delta +1.00,
+p 0.100 — is exploratory and Holm-adjusted to 0.700, and it leans *against*
+the router.
+
+## What the two ablations say together
+
+- With the matching domain skill present, the router contributes nothing
+  measurable: the agent selects the domain skill from the request alone.
+- With the matching domain skill absent, the router is what the agent reaches
+  for, and what comes back is a poor substitute rather than a decline.
+
+So `automated-assessment` is not what selects the right skill here; it is what
+selects a wrong one when the right one is missing. That is a statement about
+one case and one model, at three trials per arm, and it is the first component
+result this repository can name. Issue #17's third condition — the result names
+the component or says it could not be isolated — is met by naming it.
