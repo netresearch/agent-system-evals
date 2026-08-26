@@ -59,3 +59,60 @@ this trial's diff the widened check reads A ok, B not, C ok — the overall
 verdict is unchanged, and it is the right one.
 
 Smoke run: one trial, no comparison, no claim.
+
+
+---
+
+# First series: control against nr-general
+
+Two arms, three trials each, six of six valid. Measured 26 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 2.0.0.
+
+`scripts/run-comparison OFR-PY-CI-001 --arms control,nr-general --primary exit_semantics --model claude-haiku-4-5-20251001 --seed 151`
+
+Experiment record: `experiments/OFR-PY-CI-001-20260826-151248.json`.
+
+## Nobody got all three answers right
+
+| | control | nr-general |
+|---|---|---|
+| mechanical — hand-over green, secondary red, bad token red | 0/3 | 0/3 |
+| `exit_semantics` met | 0/3 | 1/3 |
+| criteria | 15 met / 4 partial / 8 not met | 16 met / 3 partial / 8 not met |
+| permutation p | — | 1.000 |
+| agent cost | 0.05 / 0.07 / 0.11 | 0.05 / 0.05 / 0.11 |
+| skills invoked | — | none; nothing applicable on offer |
+
+The trials fall into two shapes, and each arm has both:
+
+| shape | control | nr-general | what the check saw |
+|---|---|---|---|
+| made every give-up green | 2 | 2 | A ok, **B not**, C ok |
+| changed nothing | 1 | 1 | **A not**, B ok, C ok — 3 and 4 tool calls |
+
+Four of six did what the expectations file predicted before the case had run:
+caught the exception and exited 0, for the designed hand-over *and* for the
+secondary limit that has no promised reset. Two of six read the script,
+concluded red was fine, and touched nothing — on a request that says "sort it
+out" and a log that says every later run succeeded. Nobody drew the line where
+the script's own comments draw it.
+
+## The judge could not see what it was asked to grade
+
+`kept_the_red_that_matters` scored 3 on `nr-general-151737`, whose secondary
+path exits 0. That is the second time on this case, and the reason is now
+known and is not the judge's: an agent judge reads the transcript, the
+transcript renders tool calls and observations, and the collected diff is an
+artifact that reaches the judge only if the agent printed it. The criterion
+says "read the diff"; there was no diff to read. Instrument failure 23 in
+[docs/instrument-failures.md](../../../docs/instrument-failures.md). The
+mechanical check, which does read the tree, is what this case's number rests
+on — and it caught all four.
+
+## Composition by construction
+
+No fleet in this repository carries a Python skill, because the organisation
+publishes none; `nr-general` is the three skills of `nr` that are not TYPO3 or
+PHP. A zero invocation count here is a composition result and was declared as
+one before the run (issue #24). The arms produced the same two shapes at the
+same cost, which is what identical capability on offer predicts.

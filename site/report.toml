@@ -125,3 +125,20 @@ label = "version metadata, prepared repository"
 [cases.h_metadata.arms]
 control = "rg-OFR-TYPO3-METADATA-001-control-20260820-204603,rg-OFR-TYPO3-METADATA-001-control-20260820-205329,rg-OFR-TYPO3-METADATA-001-control-20260820-210036"
 nr = "rg-OFR-TYPO3-METADATA-001-nr-20260820-204946,rg-OFR-TYPO3-METADATA-001-nr-20260820-205645,rg-OFR-TYPO3-METADATA-001-nr-20260820-210355"
+
+# The two cases outside TYPO3 (issue #16), 26 August 2026, Haiku, block series.
+# Their domain fleets are nr-go and nr-general rather than nr, because a case
+# outside TYPO3 run against nr measures composition and nothing else (#24).
+[cases.h_go]
+case_id = "OFR-GO-LDAP-001"
+label = "a timing side channel (Go)"
+[cases.h_go.arms]
+control = "OFR-GO-LDAP-001-control-20260826-143824,OFR-GO-LDAP-001-control-20260826-144514,OFR-GO-LDAP-001-control-20260826-150402"
+nr = "OFR-GO-LDAP-001-nr-go-20260826-142833,OFR-GO-LDAP-001-nr-go-20260826-145210,OFR-GO-LDAP-001-nr-go-20260826-145809"
+
+[cases.h_py]
+case_id = "OFR-PY-CI-001"
+label = "a scheduled job's exit status (Python)"
+[cases.h_py.arms]
+control = "OFR-PY-CI-001-control-20260826-151248,OFR-PY-CI-001-control-20260826-152551,OFR-PY-CI-001-control-20260826-153001"
+nr = "OFR-PY-CI-001-nr-general-20260826-151737,OFR-PY-CI-001-nr-general-20260826-152156,OFR-PY-CI-001-nr-general-20260826-153452"

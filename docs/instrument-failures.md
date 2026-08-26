@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-two ways this benchmark measured the wrong thing while looking like it was
+Twenty-three ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -421,6 +421,35 @@ point at it. A one-repeat probe on one dimension separates the thorough fixture
 from the no-op one, 0.75 against 0.25, which is the first measured statement
 about these judges' repeatability this repository holds. The full calibration
 is the next entry in `calibration/report.json`, not here.
+
+## 23. The judge was asked to read a diff it was never shown
+
+Every writing case carries a judge criterion that begins "Read the diff" —
+whether the fix mirrors the sibling path, whether the reds that matter stayed
+red, whether the change is confined to what was asked. The judge cannot. An
+agent judge reads one file, the transcript (`atif-trajectory`); the `files`
+list beside it has been ignored by RewardKit's agent path since failure 6, and
+the transcript renders tool calls and observations and nothing that was
+collected after the run. The final diff is in `git-diff.patch`, an artifact,
+and reaches the judge only if the agent happened to print it during the run.
+
+So the judge has been grading the *narrative* of a change. On the Python case
+it gave `kept_the_red_that_matters` a 3, twice, to diffs whose secondary-limit
+path exits 0 — the exact thing the criterion exists to catch, and the exact
+thing the mechanical check caught both times. The judge was not wrong about
+what it read. It read an agent describing a fix, and the description was
+better than the fix.
+
+The review case never exposed this: nothing in a review changes the tree, and
+the report is in the transcript. The writing cases inherited the transcript
+unchanged and bolted "read the diff" onto criteria that had no diff in front
+of them.
+
+**Fix:** the transcript ends with the collected working-tree diff, bounded and
+with the cut marked, so every judge of a writing case reads what was actually
+changed — through the same blinding as the rest of the transcript. That
+changes the rubric input for every case and therefore every rubric digest, so
+it lands together with a fresh calibration rather than ahead of one.
 
 ## What this cost, and what it teaches
 

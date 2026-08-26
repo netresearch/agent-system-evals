@@ -380,6 +380,39 @@ that asks what was established can tell them apart.</p>
 before its first trial, and none of them was cost. A completely separated secondary line names the
 next experiment; it is not the result of this one.</p>
 
+<h3>Outside TYPO3: the same model, two other languages</h3>
+
+<p>Two cases added on 26 August, one Go library with a reported timing side channel and one Python
+scripts repository whose scheduled job reports its designed hand-over as a failure. Each ran as a
+block series against a domain fleet — <code>nr-go</code>, <code>nr-general</code> — rather than
+against <code>nr</code>, because a case outside TYPO3 run against <code>nr</code> measures
+composition and nothing else.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th></th><th class="num">Go: control</th><th class="num">Go: nr-go</th><th class="num">Python: control</th><th class="num">Python: nr-general</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mechanical outcome</td><td class="num">{{ h_go.control.complete }}</td><td class="num">{{ h_go.nr.complete }}</td><td class="num">{{ h_py.control.complete }}</td><td class="num">{{ h_py.nr.complete }}</td></tr>
+    <tr><td>Declared endpoint met</td><td class="num">{{ h_go.control.met.timing_parity }}</td><td class="num">{{ h_go.nr.met.timing_parity }}</td><td class="num">{{ h_py.control.met.exit_semantics }}</td><td class="num">{{ h_py.nr.met.exit_semantics }}</td></tr>
+    <tr><td>Agent cost</td><td class="num">{{ h_go.control.cost }}</td><td class="num">{{ h_go.nr.cost }}</td><td class="num">{{ h_py.control.cost }}</td><td class="num">{{ h_py.nr.cost }}</td></tr>
+    <tr><td>Tool calls</td><td class="num">{{ h_go.control.tools }}</td><td class="num">{{ h_go.nr.tools }}</td><td class="num">{{ h_py.control.tools }}</td><td class="num">{{ h_py.nr.tools }}</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Go: six trials of six closed the side channel — the regression check that fails on the parent
+passes on every tree — and none of the six left a test, and none used the escaping helper the
+neighbouring code path uses. The Go skill was on offer and invoked in no trial. Python: nobody got
+all three answers right; four of six turned every give-up green, the secondary limit included, and
+two of six changed nothing. No Python skill exists to offer, so that arm's zero is composition by
+construction.</p>
+
+<p>The Python series also found instrument failure 23: a judge criterion that says "read the diff"
+was reading a transcript that never contained one, and scored a diff that makes the secondary limit
+green as having kept it red — twice. The mechanical check, which reads the tree, caught all four.</p>
+
 <h2>Method</h2>
 
 <div class="grid">

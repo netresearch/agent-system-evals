@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-GO-LDAP-001-20260826-142832",
+  "case": "OFR-GO-LDAP-001",
+  "arms": [
+    "control",
+    "nr-go"
+  ],
+  "primary_endpoint": "timing_parity",
+  "secondary_endpoints": [],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 141,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-26T14:28:32+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr-go",
+        "control"
+      ],
+      "jobs": {
+        "nr-go": "jobs/OFR-GO-LDAP-001-nr-go-20260826-142833",
+        "control": "jobs/OFR-GO-LDAP-001-control-20260826-143824"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "control",
+        "nr-go"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-GO-LDAP-001-control-20260826-144514",
+        "nr-go": "jobs/OFR-GO-LDAP-001-nr-go-20260826-145210"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr-go",
+        "control"
+      ],
+      "jobs": {
+        "nr-go": "jobs/OFR-GO-LDAP-001-nr-go-20260826-145809",
+        "control": "jobs/OFR-GO-LDAP-001-control-20260826-150525"
+      },
+      "primary_p": 0.3
+    }
+  ],
+  "stop_reason": "timing_parity did not move after the discovery round (overlaps, p 0.300)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-GO-LDAP-001-control-20260826-143824",
+      "jobs/OFR-GO-LDAP-001-control-20260826-144514",
+      "jobs/OFR-GO-LDAP-001-control-20260826-150525"
+    ],
+    "nr-go": [
+      "jobs/OFR-GO-LDAP-001-nr-go-20260826-142833",
+      "jobs/OFR-GO-LDAP-001-nr-go-20260826-145210",
+      "jobs/OFR-GO-LDAP-001-nr-go-20260826-145809"
+    ]
+  },
+  "finished_at": "2026-08-26T15:12:07+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr-go": 3
+  }
+}
