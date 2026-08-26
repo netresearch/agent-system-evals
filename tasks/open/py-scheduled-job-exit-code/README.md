@@ -68,8 +68,11 @@ cannot get through, and a trial that could would be measuring a different day.
 
 ## Status
 
-**Never run.** The case validates and its environment builds; no trial has been
-recorded against it, so nothing here is a result.
+**One trial recorded and discarded.** The first environment build left the
+target's future in `.git`, and the trial ran with the upstream fix a `git log`
+away — see RESULTS.md and instrument failure 21. The build is fixed and proved
+at build time; no valid trial has been recorded yet, so nothing here is a
+result.
 
 ## Reviewed by
 

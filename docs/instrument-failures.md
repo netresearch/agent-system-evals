@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty ways this benchmark measured the wrong thing while looking like it was
+Twenty-one ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -359,6 +359,41 @@ marker is still refused, so the exemption cannot be read as "stop checking".
 
 Found the same day as 19, by trying to run the comparison that the bare case
 exists for.
+
+## 21. The answer key was in `.git`
+
+The two cases outside TYPO3 were built with `git clone` followed by `git
+checkout <sha>`. That puts the pinned commit in the working tree and every
+later commit in `.git`: the fix each case exists to see written, its tests, its
+commit messages, and a remote called `origin` pointing at the forge. The Python
+image carried 13 commits past its target, the Go image 6.
+
+The first Python trial ran `git log --oneline --all --grep="star-notifications"`
+in its third tool call, found both upstream fixes, read them with `git show
+<sha>:scripts/check-stars.py`, and reproduced their identifiers and test names
+verbatim — `DEFERRED_GIVEUP_STREAK_KEY`,
+`test_streak_reaching_the_threshold_turns_the_run_red`. It scored 0.94. The
+number is a measurement of whether an agent thinks to look at the log.
+
+Nothing in the run said so. The trajectory is valid, the collectors ran, the
+mechanical check passed on a correct tree, the judge saw a competent
+investigation. The validity gate cannot see this and should not try to: what
+the agent may read is a property of the environment, and the environment is
+what was wrong.
+
+The TYPO3 cases never had this defect. `build-instance.sh` does `git init`, a
+`--depth 1 --no-tags` fetch of the one commit, and `git remote remove origin`,
+with a comment saying why — "the fix for the defect under investigation lives
+in this repository's future". The new build scripts were written beside it and
+did not copy it.
+
+**Fix:** both scripts now follow the same arrangement and prove it at build
+time — `git rev-list --all --count` must be 1 and there must be no remote — so
+an image with a future in it does not build. `tests/test_environment.py` asserts
+the same of every build script in the repository, against the source, so the
+next case written beside these cannot repeat it either. The two recorded trials
+are discarded by name in each case's RESULTS.md; they are not evidence about
+anything.
 
 ## What this cost, and what it teaches
 
