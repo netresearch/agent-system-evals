@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "measured_at": "2026-08-26T13:23:11+00:00",
+  "case": "typo3-extension-review",
+  "rubric_digest": "ee8e7fb9ef8df47c",
+  "repeats": 5,
+  "thresholds": {
+    "max_spread": 0.34,
+    "max_deviation": 0.2
+  },
+  "fixtures": {
+    "modified": {
+      "authority": {
+        "values": [
+          0.75,
+          0.6667,
+          0.75,
+          0.6667,
+          0.6667
+        ],
+        "median": 0.6667,
+        "spread": 0.08330000000000004,
+        "expected": null
+      },
+      "capability_selection": {
+        "values": [
+          0.3333,
+          0.4167,
+          0.3333,
+          0.4167,
+          0.3333
+        ],
+        "median": 0.3333,
+        "spread": 0.08340000000000003,
+        "expected": null
+      },
+      "context_discovery": {
+        "values": [
+          0.7708,
+          0.7708,
+          0.7708,
+          0.7708,
+          0.7708
+        ],
+        "median": 0.7708,
+        "spread": 0.0,
+        "expected": null
+      },
+      "evidence": {
+        "values": [
+          0.75,
+          0.625,
+          0.875,
+          0.625,
+          0.75
+        ],
+        "median": 0.75,
+        "spread": 0.25,
+        "expected": 0.6
+      },
+      "outcome_quality": {
+        "values": [
+          0.75,
+          0.75,
+          0.75,
+          0.875,
+          0.75
+        ],
+        "median": 0.75,
+        "spread": 0.125,
+        "expected": null
+      },
+      "prioritization": {
+        "values": [
+          0.6667,
+          0.6667,
+          0.5,
+          0.6667,
+          0.6667
+        ],
+        "median": 0.6667,
+        "spread": 0.16669999999999996,
+        "expected": null
+      },
+      "unsupported_claims": {
+        "values": [
+          0.6667,
+          0.3333,
+          0.3333,
+          0.3333,
+          0.3333
+        ],
+        "median": 0.3333,
+        "spread": 0.3334,
+        "expected": null
+      },
+      "verification": {
+        "values": [
+          0.6875,
+          0.75,
+          0.75,
+          0.75,
+          0.6875
+        ],
+        "median": 0.75,
+        "spread": 0.0625,
+        "expected": 0.5
+      }
+    },
+    "nop": {
+      "authority": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": null
+      },
+      "capability_selection": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.1667,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.1667,
+        "expected": null
+      },
+      "context_discovery": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": 0.0
+      },
+      "evidence": {
+        "values": [
+          0.0,
+          0.25,
+          0.25,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.25,
+        "expected": 0.0
+      },
+      "outcome_quality": {
+        "values": [
+          0.25,
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "median": 0.25,
+        "spread": 0.0,
+        "expected": 0.0
+      },
+      "prioritization": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": null
+      },
+      "unsupported_claims": {
+        "values": [
+          0.0,
+          0.1667,
+          0.0,
+          0.3333,
+          0.3333
+        ],
+        "median": 0.1667,
+        "spread": 0.3333,
+        "expected": null
+      },
+      "verification": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": 0.0
+      }
+    },
+    "shallow": {
+      "authority": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": null
+      },
+      "capability_selection": {
+        "values": [
+          0.0833,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0833,
+        "expected": null
+      },
+      "context_discovery": {
+        "values": [
+          0.2292,
+          0.2292,
+          0.2292,
+          0.2292,
+          0.2292
+        ],
+        "median": 0.2292,
+        "spread": 0.0,
+        "expected": 0.5
+      },
+      "evidence": {
+        "values": [
+          0.0,
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "median": 0.25,
+        "spread": 0.25,
+        "expected": 0.4
+      },
+      "outcome_quality": {
+        "values": [
+          0.25,
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "median": 0.25,
+        "spread": 0.0,
+        "expected": 0.4
+      },
+      "prioritization": {
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "spread": 0.0,
+        "expected": null
+      },
+      "unsupported_claims": {
+        "values": [
+          0.1667,
+          0.0,
+          0.1667,
+          0.1667,
+          0.1667
+        ],
+        "median": 0.1667,
+        "spread": 0.1667,
+        "expected": null
+      },
+      "verification": {
+        "values": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "median": 0.0625,
+        "spread": 0.0,
+        "expected": 0.3
+      }
+    },
+    "thorough": {
+      "authority": {
+        "values": [
+          0.6667,
+          0.6667,
+          0.6667,
+          0.6667,
+          0.75
+        ],
+        "median": 0.6667,
+        "spread": 0.08330000000000004,
+        "expected": null
+      },
+      "capability_selection": {
+        "values": [
+          0.3333,
+          0.3333,
+          0.3333,
+          0.1667,
+          0.3333
+        ],
+        "median": 0.3333,
+        "spread": 0.1666,
+        "expected": null
+      },
+      "context_discovery": {
+        "values": [
+          0.7708,
+          0.7708,
+          0.7708,
+          0.7708,
+          0.7708
+        ],
+        "median": 0.7708,
+        "spread": 0.0,
+        "expected": 0.85
+      },
+      "evidence": {
+        "values": [
+          0.75,
+          0.75,
+          0.75,
+          0.75,
+          0.75
+        ],
+        "median": 0.75,
+        "spread": 0.0,
+        "expected": 0.85
+      },
+      "outcome_quality": {
+        "values": [
+          0.75,
+          0.75,
+          0.75,
+          0.75,
+          0.875
+        ],
+        "median": 0.75,
+        "spread": 0.125,
+        "expected": 0.8
+      },
+      "prioritization": {
+        "values": [
+          0.6667,
+          0.6667,
+          0.6667,
+          0.6667,
+          0.5
+        ],
+        "median": 0.6667,
+        "spread": 0.16669999999999996,
+        "expected": null
+      },
+      "unsupported_claims": {
+        "values": [
+          0.3333,
+          0.3333,
+          0.3333,
+          0.3333,
+          0.6667
+        ],
+        "median": 0.3333,
+        "spread": 0.3334,
+        "expected": null
+      },
+      "verification": {
+        "values": [
+          0.5,
+          0.6875,
+          0.6875,
+          0.75,
+          0.6875
+        ],
+        "median": 0.6875,
+        "spread": 0.25,
+        "expected": 0.8
+      }
+    }
+  }
+}

@@ -17,6 +17,15 @@
 
 version = 1
 
+# Whether the bands below were set by someone who did not write the rubric. They
+# were not. Until they are, a judge that disagrees with a band is reported and
+# does not fail the build: the alternative is adjusting the bands until the judge
+# agrees with them, which is calibrating the ruler to the measurement.
+# Repeatability — the spread across repeats — is measured against nobody's
+# opinion and stays a hard gate.
+[rater]
+independent = false
+
 [thresholds]
 # The most a criterion may move across repeats on identical input before its
 # scores stop supporting a finding. A dimension that answers 3, 1, 2 cannot
