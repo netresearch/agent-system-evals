@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-EXT-001-20260821-153503",
+  "case": "OFR-TYPO3-EXT-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "outcome_quality",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 81,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-21T15:35:03+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260821-153503",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260821-154244"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260821-155113",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260821-155943"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {}
+    }
+  ],
+  "stop_reason": "arm control failed in round 1 block 3",
+  "trials_spent": 4,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-EXT-001-control-20260821-153503",
+      "jobs/OFR-TYPO3-EXT-001-control-20260821-155113"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-EXT-001-nr-20260821-154244",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260821-155943"
+    ]
+  }
+}

@@ -12,13 +12,22 @@
 # comparison, which the lock is the only thing that will show.
 
 name: candidate
-description: nr with typo3-docs at v2.18.0 — the guides.xml skeleton made reachable
+description: nr with typo3-docs at v2.19.0 — guides.xml parsed rather than named
 
 derives_from: nr
 at:
-  # v2.16.0 -> v2.18.0, which is two releases and not one change. v2.17.0 added
-  # a literalinclude checkpoint, an objects.inv.json recipe and a screenshot
-  # rule; none of them touches creating documentation from nothing, which is
-  # what OFR-TYPO3-DOCS-001 exercises. A difference here is attributable to the
-  # pair, and to v2.18.0 only by that argument.
-  netresearch/typo3-docs-skill: v2.18.0
+  # v2.16.0 -> v2.19.0, which is three releases and not one change. v2.17.0
+  # added a literalinclude checkpoint, an objects.inv.json recipe and a
+  # screenshot rule; v2.18.0 made the guides.xml skeleton reachable and was
+  # measured against this very case, where it changed nothing; v2.19.0 makes
+  # validate_docs.sh and checkpoint TD-05 parse guides.xml rather than look at
+  # its name. Only the last of the three is untested here.
+  #
+  # The expectation is stated before the run rather than after it: this change
+  # is a check, not a generator. It fails when guides.xml is wrong; it does not
+  # write a correct one. The validator was run in one of six recorded trials,
+  # and nothing in a Harbor trial executes checkpoints. So `documentation` is
+  # expected NOT to move, and a run that confirms that is evidence about where
+  # the lever has to sit, not about whether the check works — that was settled
+  # against ten recorded files before the release.
+  netresearch/typo3-docs-skill: v2.19.0
