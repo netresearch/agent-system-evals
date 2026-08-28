@@ -210,3 +210,74 @@ selects a wrong one when the right one is missing. That is a statement about
 one case and one model, at three trials per arm, and it is the first component
 result this repository can name. Issue #17's third condition — the result names
 the component or says it could not be isolated — is met by naming it.
+
+---
+
+# Confirmatory series: cost declared, and it did not confirm
+
+Two arms, six trials each — the full twelve-trial budget — 28 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 2.0.0.
+
+`scripts/run-comparison OFR-TYPO3-EXT-001 --arms control,nr --primary cost --model claude-haiku-4-5-20251001 --seed 181`
+
+Experiment record: `experiments/OFR-TYPO3-EXT-001-20260828-121312.json`.
+
+This is the first run in this repository to declare a resource as its endpoint.
+Until 28 August `--primary` took only dimensions and the mechanical outcome, so
+the three completely separated cost results on record — including this case's —
+were exploratory by construction: the runner could not declare the thing it
+went on to find.
+
+## The separation broke
+
+| | three trials per arm (22 August) | six trials per arm (28 August) |
+|---|---|---|
+| agent cost, control | 0.16 / 0.19 / 0.36 | 0.08 / 0.13 / 0.26 / 0.38 / 0.44 / **1.79** |
+| agent cost, nr | 0.09 / 0.13 / 0.14 | 0.09 / 0.12 / 0.13 / 0.13 / 0.14 / 0.15 |
+| Cliff's delta | **−1.00** | −0.44 |
+| permutation p | **0.100** | 0.240 |
+
+Complete separation did not survive doubling the sample. One control trial came
+in at $0.08 — below every equipped trial — and that single observation is
+enough: "every trial of one arm below every trial of the other" is a claim one
+counter-example ends.
+
+**That is two for two.** The upgrade case's `verification` separated at 3v3 and
+failed its confirmation on 22 August; this one separated at 3v3 and failed its
+confirmation on the 28th. The one-in-ten figure in
+[docs/open-forward-review.md](../../../docs/open-forward-review.md) section 11
+is not a caution about a rare event any more — it is the observed behaviour of
+this design at this sample size, twice.
+
+## What survived, and what it is
+
+The median difference is large and its interval crosses zero: 0.32 → 0.13, 95%
+CI [−0.98, +0.02]. Input tokens the same shape, 1.18M → 484k, p 0.093.
+
+What the doubled sample made visible instead is dispersion, and it is not
+subtle:
+
+| | control | nr |
+|---|---|---|
+| range | $0.08 – $1.79 | $0.09 – $0.15 |
+| widest over narrowest | **22×** | **1.7×** |
+| six trials, total | $3.08 | $0.76 |
+
+The equipped arm spent between nine and fifteen cents, six times. The unaided
+arm spent between eight cents and $1.79 on the same task. Both produced the same
+result — `outcome_quality` 3/3 on both arms in the earlier series.
+
+**So the effect here may be on variance rather than on location**: not reliably
+cheaper per trial, but reliably *predictable*, which for a task run many times
+is the difference between a budget and a lottery. That is a hypothesis this run
+generated and did not test — dispersion was not the declared endpoint, and a
+median that moves 60% with an interval crossing zero is exactly the shape that
+invites reading a spread as a saving. The next run on this case declares
+dispersion or it declares nothing.
+
+## What the four-times figure is and is not
+
+Six control trials cost $3.08 against $0.76 — a factor of four on the total.
+That number is real and it is not a per-trial claim: it is dominated by one
+trial at $1.79, and the median difference is a third of it. Quoting the total
+as "the stack is four times cheaper" would be reading one outlier as a rate.

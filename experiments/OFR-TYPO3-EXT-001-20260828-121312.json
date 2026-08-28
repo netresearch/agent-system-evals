@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-EXT-001-20260828-121312",
+  "case": "OFR-TYPO3-EXT-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "cost",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "outcome_quality",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "primary_kind": "resource",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 181,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-28T12:13:12+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-121312",
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-122116"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-123225",
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-124244"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-125353",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-130638"
+      },
+      "primary_p": 0.1
+    },
+    {
+      "round": 2,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-131442",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-132136"
+      }
+    },
+    {
+      "round": 2,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-133050",
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-133857"
+      }
+    },
+    {
+      "round": 2,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-EXT-001-control-20260828-134704",
+        "nr": "jobs/OFR-TYPO3-EXT-001-nr-20260828-135647"
+      }
+    }
+  ],
+  "stop_reason": "budget exhausted at 12 of 12 trials",
+  "trials_spent": 12,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-122116",
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-124244",
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-125353",
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-131442",
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-133857",
+      "jobs/OFR-TYPO3-EXT-001-control-20260828-134704"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-121312",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-123225",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-130638",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-132136",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-133050",
+      "jobs/OFR-TYPO3-EXT-001-nr-20260828-135647"
+    ]
+  },
+  "finished_at": "2026-08-28T14:04:57+00:00",
+  "valid_trials": {
+    "control": 6,
+    "nr": 6
+  }
+}
