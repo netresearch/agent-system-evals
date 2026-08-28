@@ -44,6 +44,21 @@ from dimensions import met_threshold, order  # noqa: E402
 
 MET = met_threshold()
 
+# How close a score may sit to the met threshold before its met/not-met answer
+# is inside the judge's own step.
+#
+# Measured, twice, on identical input (calibration/report.json, instrument
+# failure 24): of 32 dimension measurements, the ones whose median sat within
+# this of the threshold flipped their verdict in 7 of 12 cases; the ones
+# further away flipped in 1 of 20. Every flip moved exactly one lattice step
+# across the line.
+#
+# The value is that step: one criterion of a three-criterion dimension moving
+# one point of its three-point scale shifts the dimension by 1/3 x 0.5. A
+# four-criterion dimension moves less, so this is the widest such step and the
+# conservative margin.
+BOUNDARY = 1 / 6
+
 
 def check_comparable(a: dict, b: dict, variable: str, label: str) -> None:
     """Everything but the declared variable must match.
@@ -391,6 +406,13 @@ def main() -> int:
             "cliffs_delta": stats.cliffs_delta(values_a, values_b),
             "p": p,
             "exact": exact,
+            # Whether the count above can be read at all. A dimension whose
+            # scores sit on the threshold answers met or not-met by the width
+            # of the judge's own noise, so `2/3 → 3/3` is then a statement
+            # about the instrument.
+            "boundary": [
+                v for v in values_a + values_b if abs(v - MET) < BOUNDARY
+            ],
         }
 
     adjusted = stats.holm({k: v for k, v in raw_p.items() if k != primary})
@@ -413,6 +435,13 @@ def main() -> int:
             f"{row['met_b']}/{row['n_b']}   delta {row['cliffs_delta']:+.2f}   "
             f"{suffix}   [{tag}]"
         )
+        if row["boundary"]:
+            print(
+                f"  {' ' * width}  ^ {len(row['boundary'])} of "
+                f"{row['n_a'] + row['n_b']} trials score within one judge step "
+                f"of the {MET} threshold — this count is inside the "
+                f"instrument's own noise (docs/instrument-failures.md 24)"
+            )
         # The criteria behind the number. A dimension's reward is a mean of
         # ordinal categories, and the mean cannot say whether 0.67 is two clean
         # passes and a failure or three shrugs.

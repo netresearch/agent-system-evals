@@ -103,3 +103,23 @@ def test_gate_fails_on_a_noisy_criterion_inside_a_quiet_dimension(tmp_path, monk
     assert result.returncode == 1, result.stdout + result.stderr
     assert "thorough/evidence/flipping" in result.stderr
     assert "steady" not in result.stderr
+
+
+def test_analyze_marks_a_count_that_sits_on_the_threshold(tmp_path):
+    """A met-count whose scores straddle the threshold is instrument noise.
+
+    Measured twice on identical input: dimension measurements whose median sat
+    within one judge step of 0.75 flipped their verdict in 7 of 12 cases,
+    against 1 of 20 further away (instrument failure 24). `scripts/analyze`
+    marks such a count so a reader does not take it for a difference.
+    """
+    analyze = load("analyze")
+    assert abs(analyze.BOUNDARY - 1 / 6) < 1e-9, "the margin is one judge step"
+    # 0.75 exactly, and one step either side.
+    on = [analyze.MET, analyze.MET - 0.125, analyze.MET + 0.125]
+    assert all(abs(v - analyze.MET) < analyze.BOUNDARY for v in on)
+    # Two steps away is not on the boundary.
+    assert not any(
+        abs(v - analyze.MET) < analyze.BOUNDARY
+        for v in (analyze.MET - 0.25, analyze.MET + 0.25)
+    )

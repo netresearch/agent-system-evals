@@ -146,6 +146,13 @@ predicts will happen roughly one time in ten.
 read at once, and it is recorded here without a claim attached for the same
 reason the August lines should have been.
 
+**And the calibration since has given it a second reason.** Four of those six
+trials score within one judge step of the 0.75 threshold, so their met/not-met
+answers are the ones measured to flip on identical input — 7 of 12 such
+measurements did, against 1 of 20 further from the line (instrument failure
+24). `scripts/analyze` now marks the row, and this one is marked. A 3/3
+against 0/3 built from boundary scores is a statement about the instrument.
+
 `typo3-extension-upgrade` was invoked in three trials of three, as before.
 
 ## Cost
