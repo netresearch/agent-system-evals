@@ -202,6 +202,33 @@ class Arm:
                         counts["other"] += 1
         return counts
 
+    def invoked_skill(self) -> list[float]:
+        """1.0 per trial whose trajectory shows any skill invocation.
+
+        The same reading as scripts/run-comparison's `skill_invoked`
+        endpoint, so a run declared on it is reported by the tool that
+        reports everything else.
+        """
+        out: list[float] = []
+        for trial in self.trials:
+            trajectory = validity.read_json(trial / "verifier" / "trajectory.json")
+            if not isinstance(trajectory, dict):
+                continue
+            calls = (
+                call
+                for step in trajectory.get("steps") or []
+                for call in (step.get("tool_calls") or [])
+            )
+            out.append(
+                1.0
+                if any(
+                    str(c.get("function_name", "")).lower() in ("skill", "invokeskill")
+                    for c in calls
+                )
+                else 0.0
+            )
+        return out
+
     def mechanical(self) -> list[float]:
         """Pass/fail per trial where the case declares a ground-truth check."""
         check = cases.metadata(self.case_id or "").get("mechanical_outcome") or {}
@@ -379,6 +406,24 @@ def main() -> int:
         print(
             f"  Fisher exact p {stats.fisher_p(hits_a, len(mech_a), hits_b, len(mech_b)):.3f} "
             f"(two-sided), {stats.fisher_p(hits_a, len(mech_a), hits_b, len(mech_b), False):.3f} "
+            f"(one-sided, observed direction)"
+        )
+
+    # --- skill invocation, a fact about the transcript ----------------------
+    inv_a, inv_b = a.invoked_skill(), b.invoked_skill()
+    if inv_a and inv_b:
+        hits_a, hits_b = int(sum(inv_a)), int(sum(inv_b))
+        lo_a, hi_a = stats.wilson(hits_a, len(inv_a))
+        lo_b, hi_b = stats.wilson(hits_b, len(inv_b))
+        tag = " [PRIMARY]" if primary == "skill_invoked" else " [exploratory]"
+        print("\nskill_invoked — trials that loaded any skill at all" + tag)
+        print(f"  {a.name}: {hits_a}/{len(inv_a)}  [{lo_a:.2f}, {hi_a:.2f}]")
+        print(f"  {b.name}: {hits_b}/{len(inv_b)}  [{lo_b:.2f}, {hi_b:.2f}]")
+        print(
+            f"  Fisher exact p "
+            f"{stats.fisher_p(hits_a, len(inv_a), hits_b, len(inv_b)):.3f} "
+            f"(two-sided), "
+            f"{stats.fisher_p(hits_a, len(inv_a), hits_b, len(inv_b), False):.3f} "
             f"(one-sided, observed direction)"
         )
 

@@ -1,0 +1,102 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["pyyaml"]
+# ///
+"""How often each case leads an equipped agent to load any skill at all.
+
+Eight of eleven cases grade a stack whose skills were never invoked, which
+makes most of this benchmark a measurement of the base model. That claim is
+quoted in RESULTS.md files and on the published page, so it is counted here
+rather than by hand: a hand count is a number that was true once.
+
+Equipped means the fleet resolves to at least one skill — every `nr*` fleet
+and `candidate`, never `control`. Invocation means the recorded trajectory
+holds a tool call named `Skill` or `InvokeSkill`, the same reading
+`scripts/run-comparison` and `scripts/analyze` use for the `skill_invoked`
+endpoint.
+
+    scripts/invocation-census            # a markdown table
+    scripts/invocation-census --json
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import fleets  # noqa: E402
+
+INVOKE = ("skill", "invokeskill")
+
+
+def equipped_fleets() -> set[str]:
+    return {
+        path.stem
+        for path in sorted((ROOT / "fleets").glob("*.yaml"))
+        if fleets.skill_refs(path.stem)
+    }
+
+
+def invoked(trajectory: Path) -> bool:
+    try:
+        recorded = json.loads(trajectory.read_text())
+    except (OSError, ValueError):
+        return False
+    return any(
+        str(call.get("function_name", "")).lower() in INVOKE
+        for step in recorded.get("steps") or []
+        for call in (step.get("tool_calls") or [])
+    )
+
+
+def census(jobs_dir: Path | None = None) -> dict[str, dict[str, int]]:
+    equipped = equipped_fleets()
+    out: dict[str, dict[str, int]] = {}
+    for job in sorted((jobs_dir or ROOT / "jobs").glob("*")):
+        snapshot = job / "nr-snapshot.json"
+        if not snapshot.exists():
+            continue
+        try:
+            recorded = json.loads(snapshot.read_text())
+        except ValueError:
+            continue
+        if recorded.get("fleet") not in equipped:
+            continue
+        case = recorded.get("case_id") or "unknown"
+        row = out.setdefault(case, {"invoked": 0, "trials": 0})
+        for trajectory in job.glob("*/verifier/trajectory.json"):
+            row["trials"] += 1
+            row["invoked"] += invoked(trajectory)
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    rows = census()
+    if args.json:
+        print(json.dumps(rows, indent=2, sort_keys=True))
+        return 0
+
+    print("| case | trials that loaded any skill |")
+    print("|---|---|")
+    for case, row in sorted(
+        rows.items(), key=lambda kv: (-kv[1]["invoked"] / max(kv[1]["trials"], 1), kv[0])
+    ):
+        print(f"| `{case}` | {row['invoked']}/{row['trials']} |")
+    total = sum(r["invoked"] for r in rows.values())
+    trials = sum(r["trials"] for r in rows.values())
+    print(f"\n{total} of {trials} equipped trials loaded a skill.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

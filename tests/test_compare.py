@@ -9,6 +9,7 @@ acceptance that should have been a refusal looks like a result.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -267,3 +268,44 @@ def test_cost_is_a_declarable_endpoint():
     import dimensions
     registry = {d["id"] for d in dimensions.registry()["dimension"]}
     assert not (set(module.RESOURCE) & registry)
+
+
+def test_the_declared_endpoint_is_reported_by_analyze(tmp_path):
+    """A run was declared on `skill_invoked` and analyze never printed it.
+
+    `scripts/run-comparison` accepted the endpoint, recorded it in the
+    experiment record, and then handed the reader to `scripts/analyze`,
+    which knew only dimensions, cost and the mechanical outcome. The
+    declared number had to be recomputed by hand to be read at all —
+    a reporting tool that omits the one line the run was powered for.
+    """
+    analyze = load("analyze")
+
+    def trial(name: str, invoked: bool) -> Path:
+        d = tmp_path / name / "verifier"
+        d.mkdir(parents=True)
+        calls = [{"function_name": "Skill"}] if invoked else [{"function_name": "Bash"}]
+        (d / "trajectory.json").write_text(
+            json.dumps({"steps": [{"tool_calls": calls}]})
+        )
+        return d.parent
+
+    arm = object.__new__(analyze.Arm)
+    arm.trials = [trial("a", True), trial("b", False), trial("c", True)]
+    assert arm.invoked_skill() == [1.0, 0.0, 1.0]
+
+    # Both scripts must read the transcript the same way, or the declared
+    # endpoint means one thing at run time and another at reporting time.
+    # The endpoint's name and the tool names behind it are asserted in both
+    # files, at the source level, because there is no shared module to pin.
+    loader = importlib.machinery.SourceFileLoader(
+        "run_comparison", str(ROOT / "scripts" / "run-comparison")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    run_comparison = importlib.util.module_from_spec(spec)
+    loader.exec_module(run_comparison)
+    assert run_comparison.INVOCATION == "skill_invoked"
+
+    tools = '("skill", "invokeskill")'
+    for script in ("analyze", "run-comparison", "invocation-census"):
+        assert tools in (ROOT / "scripts" / script).read_text(), script

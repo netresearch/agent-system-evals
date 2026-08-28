@@ -8,6 +8,7 @@ ablation to remove nothing and be reported as a component that changes nothing.
 
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -166,3 +167,35 @@ def test_at_refuses_a_skill_the_parent_does_not_carry(declare):
     declare("cand", {"derives_from": "parent", "at": {"org/zzz-skill": "v1"}})
     with pytest.raises(fleets.FleetError, match="does not carry"):
         fleets.read("cand")
+
+
+def test_only_the_candidate_fleet_may_name_a_branch():
+    """The rule existed as a comment in the file it governs.
+
+    `fleets/candidate.yaml` says a branch ref is acceptable "here and only
+    here", because a branch that moves between the two runs of an A/B changes
+    the arm mid-comparison and nothing in the report would show it. Nothing
+    read that sentence: any fleet could have been pointed at a branch and every
+    check would have passed. A result recorded in
+    tasks/open/typo3-version-metadata-consistent/RESULTS.md cited this as an
+    enforced property, which it was not.
+    """
+    release = re.compile(r"^v\d+\.\d+\.\d+$")
+    offenders = []
+    for path in sorted((ROOT / "fleets").glob("*.yaml")):
+        body = yaml.safe_load(path.read_text()) or {}
+        refs = [
+            (skill.get("repo"), skill.get("ref"))
+            for skill in body.get("skills") or []
+        ]
+        refs += [
+            (repo, entry.get("ref") if isinstance(entry, dict) else entry)
+            for repo, entry in (body.get("at") or {}).items()
+        ]
+        for repo, ref in refs:
+            if ref and not release.match(str(ref)) and path.stem != "candidate":
+                offenders.append(f"{path.name}: {repo} @ {ref}")
+    assert not offenders, (
+        "only fleets/candidate.yaml may name a mutable ref; these pin one:\n  "
+        + "\n  ".join(offenders)
+    )

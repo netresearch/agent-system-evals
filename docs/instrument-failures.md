@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-four ways this benchmark measured the wrong thing while looking like it was
+Twenty-five ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -514,6 +514,32 @@ than as its count. Every recorded row now says so where it applies.
 above the rate that was found, so a worsening fails while today's number stays
 on the record rather than being hidden by a gate nobody could pass. Lowering it
 is rubric work on the dimensions that score near 0.75.
+
+## 25. The declared endpoint was the one number the report left out
+
+`scripts/run-comparison` learned to accept `skill_invoked` as a primary
+endpoint on 28 August, and the first run declared on it — the description
+experiment in
+[tasks/open/typo3-version-metadata-consistent/RESULTS.md](../tasks/open/typo3-version-metadata-consistent/RESULTS.md)
+— produced a report with the line missing. The header said
+`primary   skill_invoked`; below it stood dimensions, cost and tool calls, and
+nothing else. `scripts/analyze` knew three families of endpoint (graded
+dimensions, the resource lines, the mechanical outcome) and skill invocation
+was in none of them, so the one number the run was powered for had to be
+recomputed by hand from the job directories before it could be read at all.
+
+The failure is a split between two scripts that agree on everything except who
+prints the answer: `run-comparison` validated the endpoint, wrote it into the
+experiment record, and handed the reader on to a tool that could not render it.
+Nothing errored. A reader who trusted the report would have concluded the run
+had not measured anything, and every exploratory line below would have been
+read as its result — including a `consistency` drop at p 0.024 that is exactly
+the kind of number the pre-declaration exists to keep out of a conclusion.
+
+**Fix:** `analyze` computes the endpoint itself, using the same reading of the
+transcript as `run-comparison`, and prints it as its own section marked
+`[PRIMARY]` or `[exploratory]`. A test asserts both scripts read the same tool
+names, and fails when either drifts.
 
 ## What this cost, and what it teaches
 
