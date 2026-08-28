@@ -240,3 +240,30 @@ def test_the_model_fingerprint_is_ignored_only_when_declared():
     compare.check_comparable(a, b, variable="model")
     with pytest.raises(SystemExit):
         compare.check_comparable(a, b)
+
+
+def test_cost_is_a_declarable_endpoint():
+    """The benchmark could not plan around its own most separated result.
+
+    Of eleven recorded comparisons, three reached Cliff's delta ±1.00 at the
+    smallest attainable p, and all three were cost — so every one of them was
+    exploratory by construction, because `--primary` accepted only dimensions
+    and the mechanical outcome. A run that cannot declare the thing it goes on
+    to find can only ever report it as a hypothesis.
+    """
+    import importlib.util
+    from importlib.machinery import SourceFileLoader
+
+    loader = SourceFileLoader("run_comparison", str(ROOT / "scripts" / "run-comparison"))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+
+    assert module.RESOURCE == {"cost": "cost_usd", "input_tokens": "n_input_tokens"}
+    # And they are not silently mistaken for dimensions: dimensions.toml is the
+    # registry, and neither belongs in it.
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+    import dimensions
+    registry = {d["id"] for d in dimensions.registry()["dimension"]}
+    assert not (set(module.RESOURCE) & registry)

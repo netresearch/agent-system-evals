@@ -68,6 +68,21 @@ ROUNDS = (3, 4, 5)
 # powered for.
 MECHANICAL = "mechanical_outcome"
 
+# Endpoints that are not dimensions and not the mechanical outcome: what the
+# trial cost and what it read.
+#
+# They belong here because they are measurements like any other, and because
+# leaving them out made the benchmark unable to plan around its own most
+# separated result. Across eleven recorded comparisons, three reached Cliff's
+# delta +/-1.00 at the smallest attainable p — and all three were cost, none
+# was a dimension. Every one of those was therefore exploratory by
+# construction: the run could not have declared the thing it went on to find.
+#
+# Lower is better for both, and that is the whole difference in reading them:
+# a dimension separating tells you the work changed, cost separating tells you
+# the bill did.
+RESOURCE = {"cost": "cost_usd", "input_tokens": "n_input_tokens"}
+
 
 def mechanical_outcomes(jobs: list[Path], case_id: str) -> list[float]:
     """Pass/fail per valid trial, from the check the case declares itself."""
@@ -135,6 +150,17 @@ def valid_trials(jobs: list[Path], case_id: str) -> int:
     return sum(1 for _ in gated(jobs, case_id))
 
 
+def resources(jobs: list[Path], case_id: str, field: str) -> list[float]:
+    """What the valid trials cost, or how much they read."""
+    out: list[float] = []
+    for trial in gated(jobs, case_id):
+        result = validity.read_json(trial / "result.json") or {}
+        value = (result.get("agent_result") or {}).get(field)
+        if value is not None:
+            out.append(float(value))
+    return out
+
+
 def scores(jobs: list[Path], case_id: str) -> dict[str, list[float]]:
     """Per-dimension scores of the valid trials only."""
     out: dict[str, list[float]] = {}
@@ -183,7 +209,9 @@ def main() -> int:
     # the matrix outcome reproduced across two independent runs while the
     # dimension that separated once did not.
     has_ground_truth = bool(cases.metadata(args.case_id).get("mechanical_outcome"))
-    allowed = graded | ({MECHANICAL} if has_ground_truth else set())
+    allowed = graded | set(RESOURCE) | (
+        {MECHANICAL} if has_ground_truth else set()
+    )
     if args.primary not in allowed:
         sys.exit(
             f"--primary {args.primary!r} is not available for {args.case_id}, "
@@ -214,6 +242,13 @@ def main() -> int:
         # immediately. An endpoint chosen after the data are in is not a test.
         "primary_endpoint": args.primary,
         "secondary_endpoints": sorted(graded - {args.primary}),
+        # Recorded so a reader of the record knows which kind of endpoint was
+        # declared without inferring it from the name.
+        "primary_kind": (
+            "resource" if args.primary in RESOURCE
+            else "mechanical" if args.primary == MECHANICAL
+            else "dimension"
+        ),
         # Recorded even when it is the default: a result that does not name the
         # model it was produced by cannot be read a year later, and the default
         # is a thing that changes.
@@ -319,6 +354,16 @@ def main() -> int:
                 f"{sum(primary_a):.0f}/{len(primary_a)} against "
                 f"{sum(primary_b):.0f}/{len(primary_b)}"
             )
+        elif args.primary in RESOURCE:
+            # Same test as a dimension — complete separation, exact permutation
+            # — because the question is the same: is anything obviously
+            # happening. What differs is only which number is being read.
+            field = RESOURCE[args.primary]
+            primary_a = resources(collected[first], args.case_id, field)
+            primary_b = resources(collected[second], args.case_id, field)
+            p, _ = stats.permutation_p(primary_a, primary_b)
+            moved = stats.separated(primary_a, primary_b)
+            summary = "separates completely" if moved else "overlaps"
         else:
             primary_a = scores(collected[first], args.case_id).get(args.primary, [])
             primary_b = scores(collected[second], args.case_id).get(args.primary, [])

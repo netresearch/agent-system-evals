@@ -262,6 +262,15 @@ were once published as findings. Excluded trials are listed with their reason
 and are never silently replaced — a re-run chosen because the first attempt
 came out wrong is a sample chosen by its outcome.
 
+**An endpoint may be a resource.** `--primary` takes a dimension, the
+mechanical outcome, or `cost` / `input_tokens`. The last two were added on 28
+August after eleven recorded comparisons, of which three reached complete
+separation at the smallest attainable p — and all three were cost, none was a
+dimension. Every one of those was exploratory by construction: the runner could
+not declare the thing it went on to find, so the benchmark's most separated
+result could only ever be reported as a hypothesis. A dimension separating says
+the work changed; cost separating says the bill did, and both are results.
+
 **One endpoint, declared before the run.** `--primary` is required and is
 written into `experiments/<case>-<stamp>.json` before the first trial starts.
 Everything else `scripts/analyze` reports is labelled exploratory and carries
