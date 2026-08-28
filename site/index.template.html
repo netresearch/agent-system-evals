@@ -413,6 +413,91 @@ construction.</p>
 was reading a transcript that never contained one, and scored a diff that makes the secondary limit
 green as having kept it red — twice. The mechanical check, which reads the tree, caught all four.</p>
 
+<h2>Running it against your own agent</h2>
+
+<p>This page is a report and carries no commands. Everything below is what a reader — a person or an
+agent — needs to produce a comparable result. Nothing here is specific to Claude Code except the
+default; <code>--model</code> and <code>--agent</code> are what the harness varies.</p>
+
+<h3>What it needs</h3>
+
+<ul>
+  <li>the repository, and Docker running — each trial builds an environment image and starts
+    containers, and some cases start a database or a directory server beside the agent</li>
+  <li>a credential in the environment: <code>CLAUDE_CODE_OAUTH_TOKEN</code> (a Claude subscription)
+    or <code>ANTHROPIC_API_KEY</code> (billed per token). The agent under test and the judge both
+    use it</li>
+  <li>time and money: a trial takes four minutes to over an hour depending on the case, and costs
+    between two cents and a euro on a small model</li>
+</ul>
+
+<h3>One trial, to see the pipeline work</h3>
+
+<pre><code>./scripts/run-smoke OFR-TYPO3-METADATA-001 --fleet nr --model claude-haiku-4-5-20251001</code></pre>
+
+<p>That is a smoke run and not evidence: one sample of a stochastic process says nothing about
+behaviour, and the script's own header says so. It answers whether the environment builds and the
+verifier grades.</p>
+
+<h3>A comparison, which is what produces a result</h3>
+
+<pre><code>./scripts/run-comparison OFR-TYPO3-METADATA-001 \
+    --arms control,nr \
+    --primary consistency \
+    --model claude-haiku-4-5-20251001 \
+    --seed 11
+
+./scripts/analyze experiments/OFR-TYPO3-METADATA-001-&lt;stamp&gt;.json</code></pre>
+
+<p><code>--primary</code> is required and is written into the experiment record before the first
+trial. That is the whole discipline in one flag: a run reads every dimension its case grades, and a
+threshold meant for one look is a coin flip at eight. The runner schedules one trial of each arm per
+block with the order shuffled, and stops after three trials per arm unless the declared endpoint
+separates completely.</p>
+
+<h3>The cases, and what each declares</h3>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>case</th><th>domain</th><th>declared endpoint</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>OFR-TYPO3-EXT-001</code></td><td>TYPO3</td><td>the eight open dimensions</td></tr>
+    <tr><td><code>OFR-TYPO3-UPGRADE-001</code></td><td>TYPO3</td><td>the eight open dimensions</td></tr>
+    <tr><td><code>OFR-TYPO3-RUNTIME-001</code></td><td>TYPO3</td><td>the eight open dimensions</td></tr>
+    <tr><td><code>OFR-TYPO3-METADATA-001</code></td><td>TYPO3</td><td><code>consistency</code></td></tr>
+    <tr><td><code>OFR-TYPO3-METADATA-001-BARE</code></td><td>TYPO3</td><td><code>consistency</code> — same task, scaffolding stripped</td></tr>
+    <tr><td><code>OFR-TYPO3-CONSISTENT-001</code></td><td>TYPO3</td><td><code>consistency</code> — nothing needs changing</td></tr>
+    <tr><td><code>OFR-TYPO3-DOCS-001</code></td><td>TYPO3</td><td><code>documentation</code></td></tr>
+    <tr><td><code>OFR-TYPO3-RELEASE-001</code></td><td>TYPO3</td><td><code>release</code></td></tr>
+    <tr><td><code>OFR-GO-LDAP-001</code></td><td>Go</td><td><code>timing_parity</code></td></tr>
+    <tr><td><code>OFR-PY-CI-001</code></td><td>Python</td><td><code>exit_semantics</code></td></tr>
+    <tr><td><code>CON-TYPO3-EXTBASE-001</code></td><td>TYPO3</td><td><code>contract</code> — known answer, no judge</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Arms are named by the files in <code>fleets/</code>: <code>control</code> provisions nothing and
+is the baseline every result rests on, <code>nr</code> is the TYPO3 and PHP domain skills,
+<code>nr-full</code> adds the general tooling, <code>nr-go</code> and <code>nr-general</code> serve
+the cases outside TYPO3. An ablation states its difference from a parent rather than copying it —
+<code>derives_from: nr</code> with <code>without:</code> to drop a skill or <code>at:</code> to move
+one to another version.</p>
+
+<h3>Another agent, not only another model</h3>
+
+<p><code>--model</code> changes the model inside the same harness. Whether a result is about the
+stack or about the stack inside Claude Code is a different question, and
+<code>scripts/sentinel</code> exists to answer it by holding everything constant except the harness.
+It has not been run. Until it has, read every figure here as scoped to one harness.</p>
+
+<h3>If you produce a result</h3>
+
+<p>Three things make it comparable with these. Declare the endpoint before the first trial. Report
+counts rather than means — <code>2/3</code>, not <code>0.667</code>, which implies a precision three
+trials do not have. And read the section above this one before quoting any count of three.</p>
+
 <h2>What a count of three can carry</h2>
 
 <p>The judges were calibrated on 26 and 28 August: four recorded runs, {{ totals.calibration_repeats }}
