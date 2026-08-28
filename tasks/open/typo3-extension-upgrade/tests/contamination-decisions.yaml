@@ -19,3 +19,22 @@
 # fleet retired with the fleet bump to the skill versions that generalized
 # their attributions (issue #3).
 
+
+# Two entries, from `github-release-skill` — in the fleet from 28 August, when
+# the composition experiment on the release case added it. The line is a dated
+# observation about TER publishing behaviour, attributed to a run on this case's
+# target extension. It describes what the TER API returned for a v5.0.2 publish;
+# this case is an upgrade, graded on what the agent changes in the code, and the
+# document neither names nor implies any of it.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/references/typo3-ter-publishing.md
+  marker: netresearch/t3x-contexts
+  reason: Attribution on a dated observation about TER's publish behaviour; names the target extension and nothing about the upgrade this case grades.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/references/typo3-ter-publishing.md
+  marker: t3x-contexts
+  reason: The same attribution, matched by the shorter repository marker.

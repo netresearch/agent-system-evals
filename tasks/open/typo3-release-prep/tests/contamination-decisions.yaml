@@ -43,3 +43,46 @@
   path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/ci-cd.md
   marker: t3x-nr-image-optimize
   reason: The same attribution, matched by the shorter repository marker.
+
+# Three more, from the skill this case's composition experiment added to the
+# fleet on 28 August. All three are attributions in `github-release-skill`, and
+# they are the closest thing to target knowledge in this repository, because the
+# case asks for a release of the very extension two of them name.
+#
+# They are recorded as learnings, and the reasoning is worth stating rather than
+# assuming. The immutable-releases line is a citation in the sense the two
+# typo3-testing entries above establish: it supports a factual claim about
+# Packagist refusing a *version* rather than a package, and the observed version
+# pair is the evidence for it. It describes a retag incident that already
+# happened on v2.4.0 and v1.3.0. This case asks an agent to prepare v2.4.2 — a
+# different act, on a repository whose state the document does not describe. It
+# would not lead an agent to what this case grades.
+#
+# The ter-republish line is the other kind: three repository names listed as
+# "pattern used across netresearch TYPO3 extensions". That is decoration and
+# should go from the skill regardless of this benchmark; filed as
+# netresearch/github-release-skill#92. It is
+# recorded here rather than waved through so the arm that ran on 28 August is
+# judged rather than quietly accepted.
+#
+# What the reader of the experiment should know: the equipped arm carried a
+# skill naming the target repository, and the mechanical outcome was still 0 of
+# 6 — the same as the arm without it.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/references/immutable-releases.md
+  marker: netresearch/t3x-nr-image-optimize
+  reason: Citation for the claim that Packagist's block is per version, evidenced by an observed v2.4.0/v1.3.0 pair. Describes a past retag, not this case's release, and names nothing an agent would need to find here.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/references/immutable-releases.md
+  marker: t3x-nr-image-optimize
+  reason: The same citation, matched by the shorter repository marker.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/references/ter-republish.md
+  marker: t3x-nr-image-optimize
+  reason: One of three repository names attributing a workflow_dispatch caller pattern. Decoration rather than evidence — filed as netresearch/github-release-skill#92 to be generalised — and it says nothing about this case's release.

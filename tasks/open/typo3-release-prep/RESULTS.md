@@ -208,6 +208,25 @@ loaded the release skill; zero of six prepared the release.
 [agent-harness#61](https://github.com/netresearch/agent-harness-skill/issues/61)
 carries that thread.
 
+## One thing the reader should weigh
+
+The added skill names this case's target extension. `github-release-skill`
+carries two references that mention `t3x-nr-image-optimize` — a citation for
+Packagist blocking a version rather than a package, evidenced by an observed
+`v2.4.0`/`v1.3.0` pair, and one of three repository names attributing a
+workflow pattern. The benchmark's contamination check caught both the moment
+the fleet carried the skill, and both were judged learnings and recorded in
+`tests/contamination-decisions.yaml` with the reasoning written out; the
+decorative one is filed upstream as
+[github-release-skill#92](https://github.com/netresearch/github-release-skill/issues/92).
+
+Neither describes this release. They describe a retag that already happened and
+a workflow pattern, on a repository whose current state the documents do not
+give. And the outcome is the check on that judgement: the arm carrying them
+prepared the release correctly zero times out of six, exactly as the arm
+without them did. Target knowledge that helps nobody do the task is a weak
+contaminant, but the reader is entitled to know it was there.
+
 ## Reproducing
 
 ```
