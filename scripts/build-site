@@ -126,6 +126,20 @@ class Arm:
                 )
         return " / ".join(str(c) for c in sorted(counts))
 
+    def invoked(self) -> str:
+        """Trials of this arm that loaded any skill, over trials that ran."""
+        loaded = 0
+        for trial in self.valid:
+            trajectory = validity.read_json(trial / "verifier" / "trajectory.json")
+            if isinstance(trajectory, dict) and any(
+                str(call.get("function_name", "")).lower()
+                in invocation_census.INVOKE
+                for step in trajectory.get("steps") or []
+                for call in (step.get("tool_calls") or [])
+            ):
+                loaded += 1
+        return f"{loaded} of {len(self.valid)}" if self.valid else "—"
+
     def model(self) -> str:
         """The agent model these trials ran on, read from their snapshots.
 
@@ -144,6 +158,19 @@ class Arm:
 
     def valid_count(self) -> str:
         return f"{len(self.valid)}/{len(self.verdicts)}"
+
+    def met_counts(self, dimension: str) -> tuple[int, int] | None:
+        scored = []
+        for trial in self.valid:
+            reward = validity.read_json(trial / "verifier" / "reward.json")
+            if reward is None:
+                result = validity.read_json(trial / "result.json") or {}
+                reward = (result.get("verifier_result") or {}).get("rewards") or {}
+            if dimension in reward:
+                scored.append(reward[dimension])
+        if not scored:
+            return None
+        return sum(1 for v in scored if v >= met_threshold()), len(scored)
 
     def met(self, dimension: str) -> str:
         scored = []
@@ -246,7 +273,54 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
         if field.endswith("_delta"):
             return f"{stats.cliffs_delta(a, b):+.2f}"
         return f"{stats.permutation_p(a, b)[0]:.3f}"
+    if field in ("outcome_plain", "spend_plain", "tokens_plain") and rest:
+        # The same comparison the columns beside it report as a Cliff's delta
+        # and a p, said in words. A reader who does not know what -1.00 means
+        # cannot tell from this page whether it is the good direction, and
+        # several have said so. The words are computed from the same trials as
+        # the numbers, so the two cannot disagree.
+        other = arms_of_case[rest[0]]
+        if field == "outcome_plain":
+            dimension = _declared_dimension(case)
+            a, b = other.met_counts(dimension), target.met_counts(dimension)
+            if a is None or b is None:
+                return "—"
+            detail = (
+                f"{a[0]} of {a[1]} &rarr; {b[0]} of {b[1]}"
+                if a[0] != b[0]
+                else f"{a[0]} of {a[1]}, both"
+            )
+            if b[0] > a[0]:
+                return f'<span class="good">better</span> <span class="lbl">{detail}</span>'
+            if b[0] < a[0]:
+                return f'<span class="bad">worse</span> <span class="lbl">{detail}</span>'
+            return f'<span class="flat">no change</span> <span class="lbl">{detail}</span>'
+
+        metric = "cost_usd" if field == "spend_plain" else "n_input_tokens"
+        a, b = other._agent(metric), target._agent(metric)
+        if not a or not b:
+            return "—"
+        first, second = _median(a), _median(b)
+        if first == 0:
+            return "—"
+        ratio = second / first
+        show = _money if metric == "cost_usd" else _tokens
+        detail = f"{show(first)} &rarr; {show(second)}"
+        every = abs(stats.cliffs_delta(a, b)) == 1.0
+        if every:
+            detail += ", every run"
+        # A difference the printed figures cannot show is not a difference to
+        # the reader: `$0.01 -> $0.01` labelled "cheaper" reads as a mistake,
+        # and the label is the part a non-specialist trusts.
+        if show(first) == show(second) or 0.85 <= ratio <= 1.18:
+            return f'<span class="flat">about the same</span> <span class="lbl">{detail}</span>'
+        if ratio < 1:
+            times = f" &mdash; {1 / ratio:.0f}&times; less" if ratio <= 0.5 else ""
+            return f'<span class="good">cheaper{times}</span> <span class="lbl">{detail}</span>'
+        times = f" &mdash; {ratio:.0f}&times; more" if ratio >= 2 else ""
+        return f'<span class="bad">costlier{times}</span> <span class="lbl">{detail}</span>'
     if field == "met" and rest:
+
         return target.met(rest[0])
     if field == "mean" and rest:
         return target.mean(rest[0])
@@ -257,7 +331,39 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
         "valid": target.valid_count,
         "complete": target.complete,
         "model": target.model,
+        "invoked": target.invoked,
     }[field]()
+
+
+def _median(values: list[float]) -> float:
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return (ordered[middle - 1] + ordered[middle]) / 2
+
+
+def _money(value: float) -> str:
+    return f"${value:.2f}"
+
+
+def _tokens(value: float) -> str:
+    if value >= 1_000_000:
+        return f"{value / 1_000_000:.1f}M"
+    return f"{value / 1_000:.0f}k"
+
+
+def _declared_dimension(case: str) -> str:
+    """The endpoint the case's run declared, from site/report.toml.
+
+    Typed into the page, the outcome column was a literal `0/3 &rarr; 2/3`
+    bound to no trial — the one column of that table nothing recomputed.
+    """
+    manifest = tomllib.loads(MANIFEST.read_text())
+    declared = manifest["cases"][case].get("dimension")
+    if not declared:
+        raise KeyError(f"site/report.toml: case {case!r} declares no dimension")
+    return declared
 
 
 def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
@@ -346,6 +452,35 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
                 f'<td class="num">{row["invoked"]} of {row["trials"]}</td></tr>'
             )
         return "\n".join(rows)
+    if field == "outcome_tally":
+        # The summary sentence, counted from the same trials as the table it
+        # summarises. Written by hand it said "one improved, one worse, nine
+        # the same" over a table showing two, one and eight.
+        manifest = tomllib.loads(MANIFEST.read_text())
+        listed = manifest.get("summary", {}).get("cases") or []
+        if not listed:
+            raise KeyError("totals.outcome_tally: site/report.toml lists no summary cases")
+        better = worse = same = 0
+        for case in listed:
+            dimension = _declared_dimension(case)
+            pair = arms[case]
+            a = pair["control"].met_counts(dimension)
+            b = pair["nr"].met_counts(dimension)
+            if a is None or b is None:
+                raise KeyError(f"totals.outcome_tally: {case} is not graded on both arms")
+            better += b[0] > a[0]
+            worse += b[0] < a[0]
+            same += b[0] == a[0]
+        words = {
+            0: "none", 1: "one", 2: "two", 3: "three", 4: "four", 5: "five",
+            6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten",
+            11: "eleven",
+        }
+        return (
+            f"{words.get(better, better)} improved, "
+            f"{words.get(worse, worse)} came out worse, and "
+            f"{words.get(same, same)} showed no change"
+        )
     if field == "failures":
         # Counted from the document rather than typed: the two disagreed once,
         # and the page was the one that was wrong.
@@ -357,6 +492,7 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
 KNOWN_FIELDS = {
     "cost", "tokens", "tools", "valid", "complete", "met", "mean", "model",
     "cost_delta", "cost_p", "tokens_delta", "tokens_p",
+    "outcome_plain", "spend_plain", "tokens_plain", "invoked",
 }
 
 
@@ -370,12 +506,28 @@ def lint() -> int:
     """
     problems: list[str] = []
     manifest = tomllib.loads(MANIFEST.read_text())
+    # The tally sentence and the table it summarises must cover the same
+    # cases. Nothing else would notice them diverging: both render, and the
+    # sentence simply describes a different set of rows than the reader sees.
+    shown = {
+        key.split(".")[0]
+        for key in PLACEHOLDER.findall(TEMPLATE.read_text())
+        if key.split(".")[-2:-1] == ["outcome_plain"]
+    }
+    listed = set(manifest.get("summary", {}).get("cases") or [])
+    if shown != listed:
+        problems.append(
+            "site/report.toml [summary].cases and the outcome column disagree: "
+            f"only in the table {sorted(shown - listed)}, "
+            f"only in the tally {sorted(listed - shown)}"
+        )
     for key in PLACEHOLDER.findall(TEMPLATE.read_text()):
         parts = key.split(".")
         if parts[0] == "totals":
             if parts[1] not in {
                 "cases", "runs", "failures", "version", "models",
                 "verdict_flips", "calibration_repeats", "invocation_rows",
+                "outcome_tally",
             }:
                 problems.append(f"{key}: unknown total")
             continue

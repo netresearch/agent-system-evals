@@ -16,6 +16,7 @@
 
 [cases.review]
 case_id = "OFR-TYPO3-EXT-001"
+dimension = "outcome_quality"
 label = "a review"
 [cases.review.arms]
 control = "OFR-TYPO3-EXT-001-control-20260819-202726"
@@ -25,6 +26,7 @@ companion = "OFR-TYPO3-EXT-001-companion-20260819-195659"
 
 [cases.runtime]
 case_id = "OFR-TYPO3-RUNTIME-001"
+dimension = "outcome_quality"
 label = "a runtime bug"
 [cases.runtime.arms]
 control = "OFR-TYPO3-RUNTIME-001-control-20260819-215744"
@@ -35,6 +37,7 @@ nr-full = "OFR-TYPO3-RUNTIME-001-nr-full-20260819-212937"
 
 [cases.upgrade]
 case_id = "OFR-TYPO3-UPGRADE-001"
+dimension = "outcome_quality"
 label = "an upgrade"
 [cases.upgrade.arms]
 control = "OFR-TYPO3-UPGRADE-001-control-20260820-011849"
@@ -45,6 +48,7 @@ nr-full = "OFR-TYPO3-UPGRADE-001-nr-full-20260820-031544"
 
 [cases.contract]
 case_id = "CON-TYPO3-EXTBASE-001"
+dimension = "contract"
 label = "a contract eval"
 [cases.contract.arms]
 control = "CON-TYPO3-EXTBASE-001-control-20260820-011529"
@@ -61,6 +65,7 @@ nr = "CON-TYPO3-EXTBASE-001-nr-20260820-011146"
 
 [cases.h_review]
 case_id = "OFR-TYPO3-EXT-001"
+dimension = "outcome_quality"
 label = "a review (Haiku)"
 [cases.h_review.arms]
 control = "OFR-TYPO3-EXT-001-control-20260822-092853,OFR-TYPO3-EXT-001-control-20260822-094403,OFR-TYPO3-EXT-001-control-20260822-100126"
@@ -68,6 +73,7 @@ nr = "OFR-TYPO3-EXT-001-nr-20260822-093612,OFR-TYPO3-EXT-001-nr-20260822-095415,
 
 [cases.h_upgrade]
 case_id = "OFR-TYPO3-UPGRADE-001"
+dimension = "outcome_quality"
 label = "an upgrade (Haiku)"
 [cases.h_upgrade.arms]
 control = "OFR-TYPO3-UPGRADE-001-control-20260822-102629,OFR-TYPO3-UPGRADE-001-control-20260822-104651,OFR-TYPO3-UPGRADE-001-control-20260822-110037"
@@ -75,6 +81,7 @@ nr = "OFR-TYPO3-UPGRADE-001-nr-20260822-101714,OFR-TYPO3-UPGRADE-001-nr-20260822
 
 [cases.h_runtime]
 case_id = "OFR-TYPO3-RUNTIME-001"
+dimension = "outcome_quality"
 label = "a runtime bug (Haiku)"
 [cases.h_runtime.arms]
 control = "OFR-TYPO3-RUNTIME-001-control-20260821-142708,OFR-TYPO3-RUNTIME-001-control-20260821-145220,OFR-TYPO3-RUNTIME-001-control-20260821-150947"
@@ -82,6 +89,7 @@ nr = "OFR-TYPO3-RUNTIME-001-nr-20260821-143433,OFR-TYPO3-RUNTIME-001-nr-20260821
 
 [cases.h_contract]
 case_id = "CON-TYPO3-EXTBASE-001"
+dimension = "contract"
 label = "a contract eval (Haiku)"
 [cases.h_contract.arms]
 control = "CON-TYPO3-EXTBASE-001-control-20260821-152044,CON-TYPO3-EXTBASE-001-control-20260821-152748,CON-TYPO3-EXTBASE-001-control-20260821-153007"
@@ -89,6 +97,7 @@ nr = "CON-TYPO3-EXTBASE-001-nr-20260821-152304,CON-TYPO3-EXTBASE-001-nr-20260821
 
 [cases.h_docs]
 case_id = "OFR-TYPO3-DOCS-001"
+dimension = "documentation"
 label = "documentation from nothing"
 [cases.h_docs.arms]
 control = "OFR-TYPO3-DOCS-001-control-20260821-101657,OFR-TYPO3-DOCS-001-control-20260821-102257,OFR-TYPO3-DOCS-001-control-20260821-103339"
@@ -96,6 +105,7 @@ nr = "OFR-TYPO3-DOCS-001-nr-20260821-100943,OFR-TYPO3-DOCS-001-nr-20260821-10262
 
 [cases.h_release]
 case_id = "OFR-TYPO3-RELEASE-001"
+dimension = "release"
 label = "release preparation"
 [cases.h_release.arms]
 control = "OFR-TYPO3-RELEASE-001-control-20260821-130239,OFR-TYPO3-RELEASE-001-control-20260821-130702,OFR-TYPO3-RELEASE-001-control-20260821-132141"
@@ -103,6 +113,7 @@ nr = "OFR-TYPO3-RELEASE-001-nr-20260821-125821,OFR-TYPO3-RELEASE-001-nr-20260821
 
 [cases.h_consistent]
 case_id = "OFR-TYPO3-CONSISTENT-001"
+dimension = "consistency"
 label = "restraint: nothing to change"
 [cases.h_consistent.arms]
 control = "OFR-TYPO3-CONSISTENT-001-control-20260821-134032,OFR-TYPO3-CONSISTENT-001-control-20260821-134805,OFR-TYPO3-CONSISTENT-001-control-20260821-135818"
@@ -110,6 +121,7 @@ nr = "OFR-TYPO3-CONSISTENT-001-nr-20260821-134348,OFR-TYPO3-CONSISTENT-001-nr-20
 
 [cases.h_bare]
 case_id = "OFR-TYPO3-METADATA-001-BARE"
+dimension = "consistency"
 label = "version metadata, unprepared repository"
 [cases.h_bare.arms]
 control = "OFR-TYPO3-METADATA-001-BARE-control-20260821-140748,OFR-TYPO3-METADATA-001-BARE-control-20260821-141610,OFR-TYPO3-METADATA-001-BARE-control-20260821-142308"
@@ -121,6 +133,7 @@ nr = "OFR-TYPO3-METADATA-001-BARE-nr-20260821-140311,OFR-TYPO3-METADATA-001-BARE
 # agent time. The trial provenance is carried through unchanged.
 [cases.h_metadata]
 case_id = "OFR-TYPO3-METADATA-001"
+dimension = "consistency"
 label = "version metadata, prepared repository"
 [cases.h_metadata.arms]
 control = "rg-OFR-TYPO3-METADATA-001-control-20260820-204603,rg-OFR-TYPO3-METADATA-001-control-20260820-205329,rg-OFR-TYPO3-METADATA-001-control-20260820-210036"
@@ -131,6 +144,7 @@ nr = "rg-OFR-TYPO3-METADATA-001-nr-20260820-204946,rg-OFR-TYPO3-METADATA-001-nr-
 # outside TYPO3 run against nr measures composition and nothing else (#24).
 [cases.h_go]
 case_id = "OFR-GO-LDAP-001"
+dimension = "timing_parity"
 label = "a timing side channel (Go)"
 [cases.h_go.arms]
 control = "OFR-GO-LDAP-001-control-20260826-143824,OFR-GO-LDAP-001-control-20260826-144514,OFR-GO-LDAP-001-control-20260826-150525"
@@ -138,6 +152,7 @@ nr = "OFR-GO-LDAP-001-nr-go-20260826-142833,OFR-GO-LDAP-001-nr-go-20260826-14521
 
 [cases.h_py]
 case_id = "OFR-PY-CI-001"
+dimension = "exit_semantics"
 label = "a scheduled job's exit status (Python)"
 [cases.h_py.arms]
 control = "OFR-PY-CI-001-control-20260826-151248,OFR-PY-CI-001-control-20260826-152551,OFR-PY-CI-001-control-20260826-153001"
@@ -159,3 +174,12 @@ nr = "OFR-PY-CI-001-nr-general-20260826-151737,OFR-PY-CI-001-nr-general-20260826
 "OFR-TYPO3-METADATA-001-BARE" = "a task"
 "OFR-TYPO3-RELEASE-001" = "a task"
 "OFR-TYPO3-RUNTIME-001" = "a task"
+
+# The cases the short-version tally counts. Kept beside the manifest rather
+# than in the page, and checked against the page by `build-site --lint`: a
+# sentence that counts eleven rows must count the eleven rows shown.
+[summary]
+cases = [
+  "h_review", "h_docs", "h_upgrade", "h_release", "h_metadata", "h_bare",
+  "h_consistent", "h_runtime", "h_go", "h_py", "h_contract",
+]
