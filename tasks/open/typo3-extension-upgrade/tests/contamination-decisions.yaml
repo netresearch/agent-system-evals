@@ -38,3 +38,21 @@
   path: github-release-skill-0.11.0/skills/github-release/references/typo3-ter-publishing.md
   marker: t3x-contexts
   reason: The same attribution, matched by the shorter repository marker.
+
+# Two from `git-workflow`, in the fleet from 28 August. Both are one line of a
+# test fixture — the argument of a sample `gh pr view` command asserting that a
+# command validator accepts it. A repository name used as test input rather than
+# as documentation prose; it makes no claim about this extension and describes
+# nothing an agent could act on here.
+
+- skill: netresearch/git-workflow-skill
+  ref: v1.30.0
+  path: git-workflow-skill-1.30.0/scripts/test_validate_git_command.py
+  marker: netresearch/t3x-contexts
+  reason: Test input for a command validator — a sample `gh pr view` invocation. Names the extension and asserts nothing about it.
+
+- skill: netresearch/git-workflow-skill
+  ref: v1.30.0
+  path: git-workflow-skill-1.30.0/scripts/test_validate_git_command.py
+  marker: t3x-contexts
+  reason: The same fixture line, matched by the shorter repository marker.

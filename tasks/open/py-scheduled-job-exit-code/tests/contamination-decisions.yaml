@@ -1,0 +1,34 @@
+
+# Three from `git-workflow`, added to a fleet on 28 August to test whether this
+# case's zero invocations are composition (docs/composition-sweep.md).
+#
+# All three are the same citation, repeated in the reference, the script and the
+# script's test: `netresearch/maint` #52 and #53 are the evidence that Copilot's
+# review quota is account-wide and monthly rather than per pull request, which
+# is why `pr-status.sh` writes a month-stamped marker file.
+#
+# It names this case's target repository and it is about a GitHub quota, which
+# is close enough to be worth reading rather than waving through. It is a
+# different mechanism from the one this case grades: the review quota rejecting
+# a `requested_reviewers` POST, not the primary API rate limit; a pull request,
+# not a scheduled workflow. Exit statuses are not mentioned anywhere in it, and
+# the case turns entirely on whether exiting non-zero is the right answer when
+# the next scheduled run would succeed.
+
+- skill: netresearch/git-workflow-skill
+  ref: v1.30.0
+  path: git-workflow-skill-1.30.0/skills/git-workflow/references/pull-request-workflow.md
+  marker: netresearch/maint
+  reason: Citation for the claim that Copilot's review quota is account-wide and monthly, evidenced by two pull requests. A different quota, a different artefact, and it says nothing about exit statuses or scheduled jobs.
+
+- skill: netresearch/git-workflow-skill
+  ref: v1.30.0
+  path: git-workflow-skill-1.30.0/skills/git-workflow/scripts/pr-status.sh
+  marker: netresearch/maint
+  reason: The same citation, in the comment explaining why the script writes a month-stamped marker file.
+
+- skill: netresearch/git-workflow-skill
+  ref: v1.30.0
+  path: git-workflow-skill-1.30.0/tests/test_pr_status_errored_review.sh
+  marker: netresearch/maint
+  reason: The same citation again, in the test that pins that behaviour.
