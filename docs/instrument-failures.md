@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-three ways this benchmark measured the wrong thing while looking like it was
+Twenty-four ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -450,6 +450,57 @@ with the cut marked, so every judge of a writing case reads what was actually
 changed — through the same blinding as the rest of the transcript. That
 changes the rubric input for every case and therefore every rubric digest, so
 it lands together with a fresh calibration rather than ahead of one.
+
+## 24. A quarter of the dimension verdicts do not reproduce
+
+The judges were calibrated for the first time on 26 August and again on 28
+August: four recorded fixtures, five gradings of each on identical input, all
+eight dimensions of the review rubric. The spread numbers came out reassuring —
+no dimension moved more than a third of its scale, every mechanical criterion
+moved not at all.
+
+The spread was the wrong thing to read. Every comparison in this repository
+counts **dimensions met**, and a dimension is met at 0.75. Read that way, the
+same measurements say:
+
+| | run 1 | run 2 |
+|---|---|---|
+| dimension verdicts that flip between met and not-met | 7 of 32 | 8 of 32 |
+
+Every one of the seven reappeared in the second run. These are not different
+dimensions each time: they are the ones scoring near the boundary, where one
+criterion moving one step crosses it. `[0.75, 0.75, 0.75, 0.67, 0.67]` is a
+spread of 0.08 and a verdict that changes three times.
+
+So roughly a quarter of the met/not-met answers in this repository are not
+reproducible on identical input. A **2/3 against 3/3** difference — the shape
+of most rows in most RESULTS.md — is inside that. This does not overturn any
+recorded result; it puts a measured number on the caution
+[docs/open-forward-review.md](open-forward-review.md) section 11 already
+applied by argument, and it is the number to hold against any count-of-three
+before calling it a difference.
+
+Two mechanisms behind it, both found in the same measurements:
+
+**Batched judging correlates a dimension's criteria.** `mode = "batched"`
+grades every criterion of a dimension in one call, so their errors move
+together — on the thorough fixture all three criteria of `unsupported_claims`
+moved one step on the same repeats. A dimension is therefore no steadier than a
+single criterion, and the threshold that assumed averaging would settle it was
+set on an assumption the configuration does not meet.
+
+**A five-repeat spread is an outlier detector.** Which *criteria* exceed a
+spread threshold does not reproduce: of the three and four that swung the full
+scale, one appeared in both runs. `max − min` over five samples is moved to its
+maximum by a single deviant answer. So criterion-level instability is now gated
+as a share of the rubric, which does reproduce, and named individually as
+advisory.
+
+**Fix:** the calibration records `met` and `verdict_stable` per dimension, and
+`check-calibration` gates on the share that flips. The threshold is set just
+above the rate that was found, so a worsening fails while today's number stays
+on the record rather than being hidden by a gate nobody could pass. Lowering it
+is rubric work on the dimensions that score near 0.75.
 
 ## What this cost, and what it teaches
 

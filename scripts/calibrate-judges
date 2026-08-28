@@ -54,6 +54,7 @@ REPORT = ROOT / "calibration" / "report.json"
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
 from schemas import CALIBRATION_VERSION  # noqa: E402
+from dimensions import met_threshold  # noqa: E402
 
 
 def rubric_digest(case_dir: Path) -> str:
@@ -155,13 +156,24 @@ def criterion_values(details: dict) -> dict[str, dict[str, float]]:
     return out
 
 
-def summarise(values: list[float], expected: float | None = None) -> dict:
-    return {
+def summarise(values: list[float], expected: float | None = None,
+              met_threshold: float | None = None) -> dict:
+    out = {
         "values": values,
         "median": statistics.median(values),
         "spread": max(values) - min(values),
         "expected": expected,
     }
+    if met_threshold is not None:
+        # The verdict, not the score. Every comparison in this repository counts
+        # dimensions met, so what has to be reproducible is the met/not-met
+        # answer — a dimension whose score wobbles below its threshold on every
+        # repeat is harmless, and one that straddles the threshold cannot carry
+        # a 2/3-against-3/3 difference however small its spread.
+        verdicts = [v >= met_threshold for v in values]
+        out["met"] = sum(verdicts)
+        out["verdict_stable"] = len(set(verdicts)) == 1
+    return out
 
 
 def stage_verifier_layout(fixture: Path, work: Path, tests: Path) -> None:
@@ -254,7 +266,7 @@ def main() -> int:
         expected = gold["fixture"][name].get("expect", {})
         report["fixtures"][name] = {}
         for dimension, values in sorted(dimensions.items()):
-            entry = summarise(values, expected.get(dimension))
+            entry = summarise(values, expected.get(dimension), met_threshold())
             per_criterion = observed_criteria.get(name, {}).get(dimension, {})
             if per_criterion:
                 entry["criteria"] = {

@@ -31,8 +31,6 @@ independent = false
 # scores stop supporting a finding. A dimension that answers 3, 1, 2 cannot
 # carry a 2/3-against-3/3 difference — that difference is smaller than the
 # instrument's own step.
-max_spread = 0.34
-
 # How far the median may sit outside the human band before the criterion is
 # measuring something other than what it says.
 max_deviation = 0.2
@@ -53,6 +51,60 @@ max_deviation = 0.2
 # report at one step. Every mechanical criterion measured 0.00 across all 40 of
 # its measurements, as a deterministic check should.
 max_criterion_spread = 0.5
+
+# What share of criterion measurements may exceed that, before the rubric as a
+# whole is too noisy to carry findings.
+#
+# This is the criterion-level gate, and it is a share rather than a list
+# because a list does not reproduce. Two calibrations of five repeats each,
+# 152 criterion measurements apiece:
+#
+#   run 1   128 unmoved   21 one step   3 full scale
+#   run 2   126 unmoved   22 one step   4 full scale
+#
+# The distribution is nearly identical and the membership is not — of the three
+# and four criteria that swung the full scale, exactly ONE appears in both. The
+# statistic is why: max minus min over five samples is an outlier detector, and
+# a single deviant answer takes it to the maximum. So "these criteria are
+# unstable" is not a finding at five repeats; "this share of the rubric is
+# unstable" is, and it is what CI can act on.
+#
+# 0.05 of 152 is seven measurements. Both runs sat at 2.0% and 2.6%. Raising
+# the repeat count is the way to name individual criteria, and it costs judge
+# calls: the count is an argument to scripts/calibrate-judges, not a constant.
+max_unstable_criterion_share = 0.05
+
+# The dimension threshold above assumes averaging reduces noise. Batched
+# judging breaks that assumption: `mode = "batched"` grades every criterion of
+# a dimension in ONE call, so their errors are perfectly correlated. Measured
+# on the thorough fixture, all three criteria of unsupported_claims moved one
+# step together on the same repeats — a dimension is therefore no steadier than
+# a single criterion, and one step of the underlying scale is 0.50 there too.
+#
+# So max_spread is raised to one step, for the same reason as
+# max_criterion_spread, and the thing that actually gates a dimension is below.
+max_spread = 0.5
+
+# What share of dimension VERDICTS may flip between met and not-met across
+# repeats of identical input.
+#
+# This is the measure that matters, and it took two calibrations to find. Every
+# comparison in this repository counts dimensions met, so a dimension whose
+# score wobbles harmlessly below its threshold costs nothing, and one that
+# straddles the threshold cannot carry a 2/3-against-3/3 difference however
+# small its spread.
+#
+# Measured, twice: 7 of 32 dimension measurements flipped in the first run and
+# 8 in the second, and every one of the seven reappeared. Unlike the
+# criterion-level list, this membership reproduces — the same dimensions on the
+# same fixtures, sitting on the 0.75 boundary.
+#
+# 0.25 is not an acceptance of that rate; it is the rate that was found, and
+# the gate is set just above it so a worsening fails while today's number is
+# recorded rather than hidden. Lowering it is rubric work: the dimensions that
+# flip are the ones scoring near 0.75, where one criterion moving one step
+# crosses the line.
+max_verdict_flip_share = 0.28
 
 [fixture.thorough]
 fixture = "verifier/tests/fixtures/thorough"

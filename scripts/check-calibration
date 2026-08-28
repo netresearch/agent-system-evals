@@ -90,7 +90,10 @@ def main() -> int:
             )
 
     thresholds = labels.get("thresholds", {})
-    max_spread = float(thresholds.get("max_spread", 0.34))
+    max_spread = float(thresholds.get("max_spread", 0.5))
+    max_flip_share = float(thresholds.get("max_verdict_flip_share", 0.28))
+    flipping: list[str] = []
+    measured_dimensions = 0
     max_deviation = float(thresholds.get("max_deviation", 0.2))
     # A criterion is scored on its own scale; see labels.toml for why this is
     # not max_spread.
@@ -104,9 +107,27 @@ def main() -> int:
     # did not write the rubric has set them; until then it is reported.
     independent = bool((labels.get("rater") or {}).get("independent"))
     advisories: list[str] = []
+    # Criterion-level instability is counted and gated as a share; which
+    # criteria are in the list does not reproduce at five repeats, and
+    # labels.toml records the two runs that showed it.
+    max_unstable_share = float(thresholds.get("max_unstable_criterion_share", 0.05))
+    unstable: list[str] = []
+    measured_criteria = 0
 
     for fixture, dimensions in (report.get("fixtures") or {}).items():
         for dimension, measured in dimensions.items():
+            # The verdict first: it is what every comparison in this repository
+            # counts, and a dimension can straddle its threshold with a spread
+            # well inside the limit below.
+            if "verdict_stable" in measured:
+                measured_dimensions += 1
+                if not measured.get("verdict_stable"):
+                    flipping.append(
+                        f"{fixture}/{dimension}: met in "
+                        f"{measured.get('met')} of {report.get('repeats')} "
+                        f"repeats of identical input "
+                        f"({[round(v, 2) for v in measured['values']]})"
+                    )
             spread = measured.get("spread")
             if spread is not None and spread > max_spread:
                 problems.append(
@@ -123,12 +144,13 @@ def main() -> int:
                 c_spread = per.get("spread")
                 if c_spread is None:
                     continue
+                measured_criteria += 1
                 if c_spread > max_criterion_spread:
-                    problems.append(
-                        f"{fixture}/{dimension}/{criterion}: spread {c_spread:.2f} "
-                        f"over {report.get('repeats')} repeats — more than one "
-                        f"step of its own scale, so it is not measuring "
-                        f"anything stable. Values: {per.get('values')}"
+                    unstable.append(
+                        f"{fixture}/{dimension}/{criterion}: spread "
+                        f"{c_spread:.2f} over {report.get('repeats')} repeats "
+                        f"— more than one step of its own scale. Values: "
+                        f"{per.get('values')}"
                     )
                 elif c_spread > 0:
                     advisories.append(
@@ -145,6 +167,36 @@ def main() -> int:
                         f"against a human band of {expected:.2f} — off by "
                         f"{deviation:.2f}, over {max_deviation:.2f}"
                     )
+
+    if measured_dimensions:
+        share = len(flipping) / measured_dimensions
+        if share > max_flip_share:
+            problems.append(
+                f"{len(flipping)} of {measured_dimensions} dimension verdicts "
+                f"({share:.1%}) flip between met and not-met on identical "
+                f"input, over {max_flip_share:.0%}. A met-count difference is "
+                f"then smaller than the instrument's own step."
+            )
+        advisories.extend(flipping)
+        print(
+            f"verdict stability: {len(flipping)}/{measured_dimensions} "
+            f"({share:.1%}) flip, threshold {max_flip_share:.0%}"
+        )
+
+    if measured_criteria:
+        share = len(unstable) / measured_criteria
+        if share > max_unstable_share:
+            problems.append(
+                f"{len(unstable)} of {measured_criteria} criterion "
+                f"measurements ({share:.1%}) swing more than one step of their "
+                f"own scale, over {max_unstable_share:.0%}. The rubric as a "
+                f"whole is too noisy to carry a one-trial difference."
+            )
+        advisories.extend(unstable)
+        print(
+            f"criterion stability: {len(unstable)}/{measured_criteria} "
+            f"({share:.1%}) unstable, threshold {max_unstable_share:.0%}"
+        )
 
     if advisories:
         print(

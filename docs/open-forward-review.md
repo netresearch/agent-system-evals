@@ -268,6 +268,14 @@ Everything else `scripts/analyze` reports is labelled exploratory and carries
 Holm-adjusted p-values, because a run reads every dimension a case grades and a
 threshold meant for one look is a coin flip at eight.
 
+**A quarter of the met/not-met verdicts do not reproduce.** Measured twice, on
+identical input: 7 of 32 dimension measurements in the first calibration and 8
+in the second flip between met and not met, and the same dimensions flip both
+times — the ones scoring near the 0.75 boundary, where one criterion moving one
+step crosses it. So a 2/3-against-3/3 row is inside the instrument's own step,
+and the argument this section already made now has a number behind it
+(`calibration/report.json`, instrument failure 24).
+
 **Three trials answer one question: is anything obviously happening.** They
 cannot establish that something is. On the runtime case the spread inside a
 single arm covered the whole gap between arms, and a median difference was
