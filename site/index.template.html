@@ -152,8 +152,9 @@
 
   <p><strong>Is the tooling even used?</strong> That turned out to be the real story. A skill is
   reached for when the fleet carries one whose description matches the words of the request —
-  measured at 6 runs out of 6 when the right skill is present, and 0 out of 6 when it is not. The
-  one rewrite of a skill's own text measured so far did not move it; a second is running.</p>
+  measured at 6 runs out of 6 when the right skill is present, and 0 out of 6 when it is not. And
+  where the matching words sit in that description decides it too: moved from a trigger list into
+  the opening sentence, the same words took a task from 1 run in 6 to 6 in 6.</p>
 
   <p><strong>So what is it good for, and where is it weak?</strong> Strong: it gets used reliably
   when it fits the request, and on review-shaped work it pays for itself. Weak: on several tasks
@@ -488,17 +489,30 @@ every trial failed. Its description names <code>guides.xml</code> and never ment
 version bumps. That is a routing observation about one skill, and unlike the first it is testable in
 one series: change the description, re-run the case.</p>
 
-<p><strong>That series has now run, and the description did not move it.</strong> Twelve trials on
-the restraint case, 28 August, identical in everything but one skill: <code>typo3-conformance</code>
-at its release against the same skill on a branch whose only change adds a sentence naming the
+<p><strong>That series has now run twice, and the answer is where the words sit.</strong> Both
+rounds are twelve trials on the restraint case, 28 August, identical in everything but one skill:
+<code>typo3-conformance</code> at its release against the same skill on a branch naming the
 artefacts the case is about — version declarations that disagree, <code>composer.json</code> against
-<code>ext_emconf.php</code>, supported TYPO3 versions. Nothing was removed. Skill invocation was
-declared as the endpoint before the first trial and came back <strong>0 of 6 against 1 of 6</strong>,
-Fisher exact p 1.000. Rewriting a description to name the artefact did not get the skill reached
-for, and the branch stays unreleased.
+<code>ext_emconf.php</code>, supported TYPO3 versions. Nothing was removed either time. Skill
+invocation was declared as the endpoint before the first trial of each.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>where the description names the artefacts</th><th class="num">skill loaded</th><th class="num">Fisher p</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>appended to the trigger list, 35 words in</td><td class="num">1 of 6</td><td class="num">1.000</td></tr>
+    <tr><td>in the opening sentence</td><td class="num">6 of 6</td><td class="num">0.002</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>A description is not a bag of keywords. The same words, moved earlier, take this task from never
+routing to always routing — and unlike the first attempt the rewrite fits the skill repository's
+limits, so it ships.
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/tasks/open/typo3-version-metadata-consistent/RESULTS.md">The
-full record</a> carries four other lines in that report that do separate — all of them exploratory,
-and one of them pointing the wrong way.</p>
+full record</a>, including what did <em>not</em> follow: the outcome is 3 of 6 on both arms.</p>
 
 <div class="note">
   <strong>A fleet whose capability is never selected is being measured on its selection; a fleet
