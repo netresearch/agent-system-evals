@@ -86,3 +86,23 @@
   path: github-release-skill-0.11.0/skills/github-release/references/ter-republish.md
   marker: t3x-nr-image-optimize
   reason: One of three repository names attributing a workflow_dispatch caller pattern. Decoration rather than evidence — filed as netresearch/github-release-skill#92 to be generalised — and it says nothing about this case's release.
+
+# Two from `github-project`, added to a fleet on 28 August for the Python CI
+# case's composition experiment. Both are the same sentence: Copilot posting
+# COMMENTED when quota-limited gates nothing, observed on this case's target
+# repository. It is the third place that observation is cited across the fleet,
+# and like the others it is evidence for a claim about GitHub's review gate — a
+# different subject from preparing a release, and silent on this extension's
+# state.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/merge-strategy.md
+  marker: netresearch/t3x-nr-image-optimize
+  reason: Citation for the claim that a quota-limited Copilot review gates nothing. About GitHub's review gate, not about this extension or its release.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/merge-strategy.md
+  marker: t3x-nr-image-optimize
+  reason: The same citation, matched by the shorter repository marker.

@@ -32,3 +32,27 @@
   path: git-workflow-skill-1.30.0/tests/test_pr_status_errored_review.sh
   marker: netresearch/maint
   reason: The same citation again, in the test that pins that behaviour.
+
+# One from `github-project`, and the closest call recorded for this case.
+#
+# `gh-cli-reference.md` teaches how to read a GitHub Actions log: anchor the
+# step name to the start of the line, match the error text rather than a bare
+# status code. The worked example uses this case's job name:
+#
+#   grep -cP '^check-stars\tCheck for new stars\t.*403' job.log
+#
+# The transferable content is the anchoring and the "match text, not 403" rule,
+# and both hold on any repository. The job name is the example's decoration and
+# should be generic; filed as netresearch/github-project-skill#170.
+#
+# What it does not carry is this case's question. The case asks whether exiting
+# non-zero is right when a rate-limit wait exceeds the run's budget and the next
+# scheduled run would succeed. The passage is about 403s in a log, names no
+# budget, no exit status and no scheduled run, and its advice would not lead an
+# agent to an answer either way.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/gh-cli-reference.md
+  marker: check-stars
+  reason: This case's job name used as the example in a rule about anchoring step names when grepping a run log. Decoration on transferable advice — filed as netresearch/github-project-skill#170 — and silent on exit statuses, budgets and scheduled runs.

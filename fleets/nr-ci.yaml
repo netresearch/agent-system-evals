@@ -2,18 +2,24 @@
 #
 # OFR-PY-CI-001 asks whether a scheduled job's red exit status is the right
 # answer when it hit a rate limit and the next run would succeed. Its fleet
-# carries assessment, harness and security-audit, and none of those three names
-# continuous integration, workflows or exit statuses. netresearch/git-workflow
-# does — "Git workflow best practices for teams and CI/CD pipelines" — and it
-# was not on offer.
+# carries assessment, harness and security-audit, and none of those three
+# describes continuous integration, workflows or exit statuses.
+# `github-project` does — "CI fails, authoring or consuming reusable workflows,
+# editing a repo's own .github/workflows" — and it was not on offer.
+#
+# The first version of this file added `git-workflow` instead, on a catalogue
+# summary calling it "Git workflow best practices for teams and CI/CD
+# pipelines". Its SKILL.md — the text routing actually reads — describes
+# branching, commits, PR review threads and merges, and does not claim CI. See
+# docs/composition-sweep.md, which records how that was caught.
 #
 # Same shape as fleets/nr-release.yaml on the release case, which took skill
-# invocation from 0 of 6 to 6 of 6 at p 0.002. See docs/composition-sweep.md.
+# invocation from 0 of 6 to 6 of 6 at p 0.002.
 
 name: nr-ci
-description: nr-general plus git-workflow — testing whether the Python CI case's zero is composition
+description: nr-general plus github-project — testing whether the Python CI case's zero is composition
 
 derives_from: nr-general
 add:
-  - repo: netresearch/git-workflow-skill
-    ref: v1.30.0
+  - repo: netresearch/github-project-skill
+    ref: v2.17.0
