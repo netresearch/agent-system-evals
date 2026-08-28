@@ -84,3 +84,77 @@ scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms control,nr \
     --primary outcome_quality --model claude-haiku-4-5-20251001 --seed 91
 scripts/analyze experiments/OFR-TYPO3-UPGRADE-001-20260822-101714.json
 ```
+
+---
+
+# Confirmatory series: `verification` declared in advance
+
+Two arms, three trials each, six of six valid. Measured 28 August 2026 on
+**`claude-haiku-4-5-20251001`**, benchmark version 2.0.0.
+
+`scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms control,nr --primary verification --model claude-haiku-4-5-20251001 --seed 171`
+
+Experiment record: `experiments/OFR-TYPO3-UPGRADE-001-20260828-074950.json`.
+
+## Why this run exists
+
+The exploratory series of 22 August separated completely on `verification` and
+`prioritization` — delta +1.00, permutation p 0.100, Holm 0.600 over eight
+dimensions read at once. That is what the deepening rule calls a hypothesis:
+it names the next experiment rather than settling anything. This is that
+experiment, with `verification` declared before the first trial and read as the
+only endpoint.
+
+## It did not confirm
+
+| | control | nr |
+|---|---|---|
+| `verification` met | 0/3 | 0/3 |
+| criteria behind it | 0 met / 4 partial / 20 not met | **8 met / 3 partial / 13 not met** |
+| Cliff's delta | — | +0.33 |
+| permutation p | — | 0.600 |
+
+The count is flat and the criteria are not: eight criteria met against zero is
+the largest shift this case has produced on any dimension. But the dimension
+crosses its threshold in no trial of either arm, so what moved is the middle of
+the distribution and not the outcome — and the earlier +1.00 does not survive
+its own confirmation.
+
+Two things follow. The first is about this case: the equipped arm does more
+verifying and still never verifies enough to meet the dimension, which is a
+statement about how far the fleet gets rather than whether it helps. The second
+is about the rule that produced the hypothesis. A completely separated
+exploratory line at three trials per arm was, here, noise dressed as a finding
+— exactly what the one-in-ten figure in
+[docs/open-forward-review.md](../../../docs/open-forward-review.md) section 11
+predicts will happen roughly one time in ten.
+
+## The rest of the table
+
+| dimension | control | nr | Holm |
+|---|---|---|---|
+| `context_discovery` | 3/3 | 0/3 | 0.600 |
+| `prioritization` | 0/3 | 1/3 | 1.000 |
+| `unsupported_claims` | 2/3 | 0/3 | 1.000 |
+| `authority` | 0/3 | 0/3 | 1.000 |
+| `evidence` | 1/3 | 1/3 | 1.000 |
+| `outcome_quality` | 0/3 | 0/3 | 1.000 |
+
+`context_discovery` separates completely in the *other* direction this time —
+3/3 against 0/3, delta −1.00, the same p 0.100 and Holm 0.600 that
+`verification` carried in August. It is exploratory, it is one of seven lines
+read at once, and it is recorded here without a claim attached for the same
+reason the August lines should have been.
+
+`typo3-extension-upgrade` was invoked in three trials of three, as before.
+
+## Cost
+
+| | control | nr |
+|---|---|---|
+| agent cost | 0.05 / 0.06 / 0.11 | 0.07 / 0.09 / **1.23** |
+
+One equipped trial cost $1.23, twenty times the control median and ten times
+its own arm's next-highest. The interval spans −0.04 to +1.18 and the median
+difference is three cents. A mean over this arm would be a number about one
+trial.
