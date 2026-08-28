@@ -69,11 +69,43 @@ def census(jobs_dir: Path | None = None) -> dict[str, dict[str, int]]:
         if recorded.get("fleet") not in equipped:
             continue
         case = recorded.get("case_id") or "unknown"
-        row = out.setdefault(case, {"invoked": 0, "trials": 0})
+        fleet = recorded.get("fleet") or "unknown"
+        row = out.setdefault(case, {"invoked": 0, "trials": 0, "by_fleet": {}})
+        # Per fleet as well as per case. A case run against two fleets that
+        # differ in whether they carry a matching skill pools two populations,
+        # and the pooled number then contradicts the very split the table is
+        # drawn to show: the release case read "6 of 16" under a paragraph
+        # arguing it is never routed.
+        per = row["by_fleet"].setdefault(fleet, {"invoked": 0, "trials": 0})
         for trajectory in job.glob("*/verifier/trajectory.json"):
+            hit = invoked(trajectory)
             row["trials"] += 1
-            row["invoked"] += invoked(trajectory)
+            row["invoked"] += hit
+            per["trials"] += 1
+            per["invoked"] += hit
     return out
+
+
+def split(row: dict) -> str | None:
+    """Which fleets account for a case's invocations, when not all of them do.
+
+    Returns None when the case does not split — every fleet at zero, or every
+    fleet invoking — because then the pooled count says the whole truth.
+    """
+    fleets_seen = row.get("by_fleet") or {}
+    if len(fleets_seen) < 2:
+        return None
+    hot = {f: v for f, v in fleets_seen.items() if v["invoked"]}
+    cold = {f: v for f, v in fleets_seen.items() if not v["invoked"]}
+    if not hot or not cold:
+        return None
+    hot_i = sum(v["invoked"] for v in hot.values())
+    hot_n = sum(v["trials"] for v in hot.values())
+    cold_n = sum(v["trials"] for v in cold.values())
+    return (
+        f"{hot_i} of {hot_n} on {', '.join(sorted(hot))}; "
+        f"0 of {cold_n} on {', '.join(sorted(cold))}"
+    )
 
 
 def main() -> int:
@@ -91,7 +123,12 @@ def main() -> int:
     for case, row in sorted(
         rows.items(), key=lambda kv: (-kv[1]["invoked"] / max(kv[1]["trials"], 1), kv[0])
     ):
-        print(f"| `{case}` | {row['invoked']}/{row['trials']} |")
+        note = split(row)
+        print(
+            f"| `{case}` | {row['invoked']}/{row['trials']}"
+            + (f" &mdash; {note}" if note else "")
+            + " |"
+        )
     total = sum(r["invoked"] for r in rows.values())
     trials = sum(r["trials"] for r in rows.values())
     print(f"\n{total} of {trials} equipped trials loaded a skill.")

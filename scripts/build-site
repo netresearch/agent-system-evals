@@ -446,10 +446,13 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
             census.items(),
             key=lambda kv: (-kv[1]["invoked"] / max(kv[1]["trials"], 1), kv[0]),
         ):
+            note = invocation_census.split(row)
             rows.append(
                 f"    <tr><td>{html.escape(labels.get(case_id, case_id))}</td>"
                 f"<td>{html.escape(requests[case_id])}</td>"
-                f'<td class="num">{row["invoked"]} of {row["trials"]}</td></tr>'
+                f'<td class="num">{row["invoked"]} of {row["trials"]}'
+                + (f'<span class="lbl">{html.escape(note)}</span>' if note else "")
+                + "</td></tr>"
             )
         return "\n".join(rows)
     if field == "outcome_tally":

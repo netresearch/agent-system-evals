@@ -152,8 +152,8 @@
 
   <p><strong>Is the tooling even used?</strong> That turned out to be the real story. A skill is
   reached for when the fleet carries one whose description matches the words of the request —
-  measured at 6 runs out of 6 when the right skill is present, and 0 out of 6 when it is not. No
-  amount of rewriting a skill's own text changed that.</p>
+  measured at 6 runs out of 6 when the right skill is present, and 0 out of 6 when it is not. The
+  one rewrite of a skill's own text measured so far did not move it; a second is running.</p>
 
   <p><strong>So what is it good for, and where is it weak?</strong> Strong: it gets used reliably
   when it fits the request, and on review-shaped work it pays for itself. Weak: on several tasks
@@ -244,9 +244,10 @@ compared with the same agent given nothing</em>.</p>
 
 <h3>What that adds up to</h3>
 
-<p><strong>The outcome column barely moves.</strong> One task of eleven has the equipped agent
-meeting its target where the unaided one does not. That column is also the one the calibration
-further down says to read carefully: a count of three sits inside the judge's own margin of error.</p>
+<p><strong>The outcome column barely moves.</strong> Across the eleven tasks,
+two improved, one came out worse, and eight showed no change — and every one of those is a count of three against three, which the
+calibration further down says sits inside the judge's own margin of error. Read the column as
+"nothing separated", not as a scoreboard.</p>
 
 <p><strong>The cost column moves a great deal, and it moves both ways.</strong> Where a skill is
 actually loaded, the direction is a property of the task:</p>
@@ -256,8 +257,8 @@ actually loaded, the direction is a property of the task:</p>
     <em>every</em> unaided run, with input tokens roughly halved. The tooling paying for itself.</li>
   <li><strong>an upgrade</strong> — the widest gap on this page, the other way round: ten to
     seventy times the input tokens, one run at $1.23, and neither side finishes the job.</li>
-  <li><strong>documentation</strong> — about twice the spend, and the one task whose outcome
-    improves.</li>
+  <li><strong>documentation</strong> — about twice the spend, and the largest outcome move on
+    the page: 0 of 3 to 2 of 3.</li>
 </ul>
 
 <p>Where no skill was loaded, spend is mostly flat — which is what nothing being loaded predicts.
@@ -457,8 +458,8 @@ at build time, because the hand-written version of this table was stale within a
     <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">41 of 42</td></tr>
     <tr><td>documentation from nothing</td><td>a domain — &quot;documentation&quot;</td><td class="num">15 of 17</td></tr>
     <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">23 of 29</td></tr>
-    <tr><td>release preparation</td><td>a task</td><td class="num">6 of 16</td></tr>
-    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">1 of 15</td></tr>
+    <tr><td>release preparation</td><td>a task</td><td class="num">6 of 16<span class="lbl">6 of 6 on nr-release; 0 of 10 on nr</span></td></tr>
+    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">2 of 16<span class="lbl">2 of 7 on candidate; 0 of 9 on nr</span></td></tr>
     <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 6</td></tr>
     <tr><td>a timing side channel (Go)</td><td>a task</td><td class="num">0 of 5</td></tr>
     <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 5</td></tr>
@@ -479,6 +480,16 @@ holds a release, git or forge skill. The release case asks to <em>"prepare the 2
 and <code>netresearch/github-release-skill</code> — which exists, and whose description activates on
 the word "release" — was not on offer. That case therefore measured fleet composition, not routing,
 and an earlier version of this page said otherwise.</p>
+
+<p><strong>That one has now been settled by adding the skill.</strong> Twelve trials, the same
+fleet plus <code>github-release-skill</code> and nothing else: skill invocation went from
+<strong>0 of 6 to 6 of 6</strong>, Fisher exact p 0.002 — the first declared result on this page to
+separate at a p a conventional threshold accepts. Routing was never the constraint. It is also why
+the release row above reads 6 of 16 rather than 0 of 16: the two arms carried different fleets, and
+the sub-line under the count says which. Loading the skill did not make the work come out right,
+though — the mechanical check stayed at 0 of 6 on both sides.
+<a href="https://github.com/netresearch/agent-system-evals/blob/main/tasks/open/typo3-release-prep/RESULTS.md">The
+record</a>.</p>
 
 <p><strong>Sometimes it is there and described for a different job.</strong> The same release case
 had <code>typo3-docs</code> in the fleet, shipping
