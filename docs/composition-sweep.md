@@ -75,31 +75,59 @@ authoring or consuming reusable workflows, editing a repo's own
 skill that does not claim the work and reported the result as composition
 failing.
 
-## Measured since: composition alone is not the rule
+## Measured since, and then falsified
 
 `OFR-PY-CI-001` ran with `github-project` added and **did not move: 0 of 3
-against 0 of 3**. The first negative result for the composition lever, on the
-case chosen because the lever looked most likely to work.
+against 0 of 3**. From that plus the four earlier routing runs I wrote a rule
+here and on the published page:
 
-Four routing measurements from 28 August now say one thing rather than three. A
-skill is reached when **the words the request itself uses appear in the opening
-clause of the description**. Both halves are load-bearing:
+> A skill is reached when the words the request itself uses appear in the
+> opening clause of its description.
 
-| the skill in the fleet… | loaded | case |
+**That rule is wrong, and the evidence refuting it was already on disk when I
+wrote it.** Checking every silent case against the opening clause of every skill
+its fleet carries:
+
+| case | skills whose opening clause shares a word with the request | invoked |
 |---|---|---|
-| opens by naming the request's words | 6/6 | release, after adding `github-release` |
-| opens by naming the request's words | 6/6 | restraint, after moving them into the first sentence |
-| names them 35 words in, in a trigger list | 1/6 | restraint, first attempt |
-| covers the work under other words | 0/3 | Python CI, after adding `github-project` |
-| covers the work under other words | 0/5 | Go: skill says "LDAP/AD clients", request says "library" |
-| is not in the fleet at all | 0/6 | release, before |
-| covers the work under other words | 0/3 | runtime bug, after adding `typo3-ddev` — **predicted before the run** |
+| version metadata | `typo3-extension-upgrade` — *extensions, typo3, versions* | 0/7 |
+| restraint | `typo3-conformance` — *check, typo3*; `typo3-extension-upgrade` — *versions* | 0/9 on `nr` |
+| Go LDAP | `security-audit` — *security*, and the request opens "Someone from the **security** side says…" | 0/5 |
+| Extbase contract | `php-modernization` — *property*; `typo3-testing` — *class, extension* | 0/6 |
+| runtime bug | `typo3-docs` — *translation* | 0/46 |
+| Python CI | none | 0/8 |
 
-So the sweep's question was the wrong one. "Does a skill claim this work?" does
-not predict routing; "does a skill open by naming what the request says?" does,
-on five for five so far. That is a harder bar, and it means the two catalogue
-gaps below are not the only cases without a reachable capability — the Go case
-has one installed and unreachable.
+Five of six silent cases have shared vocabulary in an opening clause and none of
+them route. Shared words predict nothing.
+
+## What actually survives the six runs
+
+Two interventions moved routing completely, and both did the same thing: they
+put **the action the request asks to perform** into the opening clause, in the
+request's own terms.
+
+| intervention | before | after |
+|---|---|---|
+| add `github-release` — opens *"Use when creating releases, version bumps, tagging"*; request says *"prepare the 2.4.2 release"* | 0/6 | 6/6 |
+| rewrite `typo3-conformance` to open *"Use when checking which TYPO3 versions an extension declares it supports, when composer.json and ext_emconf.php disagree"*; request asks which versions it supports and says the statements disagree | 1/6 | 6/6 |
+
+`typo3-extension-upgrade` shares three words with the metadata request and
+describes *upgrading to a newer LTS*, which is not what was asked.
+`security-audit` shares "security" and describes *conducting an OWASP
+assessment*, which is not what was asked either. The difference is between a
+description that names the requested action and one that happens to use the same
+nouns.
+
+**And the second of those two positives is close to circular.** I wrote that
+opening clause from the request, so it matching the request is not a discovery.
+The release case is the one clean positive: an existing published skill, written
+without this benchmark in view, whose first clause names the request's verb.
+
+So what is claimable is narrow: *a skill whose opening clause names the action a
+request asks for can go from never being loaded to always being loaded, and both
+composition and wording can put it there.* It is not a predictor. Nothing here
+lets anyone look at a fleet and a request and say in advance whether a skill will
+be reached — five cases where it plausibly should have been say it will not.
 
 ## The experiments this leaves
 
@@ -128,7 +156,11 @@ has one installed and unreachable.
    zero invocations — and it converts that block from unexplained to explained.
 
    **Run, 28 August: 0 of 3 against 0 of 3, Fisher p 1.000.** The prediction
-   held. Three trials is small and the Wilson interval reaches 0.56, so this
+   held — and it was an easier prediction than it looked. Under the corrected
+   reading above, this case shares no vocabulary at all with `typo3-ddev`'s
+   opening clause and describes an action the skill does not claim, so both the
+   rule as written and its corrected form expected a zero. It confirms the
+   negative direction and nothing more. Three trials is small and the Wilson interval reaches 0.56, so this
    could not distinguish never from sometimes; what it could have produced, and
    did not, is the single invocation that would have falsified the rule. The
    record is in `tasks/open/typo3-runtime-save-bug/RESULTS.md`.

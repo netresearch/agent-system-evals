@@ -528,16 +528,20 @@ full record</a>, including what did <em>not</em> follow: the outcome is 3 of 6 o
 
 <h3>What predicts whether a skill is reached</h3>
 
-<p>Six measurements on 28 August, each with the endpoint declared before the first trial. Read
-together they are one rule, not six results: <strong>a skill is reached when the words the request
-itself uses appear in the opening clause of its description.</strong> Both halves carry weight, and
-each row below fails or passes on a different half.</p>
+<p>Six measurements on 28 August, each with the endpoint declared before the first trial. An
+earlier version of this page read one rule out of them — <em>a skill is reached when the words the
+request itself uses appear in the opening clause of its description</em> — and that rule is wrong.
+Checking every silent case against the opening clause of every skill in its fleet, <strong>five of
+six share vocabulary and none of them route</strong>: a skill describing TYPO3 <em>upgrades</em>
+shares "extensions, typo3, versions" with the metadata request, and the Go request literally opens
+"Someone from the <em>security</em> side says…" beside a security skill that was in the fleet and
+never loaded.</p>
 
-<p>The last row is the one that makes this a rule rather than a summary. It was <em>predicted in
-writing before the run</em> — a skill opening "whenever a running TYPO3 instance is wanted, started
-or reached", added to a case whose request says a translation saves and silently does not — and a
-single invocation would have refuted the whole thing. At three trials it could not have told never
-from rarely; what it could have done, and did not, is fail.</p>
+<p>What survives is narrower. Two interventions moved routing completely, and both put <strong>the
+action the request asks to perform</strong> into the opening clause, in the request's own terms —
+not merely the same nouns. And one of those two is close to circular: that clause was written from
+the request, so its matching is not a discovery. The release case is the clean one, an already
+published skill whose first clause names the request's verb.</p>
 
 <div class="scroll">
 <table>
@@ -555,16 +559,17 @@ from rarely; what it could have done, and did not, is fail.</p>
     <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a CI question, after adding <code>github-project</code></td></tr>
     <tr><td>covers the work under other words</td><td class="num">0 of 5</td><td>Go: the skill says "LDAP client", the request says "library"</td></tr>
     <tr><td>is not in the fleet at all</td><td class="num">0 of 6</td><td>release, before</td></tr>
-    <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a runtime bug, after adding <code>typo3-ddev</code> — the one row predicted before the run</td></tr>
+    <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a runtime bug, after adding <code>typo3-ddev</code> — predicted before the run, and an easy prediction</td></tr>
   </tbody>
 </table>
 </div>
 
 <div class="note">
-  <strong>Carrying the right skill is not enough, and neither is describing it accurately.</strong>
-  A capability the fleet lacks cannot be reached; a capability it carries under vocabulary the
-  request does not use is not reached either. Both are fixable by whoever assembles the stack and
-  writes the first sentence of a skill — which is the useful half of this page's findings.
+  <strong>Carrying the right skill is not enough, and no rule here predicts when it is.</strong>
+  Two interventions took a case from never loading a skill to always loading one, and both are
+  actionable by whoever assembles a stack and writes a skill's first sentence. Neither adds up to a
+  test you can apply to a fleet in advance: five cases where shared vocabulary made it look likely
+  went nowhere.
   <strong>None of it made the work come out better.</strong> On the two cases where routing was
   fixed, the outcome did not move: 0 of 6 on the release check either way, 3 of 6 on the restraint
   case either way.
