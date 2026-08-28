@@ -122,6 +122,7 @@ def test_the_resolution_records_what_was_ablated(declare):
         "without": ["org/a-skill"],
         "only": [],
         "at": {},
+        "add": [],
     }
 
 
@@ -199,3 +200,30 @@ def test_only_the_candidate_fleet_may_name_a_branch():
         "only fleets/candidate.yaml may name a mutable ref; these pin one:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_add_carries_one_capability_the_parent_lacks(declare):
+    """The counterpart of `without`, and the reason the release case is stuck.
+
+    That case asks to "prepare the 2.4.2 release" and no fleet under test held
+    a release skill, so the run measured fleet composition and was reported as
+    routing. Testing composition needed a fleet that adds one skill, and the
+    only way to write one was to restate the parent's whole list — the copy
+    `derives_from` exists to prevent.
+    """
+    declare("plus", {"derives_from": "parent", "add": [{"repo": "org/c-skill", "ref": "v3"}]})
+    resolved = fleets.read("plus")
+    assert [s["repo"] for s in resolved["skills"]] == [
+        "org/a-skill", "org/b-skill", "org/c-skill",
+    ]
+    assert resolved["ablation"]["add"] == ["org/c-skill"]
+    # And the parent's other refs are inherited, not restated.
+    assert [s["ref"] for s in resolved["skills"]] == ["v1", "v2", "v3"]
+
+
+def test_add_refuses_a_skill_the_parent_already_carries(declare):
+    """Otherwise the arm equals its parent and reads as a capability that
+    changes nothing — the same failure `without` already refuses."""
+    declare("plus", {"derives_from": "parent", "add": [{"repo": "org/a-skill", "ref": "v1"}]})
+    with pytest.raises(fleets.FleetError, match="already carries"):
+        fleets.read("plus")

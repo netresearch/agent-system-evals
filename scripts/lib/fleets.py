@@ -78,6 +78,24 @@ def read(name: str, _seen: tuple[str, ...] = ()) -> dict:
     if drop and keep:
         raise FleetError(f"fleets/{name}.yaml: use `without` or `only`, not both")
 
+    # `add` is the counterpart of `without`: an arm that carries one capability
+    # the parent lacks. Without it the only way to add a skill is to restate
+    # the parent's whole list, which is the failure `derives_from` exists to
+    # prevent — the copy still names the parent's versions on the day the
+    # parent moves, and the arm measures two changes while reporting one.
+    added = list(fleet.get("add") or [])
+    if added:
+        carried = {s.get("repo") for s in skills}
+        already = [s.get("repo") for s in added if s.get("repo") in carried]
+        if already:
+            raise FleetError(
+                f"fleets/{name}.yaml: `add` names {sorted(already)}, which "
+                f"{parent_name} already carries. The arm would have been "
+                f"identical to its parent and read as a capability that "
+                f"changes nothing — use `at` to move a ref instead."
+            )
+        skills = skills + added
+
     if drop:
         remaining = [s for s in skills if s.get("repo") not in drop]
         unknown = drop - {s.get("repo") for s in skills}
@@ -146,6 +164,7 @@ def read(name: str, _seen: tuple[str, ...] = ()) -> dict:
         "without": sorted(drop),
         "only": sorted(keep),
         "at": dict(sorted(at.items())),
+        "add": sorted(s.get("repo") for s in added),
     }
     return resolved
 

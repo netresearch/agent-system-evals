@@ -1,0 +1,22 @@
+# `nr` plus the one capability the release case asks for.
+#
+# OFR-TYPO3-RELEASE-001 says "prepare the 2.4.2 release" and every fleet run
+# against it so far has been reported as a routing result: 0 of 4 trials
+# invoked any skill. That reading was never sound. The organisation publishes
+# a release skill — netresearch/github-release-skill, whose description
+# activates on "release", "tag" and "version bump" — and no fleet under test
+# carried it. The case was measuring what the fleet contains.
+#
+# This arm settles which of the two it is. If invocation moves, the zero was
+# composition and the fix is fleet membership. If it does not, the zero is
+# routing, and it joins the description experiment recorded in
+# tasks/open/typo3-version-metadata-consistent/RESULTS.md as a second
+# mechanism that does not decide loading.
+
+name: nr-release
+description: nr plus github-release — testing whether the release case's zero is composition or routing
+
+derives_from: nr
+add:
+  - repo: netresearch/github-release-skill
+    ref: v0.11.0
