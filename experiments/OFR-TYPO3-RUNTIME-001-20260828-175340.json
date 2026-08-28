@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-RUNTIME-001-20260828-175340",
+  "case": "OFR-TYPO3-RUNTIME-001",
+  "arms": [
+    "nr",
+    "nr-instance"
+  ],
+  "primary_endpoint": "skill_invoked",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "outcome_quality",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "primary_kind": "invocation",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 269,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-28T17:53:40+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr-instance",
+        "nr"
+      ],
+      "jobs": {
+        "nr-instance": "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-175340",
+        "nr": "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-180212"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr-instance",
+        "nr"
+      ],
+      "jobs": {
+        "nr-instance": "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-181154",
+        "nr": "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-182019"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr-instance",
+        "nr"
+      ],
+      "jobs": {
+        "nr-instance": "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-182832",
+        "nr": "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-183910"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "skill_invoked did not move after the discovery round (0/3 against 0/3, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-180212",
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-182019",
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-20260828-183910"
+    ],
+    "nr-instance": [
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-175340",
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-181154",
+      "jobs/OFR-TYPO3-RUNTIME-001-nr-instance-20260828-182832"
+    ]
+  },
+  "finished_at": "2026-08-28T18:49:37+00:00",
+  "valid_trials": {
+    "nr": 3,
+    "nr-instance": 3
+  }
+}

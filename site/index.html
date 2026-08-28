@@ -466,7 +466,7 @@ at build time, because the hand-written version of this table was stale within a
     <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 11</td></tr>
     <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">0 of 7</td></tr>
     <tr><td>version metadata, unprepared repository</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 46</td></tr>
+    <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 52</td></tr>
   </tbody>
 </table>
 </div>
@@ -528,10 +528,16 @@ full record</a>, including what did <em>not</em> follow: the outcome is 3 of 6 o
 
 <h3>What predicts whether a skill is reached</h3>
 
-<p>Five measurements on 28 August, four of them twelve-trial runs with the endpoint declared before
-the first trial. Read together they are one rule, not five results: <strong>a skill is reached when
-the words the request itself uses appear in the opening clause of its description.</strong> Both
-halves carry weight, and each cell below fails or passes on a different half.</p>
+<p>Six measurements on 28 August, each with the endpoint declared before the first trial. Read
+together they are one rule, not six results: <strong>a skill is reached when the words the request
+itself uses appear in the opening clause of its description.</strong> Both halves carry weight, and
+each row below fails or passes on a different half.</p>
+
+<p>The last row is the one that makes this a rule rather than a summary. It was <em>predicted in
+writing before the run</em> — a skill opening "whenever a running TYPO3 instance is wanted, started
+or reached", added to a case whose request says a translation saves and silently does not — and a
+single invocation would have refuted the whole thing. At three trials it could not have told never
+from rarely; what it could have done, and did not, is fail.</p>
 
 <div class="scroll">
 <table>
@@ -549,6 +555,7 @@ halves carry weight, and each cell below fails or passes on a different half.</p
     <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a CI question, after adding <code>github-project</code></td></tr>
     <tr><td>covers the work under other words</td><td class="num">0 of 5</td><td>Go: the skill says "LDAP client", the request says "library"</td></tr>
     <tr><td>is not in the fleet at all</td><td class="num">0 of 6</td><td>release, before</td></tr>
+    <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a runtime bug, after adding <code>typo3-ddev</code> — the one row predicted before the run</td></tr>
   </tbody>
 </table>
 </div>

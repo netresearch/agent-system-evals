@@ -93,6 +93,7 @@ clause of the description**. Both halves are load-bearing:
 | covers the work under other words | 0/3 | Python CI, after adding `github-project` |
 | covers the work under other words | 0/5 | Go: skill says "LDAP/AD clients", request says "library" |
 | is not in the fleet at all | 0/6 | release, before |
+| covers the work under other words | 0/3 | runtime bug, after adding `typo3-ddev` — **predicted before the run** |
 
 So the sweep's question was the wrong one. "Does a skill claim this work?" does
 not predict routing; "does a skill open by naming what the request says?" does,
@@ -125,6 +126,12 @@ has one installed and unreachable.
    An invocation refutes the rule outright. A zero is the first out-of-sample
    confirmation, on the benchmark's largest silent block — 46 equipped trials,
    zero invocations — and it converts that block from unexplained to explained.
+
+   **Run, 28 August: 0 of 3 against 0 of 3, Fisher p 1.000.** The prediction
+   held. Three trials is small and the Wilson interval reaches 0.56, so this
+   could not distinguish never from sometimes; what it could have produced, and
+   did not, is the single invocation that would have falsified the rule. The
+   record is in `tasks/open/typo3-runtime-save-bug/RESULTS.md`.
 3. Nothing for `CON-TYPO3-EXTBASE-001`. No skill claims Extbase persistence
    rules; `typo3-conformance` is nearest and is already in the fleet.
 
