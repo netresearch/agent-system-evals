@@ -413,12 +413,45 @@ construction.</p>
 was reading a transcript that never contained one, and scored a diff that makes the secondary limit
 green as having kept it red — twice. The mechanical check, which reads the tree, caught all four.</p>
 
+<h2>What a count of three can carry</h2>
+
+<p>The judges were calibrated on 26 and 28 August: four recorded runs, 5
+gradings of each on identical input, all eight dimensions. The spread numbers were reassuring — no
+mechanical criterion moved at all, no dimension moved more than a third of its scale. The spread was
+the wrong thing to read.</p>
+
+<p>Every comparison here counts dimensions <em>met</em>, at 0.75. Read that way, the same
+measurements say <strong>8 of 32 dimension verdicts flip between met and not-met
+on identical input</strong> — and the same ones flip in both calibrations. They are the dimensions
+scoring near the boundary, where one criterion moving one step of its three-point scale crosses the
+line. <code>[0.75, 0.75, 0.75, 0.67, 0.67]</code> is a spread of 0.08 and a verdict that changes
+three times.</p>
+
+<p>How far that reaches, measured across every experiment on record: <strong>49 of 61 dimension rows
+contain at least one boundary trial, and 155 of the 282 trials behind those rows sit within one
+judge step of the threshold.</strong> Half the rows have three or more of six there; six rows have
+all six.</p>
+
+<div class="note">
+  <strong>This is not "half the numbers are wrong".</strong> Two arms whose scores both sit on the
+  boundary are still being compared, and a difference between them can still be real. It is a
+  statement about what a count of three carries: where the scores sit where the verdict flips,
+  <code>2/3 → 3/3</code> is a coin the instrument tossed, and the row has to be read as its
+  per-trial scores rather than as its count. <code>scripts/analyze</code> marks every row where it
+  applies, and the tables above are to be read with that in mind.
+</div>
+
+<p>What is not yet measured is whether the judges are <em>right</em>. The bands they are checked
+against were written by the same person who wrote the rubric, so the calibration can establish that
+a judge is unrepeatable and cannot yet establish that it is correct. That gate is reported and does
+not fail the build until an independent rater has set the bands.</p>
+
 <h2>Method</h2>
 
 <div class="grid">
   <div class="card"><span class="big">11</span><span class="lbl">cases, one environment baseline</span></div>
   <div class="card"><span class="big">113</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">23</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">24</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by

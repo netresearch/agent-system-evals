@@ -262,6 +262,26 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
             for arm in case.values():
                 seen.update(m for m in arm.model().split(", ") if m != "—")
         return ", ".join(sorted(seen)) if seen else "—"
+    if field == "verdict_flips":
+        # The calibration's own numbers, read from the report rather than
+        # typed: how many dimension verdicts failed to reproduce across
+        # repeats of identical input, and out of how many.
+        report = validity.read_json(ROOT / "calibration" / "report.json") or {}
+        measurements = [
+            m
+            for dims in (report.get("fixtures") or {}).values()
+            for m in dims.values()
+            if "verdict_stable" in m
+        ]
+        if not measurements:
+            raise KeyError("totals.verdict_flips: no calibration on record")
+        flips = sum(1 for m in measurements if not m["verdict_stable"])
+        return f"{flips} of {len(measurements)}"
+    if field == "calibration_repeats":
+        report = validity.read_json(ROOT / "calibration" / "report.json") or {}
+        if not report.get("repeats"):
+            raise KeyError("totals.calibration_repeats: no calibration on record")
+        return str(report["repeats"])
     if field == "failures":
         # Counted from the document rather than typed: the two disagreed once,
         # and the page was the one that was wrong.
@@ -286,7 +306,10 @@ def lint() -> int:
     for key in PLACEHOLDER.findall(TEMPLATE.read_text()):
         parts = key.split(".")
         if parts[0] == "totals":
-            if parts[1] not in {"cases", "runs", "failures", "version", "models"}:
+            if parts[1] not in {
+                "cases", "runs", "failures", "version", "models",
+                "verdict_flips", "calibration_repeats",
+            }:
                 problems.append(f"{key}: unknown total")
             continue
         if len(parts) < 3 or parts[2] not in KNOWN_FIELDS:
