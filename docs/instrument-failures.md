@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-five ways this benchmark measured the wrong thing while looking like it was
+Twenty-six ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -540,6 +540,51 @@ the kind of number the pre-declaration exists to keep out of a conclusion.
 transcript as `run-comparison`, and prints it as its own section marked
 `[PRIMARY]` or `[exploratory]`. A test asserts both scripts read the same tool
 names, and fails when either drifts.
+
+## 26. A rule read from the cases that moved, never checked against the ones that did not
+
+Six routing experiments on 28 August, each with its endpoint declared before the
+first trial. Two moved completely — adding a skill to a fleet, and moving words
+into a description's opening clause — and four did not. Out of them came a rule,
+published on the results page and merged into
+`netresearch/agent-harness-skill`'s enforcement reference within the hour:
+
+> A skill is reached when the words the request itself uses appear in the
+> opening clause of its description.
+
+It was read from the two that moved. Checking it against the four that did not
+takes one command — for each silent case, the opening clause of every skill its
+fleet carries, intersected with the request's words:
+
+| case | a fleet skill sharing a word in its opening clause | invoked |
+|---|---|---|
+| version metadata | `typo3-extension-upgrade` — *extensions, typo3, versions* | 0/7 |
+| Go LDAP | `security-audit` — *security*, and the request opens "Someone from the **security** side says…" | 0/5 |
+| Extbase contract | `php-modernization` — *property*, for a request about unpersistable properties | 0/6 |
+| restraint (`nr`) | `typo3-conformance` — *check, typo3* | 0/9 |
+| runtime bug | `typo3-docs` — *translation* | 0/46 |
+
+Five of six, none of them routing. The rule was false when it was written, and
+the data refuting it was already on disk — in the same job directories the two
+positive results came from.
+
+The shape is the one this document keeps finding, one level up from the code: an
+instrument that only ever sees confirming cases. Every earlier entry here is a
+measurement that produced a plausible number; this is a *generalisation* that
+produced a plausible rule, from measurements that were each individually sound.
+Neither the tests nor the build nor the contamination gate has anything to say
+about it, because nothing was broken.
+
+**What survives is narrower.** Both positives put *the action the request asks to
+perform* into the opening clause, in the request's own terms — not its nouns.
+And one of the two is close to circular: that clause was written from the request
+by the person running the experiment. One clean positive, one constructed one,
+and no predictor.
+
+**Fix:** a rule derived from N experiments is checked against every case in the
+benchmark before it is written down, not against the ones that suggested it —
+and the check is a command, kept beside the claim, not a reading. What is
+published now says explicitly that nothing here predicts reach in advance.
 
 ## What this cost, and what it teaches
 
