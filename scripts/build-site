@@ -47,6 +47,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
 import cases as case_lib  # noqa: E402
+import stats  # noqa: E402
 import validity  # noqa: E402
 from dimensions import met_threshold  # noqa: E402
 
@@ -203,6 +204,7 @@ def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
 
 
 def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
+    """One placeholder. `case.arm.field[.argument]`, or `totals.field`."""
     parts = key.split(".")
     if parts[0] == "totals":
         return totals(parts[1], arms, manifest)
@@ -212,6 +214,25 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
     if case not in arms or arm not in arms[case]:
         raise KeyError(key)
     target = arms[case][arm]
+    arms_of_case = arms[case]
+    if field in ("cost_delta", "cost_p", "tokens_delta", "tokens_p") and rest:
+        # The effect between this arm and a named other, computed from the
+        # pooled trials with the same functions scripts/analyze uses. Typed
+        # into the page it would be a number nothing binds to a trial; the
+        # whole manifest exists so that cannot happen.
+        other = arms_of_case[rest[0]]
+        metric = "cost_usd" if field.startswith("cost") else "n_input_tokens"
+        # Direction: from the NAMED arm to this one, so
+        # `{{ case.nr.cost_delta.control }}` reads the way scripts/analyze
+        # prints it — `control → nr`. Written the other way round it silently
+        # publishes every sign inverted, which is how the first version of this
+        # reported the review case's saving as an overspend.
+        a, b = other._agent(metric), target._agent(metric)
+        if not a or not b:
+            return "—"
+        if field.endswith("_delta"):
+            return f"{stats.cliffs_delta(a, b):+.2f}"
+        return f"{stats.permutation_p(a, b)[0]:.3f}"
     if field == "met" and rest:
         return target.met(rest[0])
     if field == "mean" and rest:
@@ -290,7 +311,10 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
     raise KeyError(f"totals.{field}")
 
 
-KNOWN_FIELDS = {"cost", "tokens", "tools", "valid", "complete", "met", "mean", "model"}
+KNOWN_FIELDS = {
+    "cost", "tokens", "tools", "valid", "complete", "met", "mean", "model",
+    "cost_delta", "cost_p", "tokens_delta", "tokens_p",
+}
 
 
 def lint() -> int:

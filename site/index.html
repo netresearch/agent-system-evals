@@ -125,6 +125,68 @@
 
 <main class="wrap">
 
+<h2>What the stack does, in one table</h2>
+
+<p>Eleven cases, each against the same agent with nothing provisioned. Two columns are worth
+reading, and only one of them is what this benchmark was built to measure.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>case</th>
+      <th class="num">outcome<br><span class="lbl">control &rarr; equipped</span></th>
+      <th class="num">agent cost<br><span class="lbl">delta, p</span></th>
+      <th class="num">input tokens<br><span class="lbl">delta, p</span></th>
+      <th class="num">skill<br>invoked</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a review</td><td class="num">3/3 → 3/3</td><td class="num delta-down">-1.00, p 0.100</td><td class="num delta-down">-0.78, p 0.200</td><td class="num">3 of 3</td></tr>
+    <tr><td>documentation from nothing</td><td class="num">0/3 → 2/3</td><td class="num">+1.00, p 0.100</td><td class="num">+1.00, p 0.100</td><td class="num">3 of 3</td></tr>
+    <tr><td>an upgrade</td><td class="num">0/3 → 0/3</td><td class="num">+1.00, p 0.100</td><td class="num">+1.00, p 0.100</td><td class="num">3 of 3</td></tr>
+    <tr><td>release preparation</td><td class="num">0/3 → 0/3</td><td class="num">-0.78, p 0.200</td><td class="num">-0.56, p 0.400</td><td class="num">0 of 3</td></tr>
+    <tr><td>version metadata</td><td class="num">3/3 → 3/3</td><td class="num">+0.11, p 1.000</td><td class="num">-0.11, p 1.000</td><td class="num">0 of 3</td></tr>
+    <tr><td>version metadata, unprepared</td><td class="num">2/3 → 2/3</td><td class="num">-0.11, p 1.000</td><td class="num">-0.78, p 0.200</td><td class="num">0 of 3</td></tr>
+    <tr><td>restraint: nothing to change</td><td class="num">1/3 → 1/3</td><td class="num">+0.78, p 0.200</td><td class="num">+0.78, p 0.200</td><td class="num">0 of 3</td></tr>
+    <tr><td>a runtime bug</td><td class="num">0/3 → 0/3</td><td class="num">+0.11, p 1.000</td><td class="num">+0.11, p 1.000</td><td class="num">0 of 3</td></tr>
+    <tr><td>a timing side channel (Go)</td><td class="num">3/3 → 2/3</td><td class="num">-0.33, p 0.700</td><td class="num">-0.33, p 0.700</td><td class="num">0 of 3</td></tr>
+    <tr><td>a job's exit status (Python)</td><td class="num">0/3 → 1/3</td><td class="num">+0.11, p 1.000</td><td class="num">+0.11, p 1.000</td><td class="num">0 of 3</td></tr>
+    <tr><td>a contract eval</td><td class="num">3/3 → 3/3</td><td class="num">-0.11, p 1.000</td><td class="num">+0.56, p 0.400</td><td class="num">0 of 3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every figure is a Cliff's delta and an exact permutation p over three trials per arm, computed
+from the recorded jobs rather than typed. At this size 0.100 is the smallest attainable two-sided p,
+and &plusmn;1.00 means the samples do not overlap at all — every trial of one arm above or below
+every trial of the other. Nothing here clears a conventional threshold; three of these lines are as
+far apart as three against three can be.</p>
+
+<h3>What it says</h3>
+
+<p><strong>The outcome column barely moves.</strong> One case of eleven has the equipped arm meeting
+its declared endpoint where the unaided one does not. That column is also the one the calibration
+below says to read carefully: a count of three sits inside the judge's own step.</p>
+
+<p><strong>The cost column moves a great deal, and it moves both ways.</strong> Where a skill is
+actually invoked, the direction is a property of the case:</p>
+
+<ul>
+  <li><strong>a review</strong> — same result, and <em>every</em> equipped trial cheaper than
+    <em>every</em> control trial: median a third lower, input tokens roughly halved. The stack
+    paying for itself.</li>
+  <li><strong>an upgrade</strong> — the widest separation on this page, the other way round: ten to
+    seventy times the input tokens, one trial at $1.23, and neither arm finishes.</li>
+  <li><strong>documentation</strong> — about twice the spend, and the one case whose outcome moves.</li>
+</ul>
+
+<p>In the six cases where no skill was invoked, cost is mostly flat — which is what nothing being
+loaded predicts. So the summary is not that the stack makes no measurable difference. It is that
+<strong>its clearest measured effect is on spend, that effect is large, and its sign depends on the
+task</strong>. Whether the work comes out better is the question three trials per arm cannot answer,
+and the case sections below say so one at a time.</p>
+
 <h2>What is being measured</h2>
 
 <p class="lede">Whether an agent equipped with the Netresearch engineering stack takes a
