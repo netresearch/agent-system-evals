@@ -124,3 +124,94 @@ scripts/run-comparison OFR-TYPO3-RELEASE-001 --arms control,nr \
     --primary release --model claude-haiku-4-5-20251001 --seed 31
 scripts/analyze experiments/OFR-TYPO3-RELEASE-001-20260821-125821.json
 ```
+
+---
+
+# The composition experiment — 28 August 2026
+
+Every earlier run of this case reported zero skill invocations and was read as a
+routing result. That reading was never sound. The request is *"prepare the 2.4.2
+release"*; the organisation publishes `netresearch/github-release-skill`, whose
+description activates on "release", "tag" and "version bump"; and **no fleet
+under test carried it**. The case was measuring what the fleet contains.
+
+## What the run was
+
+`scripts/run-comparison OFR-TYPO3-RELEASE-001 --arms nr,nr-release --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 211`
+
+Twelve trials, six per arm, twelve of twelve valid. `nr-release` is `nr` plus
+`netresearch/github-release-skill@v0.11.0` and nothing else — the `add:` key in
+`fleets/nr-release.yaml` inherits every other version from `nr` rather than
+restating it, so the arms differ in exactly one skill.
+
+Experiment record: `experiments/OFR-TYPO3-RELEASE-001-20260828-152051.json`.
+
+## The clearest result this benchmark has produced
+
+| | nr | nr-release |
+|---|---|---|
+| `skill_invoked` | 0/6 | **6/6** |
+| Wilson interval | [0.00, 0.39] | [0.61, 1.00] |
+| Fisher exact p | — | **0.002** two-sided, 0.001 one-sided |
+
+Every trial with the skill present loaded it; no trial without it loaded
+anything. This is the first declared endpoint in the benchmark to separate
+completely at a p a conventional threshold accepts, and it settles the question
+the case had been mis-answering: **the zero was composition, not routing.**
+
+It also settles it in the direction that matters for reading every other case:
+routing works. An agent offered a skill whose description names the noun in the
+request reaches for it, six times out of six, with no prompting and no change to
+the request.
+
+## And loading it did not fix the task
+
+| | nr | nr-release |
+|---|---|---|
+| mechanical outcome | 0/6 | 0/6 |
+| `release` dimension met | 0/6 | 1/6 |
+| Cliff's delta | — | −0.25, p 0.478 |
+| criteria behind it | 39 met / 3 partial / 24 not met | 25 met / 7 partial / 34 not met |
+
+The mechanical check — the one decided by the framework rather than by a judge —
+is zero on both sides. Six trials loaded a release skill built for exactly this
+work and not one of them produced a correct release preparation. The judged
+dimension moved by one trial in the *worse* direction, and nine of the twelve
+trials score within one judge step of the threshold, so that number carries
+nothing either way.
+
+Spend did not move (delta +0.00 on cost, −0.06 on tokens, both p ≈ 1), but the
+dispersion inside `nr-release` is wide: three trials at $0.03–$0.04 with seven to
+nine tool calls, three at $0.12–$0.18 with twenty-four to thirty-four. The same
+fleet, the same request, two quite different behaviours. Exploratory.
+
+## What the two experiments say together
+
+Run against the description experiment on
+[the restraint case](../typo3-version-metadata-consistent/RESULTS.md), the pair
+separates two mechanisms that had been treated as one:
+
+| lever | measured | result |
+|---|---|---|
+| the skill's own wording | 12 trials, 28 Aug | 0/6 → 1/6, p 1.000 — no effect |
+| whether the skill is in the fleet | 12 trials, 28 Aug | 0/6 → **6/6**, p 0.002 |
+
+A stack is reached for when it *contains* something the request names. Rewriting
+what a skill says about itself did not do it; carrying the right skill did. The
+practical consequence is that fleet composition is the lever worth spending on,
+and that eight silent cases are a question about what the fleets carry before
+they are a question about how skills describe themselves.
+
+The second half is the harder finding: reaching the skill and doing the job are
+different things, and this case now shows the gap directly. Six of six trials
+loaded the release skill; zero of six prepared the release.
+[agent-harness#61](https://github.com/netresearch/agent-harness-skill/issues/61)
+carries that thread.
+
+## Reproducing
+
+```
+scripts/run-comparison OFR-TYPO3-RELEASE-001 --arms nr,nr-release \
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 211
+scripts/analyze experiments/OFR-TYPO3-RELEASE-001-20260828-152051.json
+```
