@@ -100,6 +100,11 @@ its fleet carries:
 Five of six silent cases have shared vocabulary in an opening clause and none of
 them route. Shared words predict nothing.
 
+The table is produced by `scripts/routing-overlap`, which reads each case's
+fleets from the recorded snapshots rather than from the page's arm labels — the
+Go case's equipped arm is called `nr` on the page and ran on `nr-go`, and
+resolving the label would have read the wrong skill list.
+
 ## What actually survives the six runs
 
 Two interventions moved routing completely, and both did the same thing: they

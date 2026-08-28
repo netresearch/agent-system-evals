@@ -1,0 +1,152 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["pyyaml"]
+# ///
+"""Does a case's fleet carry a skill whose description opens with the request's words?
+
+Written after a rule derived from two experiments was published and then
+refuted by the four it had never been checked against (docs/instrument-failures.md
+26). The rule said a skill is reached when the request's words appear in the
+opening clause of its description; five of six silent cases have exactly that
+overlap and none of them route.
+
+So this is not a predictor and does not pretend to be one. It is the check that
+refutes the predictor — run it before writing any claim of the form "the fleet
+had nothing to route to", because that claim is about words and this counts
+them.
+
+Descriptions come from the SKILL.md of each installed skill, which is the text
+routing reads; the marketplace catalogue carries a different one (retro-skill#83).
+Skills not installed locally are listed as unavailable rather than silently
+skipped — an absent description would otherwise read as an absent overlap.
+
+    scripts/routing-overlap                 # every case in site/report.toml
+    scripts/routing-overlap OFR-GO-LDAP-001
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import re
+import sys
+import tomllib
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import cases as case_lib  # noqa: E402
+import fleets  # noqa: E402
+
+CACHE = Path.home() / ".claude/plugins/cache/netresearch-claude-code-marketplace"
+
+# Words that carry no routing signal. Deliberately short: a longer list is a
+# thumb on the scale, and the point here is to find overlap, not to grade it.
+STOP = set(
+    """the a an and or of to in for with that this it is are be as on at by from our
+    their its have has do does not but if when what which who how please find out you
+    your we us can could should would tell me them they there here about into over
+    some every just also more than""".split()
+)
+
+
+def descriptions() -> dict[str, str]:
+    """`SKILL.md` description per skill name, newest installed version."""
+    newest: dict[str, tuple[str, Path]] = {}
+    for skill in CACHE.glob("*/*/skills/*/SKILL.md"):
+        plugin, version, name = skill.parts[-5], skill.parts[-4], skill.parts[-2]
+        if name not in newest or version > newest[name][0]:
+            newest[name] = (version, skill)
+    out = {}
+    for name, (_, path) in newest.items():
+        head = path.read_text(errors="ignore")[:4000]
+        found = re.search(r'^description:\s*"?(.+?)"?\s*$', head, re.M | re.S)
+        out[name] = " ".join((found.group(1) if found else "").split())
+    return out
+
+
+def opening(description: str) -> str:
+    """The first sentence, before any `Also triggers on:` tail."""
+    return re.split(r"(?<=[.!?])\s|Also triggers on:", description)[0]
+
+
+def request_words(case_id: str) -> set[str]:
+    directory = case_lib.by_id(case_id)
+    if directory is None:
+        return set()
+    text = (directory / "instruction.md").read_text(errors="ignore").lower()
+    return {w for w in re.findall(r"[a-z][a-z0-9-]{3,}", text) if w not in STOP}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("case_id", nargs="?")
+    args = parser.parse_args()
+
+    loader = importlib.machinery.SourceFileLoader(
+        "invocation_census", str(ROOT / "scripts" / "invocation-census")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    census_mod = importlib.util.module_from_spec(spec)
+    loader.exec_module(census_mod)
+    counted = census_mod.census()
+
+    if not CACHE.is_dir():
+        sys.exit(f"no installed skills under {CACHE} — nothing to read a description from")
+    desc = descriptions()
+
+    # The fleets a case actually ran against, read from the recorded snapshots
+    # rather than from the manifest's arm labels. Those labels are display
+    # names: the Go case's equipped arm is called `nr` on the page and ran on
+    # `nr-go`, and resolving the label would have read the wrong skill list.
+    pairs: dict[str, set[str]] = {}
+    for job in sorted((ROOT / "jobs").glob("*")):
+        snapshot = job / "nr-snapshot.json"
+        if not snapshot.exists():
+            continue
+        try:
+            recorded = json.loads(snapshot.read_text())
+        except ValueError:
+            continue
+        case_id, fleet = recorded.get("case_id"), recorded.get("fleet")
+        if case_id and fleet:
+            pairs.setdefault(case_id, set()).add(fleet)
+
+    for case_id, arms in sorted(pairs.items()):
+        if args.case_id and case_id != args.case_id:
+            continue
+        words = request_words(case_id)
+        row = counted.get(case_id, {})
+        rate = f"{row.get('invoked', 0)}/{row.get('trials', 0)}"
+        print(f"\n{case_id}   invoked {rate}")
+        if not words:
+            print("  (no instruction.md found)")
+            continue
+        for arm in sorted(arms):
+            try:
+                refs = fleets.skill_refs(arm)
+            except Exception:
+                continue
+            if not refs:
+                continue
+            for ref in refs:
+                name = ref.split("/")[1].rsplit("-skill", 1)[0]
+                if name not in desc:
+                    print(f"  {arm:12} {name}: NOT INSTALLED — description unread")
+                    continue
+                hits = sorted(w for w in words if w in opening(desc[name]).lower())
+                if hits:
+                    print(f"  {arm:12} {name}: {', '.join(hits)}")
+    print(
+        "\nOverlap is not reach. Five of six silent cases show overlap here and "
+        "none of them route — see docs/composition-sweep.md."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

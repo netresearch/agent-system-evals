@@ -419,3 +419,31 @@ def test_the_census_actually_groups_by_arm(tmp_path):
         },
     }
     assert census.split(rows) == "candidate 2 of 2; candidate@experiment/older 0 of 3"
+
+
+def test_the_overlap_check_reads_the_opening_clause_only():
+    """The check that refutes the routing rule, pinned on its two pure parts.
+
+    It cannot be tested end to end here: descriptions come from the installed
+    plugin cache, which CI does not have. What can be pinned is where the
+    opening clause ends — everything after `Also triggers on:` measured far
+    less, and a check that read the whole description would have found overlap
+    everywhere and said nothing.
+    """
+    overlap = load("routing-overlap")
+
+    described = (
+        "Use when assessing TYPO3 extension quality, conformance checking. "
+        "Also triggers on: version declarations that disagree, ext_emconf.php."
+    )
+    clause = overlap.opening(described)
+    assert "conformance checking" in clause
+    assert "ext_emconf" not in clause
+    # A description with no sentence break is all opening clause.
+    assert overlap.opening("Use when creating releases") == "Use when creating releases"
+    # And the tail marker ends it even mid-sentence, which is how the skill
+    # under test writes it.
+    assert overlap.opening("Use when X. Also triggers on: Y") == "Use when X."
+
+    assert "typo3" not in overlap.STOP  # a stop list that ate the domain word
+    assert "the" in overlap.STOP        # would make every case look like a match

@@ -583,7 +583,11 @@ and no predictor.
 
 **Fix:** a rule derived from N experiments is checked against every case in the
 benchmark before it is written down, not against the ones that suggested it —
-and the check is a command, kept beside the claim, not a reading. What is
+and the check is a command, kept beside the claim, not a reading.
+`scripts/routing-overlap` is that command: per case, the opening clause of every
+skill its fleets carried, intersected with the request's words, beside the
+measured invocation rate. Run against the rule above it prints five rows of
+overlap with zero invocations. What is
 published now says explicitly that nothing here predicts reach in advance.
 
 ## What this cost, and what it teaches
