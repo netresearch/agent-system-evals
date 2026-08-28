@@ -236,23 +236,33 @@ Counting how often each trial's transcript mentions the extension repository at
 | nr-release | 3 of 6 | 67–100 | 2–3 | 27–36 |
 | nr-release | 3 of 6 | **0–5** | **0** | **8–10** |
 
-Three equipped trials never found the extension at all. They ran the skill's
-`release-status.sh` in the working directory, got `fatal: not a git repository`,
-looked around `/instance` — a TYPO3 distribution with `composer.json`, `vendor/`
-and `packages/` — and stopped after eight to ten steps to ask which repository
-was meant. Their closing messages are questions, not answers:
+Three equipped trials never found the extension at all. They looked around
+`/instance` — a TYPO3 distribution with `composer.json`, `vendor/` and
+`packages/` — and stopped after eight to ten steps to ask which repository was
+meant. Their closing messages are questions, not answers:
 
 > *"I need clarification: this working directory isn't a git repository, and
 > what I see is a TYPO3 CMS distribution rather than a single extension."*
 
-The unaided arm, with no script to run first, explored until it found `/app`.
-Six times out of six.
+The unaided arm explored until it found `/app`. Six times out of six.
 
-**So the skill did change behaviour, in both directions.** Where the agent got
-past the first script it did *more* than the unaided arm — 27 to 36 steps
-against 19 to 28 — and updated `guides.xml`, which the unaided arm never touched
-in six trials. Where the script's failure came first, it derailed the trial
-completely.
+**What caused the split is not established, and an earlier version of this
+section said it was.** All six equipped trials invoked the skill and ran its
+`release-status.sh` first; in this sandbox that script exits 2 with `gh
+(authenticated) required`, because no `gh` is installed. That looked like the
+cause until the transcripts were counted: the `gh` failure appears in two of the
+three trials that went on to edit files and in one of the three that did not.
+The `fatal: not a git repository` line came from the agent's own `git remote -v`
+one step later, not from the script.
+
+So the observation stands and the explanation does not. Six trials with the same
+skill, the same request and the same first tool call split three-three, and
+nothing measured here says why.
+
+**The skill did change behaviour, in both directions.** Three equipped trials
+did *more* than any unaided one — 27 to 36 steps against 19 to 28 — and updated
+`guides.xml`, which the unaided arm never touched in six trials. Three did
+nothing at all, which no unaided trial did either.
 
 That is what the aggregate hid. `0 of 6` against `0 of 6` is true, and it
 describes a case where one arm reliably does half the job and the other either
@@ -267,8 +277,10 @@ finding that is not about routing, not about the environment, and fixable in a
 skill: filed as
 [github-release-skill#93](https://github.com/netresearch/github-release-skill/issues/93).
 
-The cwd assumption is filed as
-[github-release-skill#94](https://github.com/netresearch/github-release-skill/issues/94).
+The script's hard exit when `gh` is unavailable — which discards the half of its
+verdict it could still compute from the local tree — is filed as
+[github-release-skill#94](https://github.com/netresearch/github-release-skill/issues/94),
+after its first version blamed the split on that script and was corrected.
 
 ## One thing the reader should weigh
 

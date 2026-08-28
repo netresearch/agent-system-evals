@@ -583,20 +583,22 @@ separately say something else.</p>
 <p>The unaided agent is consistent: two places every run, the other two never. The equipped agent
 splits in half. Three of its six runs went <em>further</em> than the unaided ones — 27 to 36 steps
 against 19 to 28 — and updated <code>guides.xml</code>, which no unaided run ever touched. The other
-three never found the extension at all: they ran the skill's status script first, it reported
-<code>fatal: not a git repository</code> because the agent starts in the running TYPO3 instance
-rather than in the extension checkout, and they closed after eight to ten steps by asking which
-repository was meant. Agents without the skill had no script to run first and searched until they
-found it, six times out of six.</p>
+three never found the extension at all: they searched the running TYPO3 instance the agent starts
+in, and closed after eight to ten steps by asking which repository was meant. No unaided run did
+that; all six found the checkout.</p>
 
 <div class="note">
-  <strong>The skill was not ignored — its first step decided the run.</strong> That is a mechanism
-  rather than a verdict, and it is the useful shape of "loaded but no better": one row of a
-  checklist missing, and one script assuming it starts where the repository is. Both are filed
-  against the skill
-  (<a href="https://github.com/netresearch/github-release-skill/issues/93">#93</a>,
-  <a href="https://github.com/netresearch/github-release-skill/issues/94">#94</a>). And the fourth
-  row is the one nobody touched with or without help: 0 of 12.
+  <strong>The skill was not ignored, and what split the runs is not established.</strong> An earlier
+  version of this page said the skill's status script derailed them. Counting the transcripts
+  refuted it: that script does fail in this sandbox — it needs <code>gh</code>, which is not
+  installed — but the failure appears in two of the three runs that went on to edit files and in one
+  of the three that did not. Six runs, one skill, one request, one first tool call, split
+  three-three, and nothing measured here says why.
+  <strong>Two things are established and filed against the skill:</strong> the fourth row above,
+  untouched in 0 of 12 runs with or without help
+  (<a href="https://github.com/netresearch/github-release-skill/issues/93">#93</a>), and a status
+  script that exits rather than reporting the half of its verdict it could still compute without a
+  forge token (<a href="https://github.com/netresearch/github-release-skill/issues/94">#94</a>).
 </div>
 
 <h3>Where the skill did fire, the direction is not the same</h3>
