@@ -30,20 +30,42 @@ def load(script: str):
     return module
 
 
-def test_criterion_values_reads_both_kinds_of_criteria():
-    calibrate = load("calibrate-judges")
-    details = {
-        "evidence": [
-            {"kind": "programmatic", "score": 1.0,
-             "criteria": [{"name": "read_manifest", "value": 1.0, "raw": True}]},
-            {"kind": "agent", "score": 0.5,
-             "criteria": [{"name": "findings_anchored", "value": 0.5, "raw": 2},
-                          {"name": "no_guesswork", "value": 0.0, "raw": 1}]},
-        ]
-    }
-    assert calibrate.criterion_values(details) == {
-        "evidence": {"read_manifest": 1.0, "findings_anchored": 0.5, "no_guesswork": 0.0}
-    }
+EXPECTED = {"evidence": {"read_manifest": 1.0, "findings_anchored": 0.5, "no_guesswork": 0.0}}
+
+# A job directory: one block per kind.
+JOB_SHAPE = {
+    "evidence": [
+        {"kind": "programmatic", "score": 1.0,
+         "criteria": [{"name": "read_manifest", "value": 1.0, "raw": True}]},
+        {"kind": "agent", "score": 0.5,
+         "criteria": [{"name": "findings_anchored", "value": 0.5, "raw": 2},
+                      {"name": "no_guesswork", "value": 0.0, "raw": 1}]},
+    ]
+}
+
+# `rewardkit --output`, which is how the calibration runs it: one object.
+OUTPUT_SHAPE = {
+    "evidence": {"score": 0.5, "criteria": [
+        {"name": "read_manifest", "value": 1.0, "raw": True},
+        {"name": "findings_anchored", "value": 0.5, "raw": 2},
+        {"name": "no_guesswork", "value": 0.0, "raw": 1},
+    ]}
+}
+
+
+def test_criterion_values_reads_the_job_shape():
+    assert load("calibrate-judges").criterion_values(JOB_SHAPE) == EXPECTED
+
+
+def test_criterion_values_reads_the_output_shape():
+    """The shape the calibration actually meets, and the one it crashed on.
+
+    Iterating a per-dimension object as if it were a list of blocks walks its
+    keys and calls `.get` on the string "score". That killed a recalibration
+    twenty judge calls in, and left the report describing the previous rubric —
+    which the gate then correctly refused, so the failure was at least loud.
+    """
+    assert load("calibrate-judges").criterion_values(OUTPUT_SHAPE) == EXPECTED
 
 
 def test_summarise_reports_spread_as_max_minus_min():

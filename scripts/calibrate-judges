@@ -133,10 +133,21 @@ def criterion_values(details: dict) -> dict[str, dict[str, float]]:
     Programmatic and agent criteria alike, keyed by name. A name that appears
     twice in one dimension would shadow itself; none does, and the mechanical
     rubric validator refuses duplicates.
+
+    RewardKit writes this file in two shapes and the calibration met the one it
+    was not written for. A job directory holds a list of blocks per dimension,
+    one per kind — `{"evidence": [{"kind": "programmatic", ...}, ...]}`. Run
+    with `--output`, as here, it holds a single object per dimension —
+    `{"evidence": {"score": ..., "criteria": [...]}}`. Iterating the second as
+    if it were the first walks the object's own keys and calls `.get` on the
+    string "score"; that is how the first recalibration died, twenty judge
+    calls in, with the report left describing the previous rubric.
     """
     out: dict[str, dict[str, float]] = {}
-    for dimension, blocks in details.items():
-        for block in blocks or []:
+    for dimension, entry in details.items():
+        for block in (entry if isinstance(entry, list) else [entry]):
+            if not isinstance(block, dict):
+                continue
             for criterion in block.get("criteria") or []:
                 name, value = criterion.get("name"), criterion.get("value")
                 if name is not None and value is not None:

@@ -565,7 +565,49 @@ def transcript(traj: dict[str, Any] | None = None, budget: int = 120_000) -> str
     if answer:
         lines.append("\n\n=== FINAL ANSWER (complete) ===\n")
         lines.append(answer)
+    lines.append(collected_diff_section())
     return "".join(lines)
+
+
+# How much of the collected diff a judge is shown. A full upgrade diff can run
+# to hundreds of kilobytes of vendor churn; the judge needs the shape of the
+# change and the files it touched, and a cut it can see beats a file it cannot
+# finish.
+DIFF_LIMIT = 60_000
+
+
+def collected_diff_section() -> str:
+    """The working-tree diff collected after the run, for the judge to read.
+
+    Every writing case carries a judge criterion that begins "read the diff",
+    and until this section existed there was no diff to read: an agent judge is
+    given one file, the transcript, and the transcript rendered tool calls and
+    observations — nothing collected after the agent stopped. The diff sat in
+    `git-diff.patch`, an artifact the agent path ignores, and reached the judge
+    only when the agent happened to print one. So the judge graded the
+    narrative of a change; on one case it scored a diff that turns a failure
+    path green as having kept it red, twice, while the mechanical check reading
+    the tree caught it both times (instrument failure 23).
+
+    Absent artifact, absent section: a review case changes nothing and has no
+    diff to show, and a section saying so would be noise.
+    """
+    patch = Path(ARTIFACTS_DIR) / "git-diff.patch"
+    if not patch.is_file():
+        return ""
+    text = patch.read_text(errors="replace")
+    if not text.strip():
+        return "\n## Working tree after the run\n\n(no changes — the diff collected after the run is empty)\n"
+    cut = ""
+    if len(text) > DIFF_LIMIT:
+        cut = f"\n[cut: {len(text) - DIFF_LIMIT} more characters of diff not shown]\n"
+        text = text[:DIFF_LIMIT]
+    return (
+        "\n## Working tree after the run\n\n"
+        "Collected by the verifier once the agent stopped; this is the change "
+        "itself, not the agent's account of it.\n\n"
+        + text + cut
+    )
 
 
 def write_transcript(path: str | Path | None = None) -> Path:

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-UPGRADE-001-20260826-153938",
+  "case": "OFR-TYPO3-UPGRADE-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "verification",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "outcome_quality",
+    "prioritization",
+    "unsupported_claims"
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 161,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-26T15:39:38+00:00",
+  "blocks": [],
+  "stop_reason": "not started",
+  "trials_spent": 0,
+  "jobs": {
+    "control": [],
+    "nr": []
+  }
+}
