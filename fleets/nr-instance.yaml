@@ -1,0 +1,23 @@
+# `nr` plus the skill that claims reaching a running TYPO3 instance.
+#
+# Not a case experiment. This arm exists to test the rule derived from the five
+# routing measurements of 28 August — a skill is reached when the words the
+# request itself uses appear in the opening clause of its description — on a
+# case the rule has not seen.
+#
+# The prediction is recorded in docs/composition-sweep.md before the run: this
+# should NOT route. typo3-ddev opens "Use whenever a running TYPO3 instance is
+# wanted, started or reached"; OFR-TYPO3-RUNTIME-001 asks why saving a
+# translation in a backend module silently does nothing, and never says
+# instance, DDEV, started or reached.
+#
+# An invocation refutes the rule. A zero confirms it out of sample, on the
+# benchmark's largest silent block: 46 equipped trials, zero invocations.
+
+name: nr-instance
+description: nr plus typo3-ddev — an out-of-sample test of the opening-clause rule, predicted not to route
+
+derives_from: nr
+add:
+  - repo: netresearch/typo3-ddev-skill
+    ref: v1.22.2

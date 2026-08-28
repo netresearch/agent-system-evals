@@ -453,7 +453,7 @@ at build time, because the hand-written version of this table was stale within a
 <div class="scroll">
 <table>
   <thead>
-    <tr><th>case</th><th>request names</th><th class="num">skill invoked</th></tr>
+    <tr><th>case</th><th>how the request is phrased</th><th class="num">skill invoked</th></tr>
   </thead>
   <tbody>
     <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">41 of 42</td></tr>
@@ -463,7 +463,7 @@ at build time, because the hand-written version of this table was stale within a
     <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">7 of 27<span class="lbl">candidate 6 of 6; candidate@experiment/version-declarations-in-description 1 of 6; nr 0 of 15</span></td></tr>
     <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 6</td></tr>
     <tr><td>a timing side channel (Go)</td><td>a task</td><td class="num">0 of 5</td></tr>
-    <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 5</td></tr>
+    <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 11</td></tr>
     <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">0 of 7</td></tr>
     <tr><td>version metadata, unprepared repository</td><td>a task</td><td class="num">0 of 3</td></tr>
     <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 46</td></tr>
@@ -471,9 +471,11 @@ at build time, because the hand-written version of this table was stale within a
 </table>
 </div>
 
-<p>The table above is a real split and it does not have a single cause. Two different things
-produce a zero in the right-hand column, and telling them apart is the whole of what this sweep
-teaches.</p>
+<p>The table above is a real split, and the column in the middle is the <em>old</em> reading of
+it — that requests naming a domain route and requests describing a task do not. Four experiments on
+28 August replaced that reading, and one row already contradicts it: the restraint case is phrased
+as a task and now routes 6 runs in 6. What actually predicts the right-hand column is stated below
+the next two paragraphs, which are kept because each is still true of the case it describes.</p>
 
 <p><strong>Sometimes the capability is simply not there.</strong> The organisation publishes 42
 skill repositories; the fleet under test carries eight, and <code>nr-full</code> twelve. Neither
@@ -524,12 +526,41 @@ limits, so it ships.
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/tasks/open/typo3-version-metadata-consistent/RESULTS.md">The
 full record</a>, including what did <em>not</em> follow: the outcome is 3 of 6 on both arms.</p>
 
+<h3>What predicts whether a skill is reached</h3>
+
+<p>Five measurements on 28 August, four of them twelve-trial runs with the endpoint declared before
+the first trial. Read together they are one rule, not five results: <strong>a skill is reached when
+the words the request itself uses appear in the opening clause of its description.</strong> Both
+halves carry weight, and each cell below fails or passes on a different half.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>the skill in the fleet…</th>
+      <th class="num">loaded</th>
+      <th>which case</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>opens by naming the request's words</td><td class="num">6 of 6</td><td>release, after adding <code>github-release</code></td></tr>
+    <tr><td>opens by naming the request's words</td><td class="num">6 of 6</td><td>restraint, after moving them into the first sentence</td></tr>
+    <tr><td>names them 35 words in, in a trigger list</td><td class="num">1 of 6</td><td>restraint, first attempt</td></tr>
+    <tr><td>covers the work under other words</td><td class="num">0 of 3</td><td>a CI question, after adding <code>github-project</code></td></tr>
+    <tr><td>covers the work under other words</td><td class="num">0 of 5</td><td>Go: the skill says "LDAP client", the request says "library"</td></tr>
+    <tr><td>is not in the fleet at all</td><td class="num">0 of 6</td><td>release, before</td></tr>
+  </tbody>
+</table>
+</div>
+
 <div class="note">
-  <strong>A fleet whose capability is never selected is being measured on its selection; a fleet
-  that does not carry the capability is being measured on its composition.</strong> Three of the
-  eleven cases report on what the skills contain. The rest report on one of those two things, and
-  separating them case by case is the benchmark's next job — with one route through it now closed,
-  since the skill's own wording is not what decides it.
+  <strong>Carrying the right skill is not enough, and neither is describing it accurately.</strong>
+  A capability the fleet lacks cannot be reached; a capability it carries under vocabulary the
+  request does not use is not reached either. Both are fixable by whoever assembles the stack and
+  writes the first sentence of a skill — which is the useful half of this page's findings.
+  <strong>None of it made the work come out better.</strong> On the two cases where routing was
+  fixed, the outcome did not move: 0 of 6 on the release check either way, 3 of 6 on the restraint
+  case either way.
 </div>
 
 <h3>Where the skill did fire, the direction is not the same</h3>

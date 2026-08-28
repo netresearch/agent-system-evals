@@ -185,11 +185,16 @@ does not help.
 
 ## The rest of the report
 
-The mechanical outcome went 1/3 to 0/3 and `exit_semantics` 3/3 to 1/3, delta
-−1.00 at p 0.100. Every one of the six trials scores within one judge step of
-the threshold, which is the condition under which a count of three says nothing
-at all (docs/instrument-failures.md 24). Exploratory, and not readable even as
-a hint.
+`exit_semantics` went 3/3 to 1/3, delta −1.00 at p 0.100, and every one of the
+six trials scores within one judge step of the threshold — the condition under
+which a count of three says nothing at all (docs/instrument-failures.md 24).
+
+The mechanical outcome went 1/3 to 0/3, and that line is unreadable for a
+different reason: it is decided by the framework rather than by a judge, so
+judge noise does not touch it. Three trials against three, one hit against
+none, is Fisher p 1.000 — the sample, not the instrument.
+
+Both are exploratory. Only `skill_invoked` was declared.
 
 ## Reproducing
 

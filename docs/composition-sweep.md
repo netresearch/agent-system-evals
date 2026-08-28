@@ -85,13 +85,14 @@ Four routing measurements from 28 August now say one thing rather than three. A
 skill is reached when **the words the request itself uses appear in the opening
 clause of the description**. Both halves are load-bearing:
 
-| case | opening clause names the request's words | invoked |
+| the skill in the fleet… | loaded | case |
 |---|---|---|
-| release | yes — request says "release" | 6/6 |
-| restraint, round two | yes — request asks which versions are supported | 6/6 |
-| restraint, round one | same words, 35 words in | 1/6 |
-| Python CI | no — "CI fails" is the ninth item, and the request says job, red, log, rate limit | 0/3 |
-| Go LDAP | no — description says "LDAP/AD clients", request only says "library" | 0/5 |
+| opens by naming the request's words | 6/6 | release, after adding `github-release` |
+| opens by naming the request's words | 6/6 | restraint, after moving them into the first sentence |
+| names them 35 words in, in a trigger list | 1/6 | restraint, first attempt |
+| covers the work under other words | 0/3 | Python CI, after adding `github-project` |
+| covers the work under other words | 0/5 | Go: skill says "LDAP/AD clients", request says "library" |
+| is not in the fleet at all | 0/6 | release, before |
 
 So the sweep's question was the wrong one. "Does a skill claim this work?" does
 not predict routing; "does a skill open by naming what the request says?" does,
@@ -107,11 +108,23 @@ has one installed and unreachable.
    clause to suit this case would be the benchmark writing a skill's
    description for its own benefit, and that skill's first sentence is
    contested space among eight other subjects.
-2. `OFR-TYPO3-RUNTIME-001` with `typo3-ddev` added. Weaker: the skill claims
-   reaching a running instance, not diagnosing a save that silently fails, and
-   the case's environment already provides the instance. Worth running because
-   46 equipped trials with zero invocations is the largest silent block in the
-   benchmark, and this is the only skill that names anything the case involves.
+2. `OFR-TYPO3-RUNTIME-001` with `typo3-ddev` added — **and this one is now a
+   test of the rule rather than of the case.** The rule above was derived from
+   five measurements after the fact, which is the weakest way to hold a rule.
+   This is the first case it can be applied to before the run.
+
+   **Prediction, recorded before launching: 0 of N.** `typo3-ddev` opens *"Use
+   whenever a running TYPO3 instance is wanted, started or reached"*; the
+   request says *"saving a translation in the TextDb backend module does
+   nothing — the dialog closes, but the old value is still there"*. Instance,
+   started, reached, DDEV: none of those words is in the request, and the case's
+   environment hands the agent a running instance without being asked. By the
+   rule this is the "covers the work under other words" row, and it should not
+   route.
+
+   An invocation refutes the rule outright. A zero is the first out-of-sample
+   confirmation, on the benchmark's largest silent block — 46 equipped trials,
+   zero invocations — and it converts that block from unexplained to explained.
 3. Nothing for `CON-TYPO3-EXTBASE-001`. No skill claims Extbase persistence
    rules; `typo3-conformance` is nearest and is already in the fleet.
 
