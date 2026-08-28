@@ -116,3 +116,85 @@ publishes none; `nr-general` is the three skills of `nr` that are not TYPO3 or
 PHP. A zero invocation count here is a composition result and was declared as
 one before the run (issue #24). The arms produced the same two shapes at the
 same cost, which is what identical capability on offer predicts.
+
+---
+
+# The composition experiment — 28 August 2026
+
+`docs/composition-sweep.md` picked this case as the one silent case with a
+capability to add: `netresearch/github-project-skill`, whose description names
+*"CI fails, authoring or consuming reusable workflows, editing a repo's own
+`.github/workflows`"*, and which the fleet did not carry. The release case's
+identical setup had moved invocation from 0 of 6 to 6 of 6 at p 0.002.
+
+## What the run was
+
+`scripts/run-comparison OFR-PY-CI-001 --arms nr-general,nr-ci --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 251`
+
+`nr-ci` is `nr-general` plus `github-project-skill@v2.17.0` and nothing else.
+Six trials, three per arm, six of six valid; the runner stopped after the
+discovery round because the declared endpoint did not move. Experiment record:
+`experiments/OFR-PY-CI-001-20260828-171752.json`.
+
+## It did not move
+
+| | nr-general | nr-ci |
+|---|---|---|
+| `skill_invoked` | 0/3 | 0/3 |
+| Fisher exact p | — | 1.000 |
+
+Carrying a skill is not sufficient. That is the first negative result for the
+composition lever, and it arrived on the case chosen precisely because the
+lever looked most likely to work.
+
+## Why, on the evidence of the other three runs
+
+Set the four routing measurements of 28 August side by side and they say one
+thing rather than three:
+
+| case | where the request's own words appear in the description | invoked |
+|---|---|---|
+| release | `Use when creating releases, version bumps, tagging…` — the request says *"prepare the 2.4.2 release"* | 6/6 |
+| restraint, round two | `Use when checking which TYPO3 versions an extension declares it supports…` — the request asks which versions it supports | 6/6 |
+| restraint, round one | the same words, 35 words in, inside `Also triggers on:` | 1/6 |
+| **this case** | `…branch protection or rulesets, CI fails, authoring or consuming reusable workflows…` — ninth item, ~25 words in. And the request never says CI, workflow or Actions: it says *"the star-notifications job went red again last night"* | **0/3** |
+
+Two conditions, and this case fails both. The matching phrase sits mid-list
+where round one measured 1 of 6, and the request's own vocabulary — job, red,
+log, rate limit, exit — appears nowhere in the description at all. The Go case
+fails the second condition the same way: `go-development` names "LDAP/AD
+clients" and the request only ever says *library*.
+
+**So the rule the four runs support is narrower than "carry the right skill".**
+A skill is reached when its opening clause names the words the request uses. A
+skill that covers the work under different words, or names it late, is not
+reached — being installed does not change that.
+
+## What is deliberately not being done about it
+
+The obvious next experiment is to branch `github-project` and put this case's
+vocabulary in its opening clause. That would almost certainly work, and it
+would be the benchmark writing a skill's description to suit the benchmark.
+`github-project` serves branch protection, rulesets, merge queues and reviewers;
+its opening clause is contested space and a scheduled job's exit status has no
+better claim on it than the other eight subjects.
+
+The finding stands as it is: no skill in this organisation's catalogue opens by
+naming what this request asks about, and adding one that mentions it in passing
+does not help.
+
+## The rest of the report
+
+The mechanical outcome went 1/3 to 0/3 and `exit_semantics` 3/3 to 1/3, delta
+−1.00 at p 0.100. Every one of the six trials scores within one judge step of
+the threshold, which is the condition under which a count of three says nothing
+at all (docs/instrument-failures.md 24). Exploratory, and not readable even as
+a hint.
+
+## Reproducing
+
+```
+scripts/run-comparison OFR-PY-CI-001 --arms nr-general,nr-ci \
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 251
+scripts/analyze experiments/OFR-PY-CI-001-20260828-171752.json
+```

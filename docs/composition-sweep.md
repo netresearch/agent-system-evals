@@ -75,9 +75,38 @@ authoring or consuming reusable workflows, editing a repo's own
 skill that does not claim the work and reported the result as composition
 failing.
 
+## Measured since: composition alone is not the rule
+
+`OFR-PY-CI-001` ran with `github-project` added and **did not move: 0 of 3
+against 0 of 3**. The first negative result for the composition lever, on the
+case chosen because the lever looked most likely to work.
+
+Four routing measurements from 28 August now say one thing rather than three. A
+skill is reached when **the words the request itself uses appear in the opening
+clause of the description**. Both halves are load-bearing:
+
+| case | opening clause names the request's words | invoked |
+|---|---|---|
+| release | yes — request says "release" | 6/6 |
+| restraint, round two | yes — request asks which versions are supported | 6/6 |
+| restraint, round one | same words, 35 words in | 1/6 |
+| Python CI | no — "CI fails" is the ninth item, and the request says job, red, log, rate limit | 0/3 |
+| Go LDAP | no — description says "LDAP/AD clients", request only says "library" | 0/5 |
+
+So the sweep's question was the wrong one. "Does a skill claim this work?" does
+not predict routing; "does a skill open by naming what the request says?" does,
+on five for five so far. That is a harder bar, and it means the two catalogue
+gaps below are not the only cases without a reachable capability — the Go case
+has one installed and unreachable.
+
 ## The experiments this leaves
 
-1. `OFR-PY-CI-001` with `github-project` added — `fleets/nr-ci.yaml`.
+1. ~~`OFR-PY-CI-001` with `github-project` added~~ — **run, did not move.**
+   `tasks/open/py-scheduled-job-exit-code/RESULTS.md` records why, and why the
+   obvious follow-up is not being run: rewriting `github-project`'s opening
+   clause to suit this case would be the benchmark writing a skill's
+   description for its own benefit, and that skill's first sentence is
+   contested space among eight other subjects.
 2. `OFR-TYPO3-RUNTIME-001` with `typo3-ddev` added. Weaker: the skill claims
    reaching a running instance, not diagnosing a save that silently fails, and
    the case's environment already provides the instance. Worth running because

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-PY-CI-001-20260828-171752",
+  "case": "OFR-PY-CI-001",
+  "arms": [
+    "nr-general",
+    "nr-ci"
+  ],
+  "primary_endpoint": "skill_invoked",
+  "secondary_endpoints": [
+    "exit_semantics"
+  ],
+  "primary_kind": "invocation",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 251,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-28T17:17:52+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr-general",
+        "nr-ci"
+      ],
+      "jobs": {
+        "nr-general": "jobs/OFR-PY-CI-001-nr-general-20260828-171752",
+        "nr-ci": "jobs/OFR-PY-CI-001-nr-ci-20260828-172344"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr-general",
+        "nr-ci"
+      ],
+      "jobs": {
+        "nr-general": "jobs/OFR-PY-CI-001-nr-general-20260828-172753",
+        "nr-ci": "jobs/OFR-PY-CI-001-nr-ci-20260828-173232"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr-general",
+        "nr-ci"
+      ],
+      "jobs": {
+        "nr-general": "jobs/OFR-PY-CI-001-nr-general-20260828-173751",
+        "nr-ci": "jobs/OFR-PY-CI-001-nr-ci-20260828-174226"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "skill_invoked did not move after the discovery round (0/3 against 0/3, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "nr-general": [
+      "jobs/OFR-PY-CI-001-nr-general-20260828-171752",
+      "jobs/OFR-PY-CI-001-nr-general-20260828-172753",
+      "jobs/OFR-PY-CI-001-nr-general-20260828-173751"
+    ],
+    "nr-ci": [
+      "jobs/OFR-PY-CI-001-nr-ci-20260828-172344",
+      "jobs/OFR-PY-CI-001-nr-ci-20260828-173232",
+      "jobs/OFR-PY-CI-001-nr-ci-20260828-174226"
+    ]
+  },
+  "finished_at": "2026-08-28T17:48:36+00:00",
+  "valid_trials": {
+    "nr-general": 3,
+    "nr-ci": 3
+  }
+}
