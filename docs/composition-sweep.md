@@ -31,7 +31,13 @@ deciding whether to load ("Use when conducting security assessments — OWASP To
 10 / API / LLM…").
 
 The difference is not cosmetic. It reversed two of the five findings below, and
-the first version of this document published both of them.
+the first version of this document published both of them. Measured over the
+Netresearch marketplace's 40 plugins: one catalogue description matches its
+skill's, 37 differ, and while 38 of 38 `SKILL.md` descriptions open with "Use
+when", exactly one catalogue entry does. Reported as
+[retro-skill#83](https://github.com/netresearch/retro-skill/issues/83), because
+the script presents the browse text as though it answered a question only the
+trigger text can answer.
 
 ## Case by case, read against `SKILL.md`
 
