@@ -222,3 +222,84 @@ scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260828-140721.json
 `fleets/candidate.yaml` must point at the experiment branch; it is the only
 fleet permitted to name one, enforced by
 `tests/test_fleets.py::test_only_the_candidate_fleet_may_name_a_branch`.
+
+---
+
+# Round two: position, not vocabulary — 28 August 2026
+
+Round one appended the artefacts to the description's trigger list and moved
+nothing. What settled it was a comparison from the same day on a different
+case: `github-release-skill`, invoked 6 of 6 on *"prepare the 2.4.2 release"*,
+whose description names the request's noun in its **opening clause** rather
+than in a list thirty-five words later.
+
+So round two changes position and nothing else.
+
+| | text |
+|---|---|
+| `nr` (v2.19.1) | `Use when assessing TYPO3 extension quality, conformance checking, standards compliance, … TER readiness, or best practices review. Also triggers on: extension audit, quality score, …` |
+| `candidate` (`6174033`) | `Use when checking which TYPO3 versions an extension declares it supports, when composer.json and ext_emconf.php disagree, or when assessing TYPO3 extension quality, …` |
+
+Same artefacts. Nothing removed. The trigger list is untouched.
+
+## What the run was
+
+`scripts/run-comparison OFR-TYPO3-CONSISTENT-001 --arms nr,candidate --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 233`
+
+Twelve trials, six per arm, twelve of twelve valid. All six `candidate` locks
+pin `6174033`. Experiment record:
+`experiments/OFR-TYPO3-CONSISTENT-001-20260828-162519.json`.
+
+## Position decides it
+
+| | nr | candidate |
+|---|---|---|
+| `skill_invoked` | 0/6 | **6/6** |
+| Wilson interval | [0.00, 0.39] | [0.61, 1.00] |
+| Fisher exact p | — | **0.002** two-sided, 0.001 one-sided |
+
+Against round one, on the same case, the same model and the same skill:
+
+| where the artefacts are named | invoked | p |
+|---|---|---|
+| appended to the `Also triggers on:` tail | 1/6 | 1.000 |
+| in the opening `Use when` clause | **6/6** | **0.002** |
+
+A description is not a bag of keywords. The same words, moved thirty-five words
+earlier, take this case from never routing to always routing. That is the
+second declared endpoint in this benchmark to separate completely at a p a
+conventional threshold accepts, and both were found in one day: one by adding
+the skill, one by moving its first sentence.
+
+**And this one is releasable.** Round one's branch was nine words over the skill
+repository's cap and failed its own validator. Round two is a rewrite rather
+than an append and passes.
+
+## Reached, and no better
+
+| | nr | candidate |
+|---|---|---|
+| `consistency` met | 3/6 | 3/6 |
+| Cliff's delta | — | +0.06, p 0.892 |
+| criteria behind it | 37 met / 5 partial / 12 not met | 39 met / 6 partial / 9 not met |
+| agent cost, median | $0.04 | $0.04 |
+| tool calls, median | 7.0 | 7.5 |
+
+Six trials loaded a conformance skill on a conformance question and scored what
+six trials without it scored. The criteria move slightly in the equipped arm's
+favour — three fewer *not met* — and four of the twelve trials sit within one
+judge step of the threshold, so the counts carry nothing.
+
+That is now the third case where routing was fixed and the outcome did not
+follow: the release case (0/6 → 6/6, mechanical outcome 0/6 both), the
+documentation and upgrade cases where the skill was always invoked, and this
+one. **Getting the skill loaded is a solved problem with a known mechanism.
+Getting the work to come out better is not.**
+
+## Reproducing
+
+```
+scripts/run-comparison OFR-TYPO3-CONSISTENT-001 --arms nr,candidate \
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 233
+scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260828-162519.json
+```

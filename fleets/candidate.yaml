@@ -12,7 +12,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with typo3-conformance naming version declarations in its leading clause — testing position, after vocabulary alone did nothing
+description: nr with typo3-conformance naming version declarations in its leading clause — position routes where vocabulary alone did not, measured 28 August 2026
 
 derives_from: nr
 at:
@@ -37,7 +37,12 @@ at:
   # on `nr` against 1/6, Fisher p 1.000. Recorded in
   # tasks/open/typo3-version-metadata-consistent/RESULTS.md.
   #
-  # ROUND TWO, running: position rather than vocabulary. The comparison that
+  # ROUND TWO, ANSWERED 28 August 2026: position rather than vocabulary, and
+  # it is position. `skill_invoked` 0/6 on `nr` against 6/6 here, Fisher exact
+  # p 0.002 — the same words as round one, moved thirty-five words earlier,
+  # take this case from never routing to always routing. Recorded in
+  # tasks/open/typo3-version-metadata-consistent/RESULTS.md. The arm may be
+  # repointed at the next question; this one is closed. The comparison that
   # did work the same day was github-release-skill — invoked 6/6 on "prepare
   # the 2.4.2 release", p 0.002 — whose description names the request's noun in
   # its opening "Use when" clause rather than in a list thirty-five words later.
