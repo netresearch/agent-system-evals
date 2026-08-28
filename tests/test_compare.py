@@ -309,3 +309,113 @@ def test_the_declared_endpoint_is_reported_by_analyze(tmp_path):
     tools = '("skill", "invokeskill")'
     for script in ("analyze", "run-comparison", "invocation-census"):
         assert tools in (ROOT / "scripts" / script).read_text(), script
+
+
+def _census():
+    loader = importlib.machinery.SourceFileLoader(
+        "invocation_census", str(ROOT / "scripts" / "invocation-census")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def test_arms_are_listed_one_by_one_not_folded_into_two_groups():
+    """Folding three arms into "hot" and "cold" pools what the row exists to split.
+
+    The published routing table read "6 of 16" for a case whose two arms
+    answered 6/6 and 0/10, because the count pooled fleets that differed. The
+    fix folded arms into hot and cold — and immediately pooled again one level
+    down, when a third arm appeared and two experiments a fortnight apart both
+    called themselves `candidate`.
+    """
+    census = _census()
+    row = {
+        "invoked": 3,
+        "trials": 19,
+        "by_fleet": {
+            "candidate": {"invoked": 2, "trials": 2},
+            "candidate@experiment/older": {"invoked": 1, "trials": 6},
+            "nr": {"invoked": 0, "trials": 11},
+        },
+    }
+    assert census.split(row) == (
+        "candidate 2 of 2; candidate@experiment/older 1 of 6; nr 0 of 11"
+    )
+    # An arm every trial of which invokes, beside one where none does, still
+    # splits. Arms that all answer alike do not: the pooled count is the truth.
+    assert census.split({"by_fleet": {"a": {"invoked": 3, "trials": 3}}}) is None
+    assert (
+        census.split(
+            {"by_fleet": {"a": {"invoked": 3, "trials": 3}, "b": {"invoked": 2, "trials": 4}}}
+        )
+        is None
+    )
+
+
+def test_a_moving_candidate_ref_is_a_separate_arm():
+    """`candidate` is the one fleet allowed to point at a branch, so its name
+    alone does not identify what ran."""
+    census = _census()
+    current = census.fleets.skill_refs("candidate")
+    assert census.arm_name({"fleet": "candidate", "fleet_requested": current}) == "candidate"
+    stale = [
+        r if "typo3-conformance" not in r else "netresearch/typo3-conformance-skill@experiment/older"
+        for r in current
+    ]
+    assert census.arm_name({"fleet": "candidate", "fleet_requested": stale}) == (
+        "candidate@experiment/older"
+    )
+    # A snapshot from before fleet_requested existed keeps the bare name.
+    assert census.arm_name({"fleet": "nr"}) == "nr"
+
+
+def test_the_census_actually_groups_by_arm(tmp_path):
+    """Testing `arm_name` and `split` alone left the wiring uncovered.
+
+    Removing the `arm_name` call from `census` — so two experiments under one
+    fleet name pool again, the exact defect — left the whole suite green,
+    because both pieces were tested and their use was not.
+    """
+    census = _census()
+    current = census.fleets.skill_refs("candidate")
+    stale = [
+        r if "typo3-conformance" not in r
+        else "netresearch/typo3-conformance-skill@experiment/older"
+        for r in current
+    ]
+
+    def job(name: str, requested: list[str], invocations: list[bool]) -> None:
+        directory = tmp_path / name
+        directory.mkdir()
+        (directory / "nr-snapshot.json").write_text(
+            json.dumps(
+                {
+                    "case_id": "OFR-TEST-001",
+                    "fleet": "candidate",
+                    "fleet_requested": requested,
+                }
+            )
+        )
+        for index, hit in enumerate(invocations):
+            trial = directory / f"t{index}" / "verifier"
+            trial.mkdir(parents=True)
+            calls = [{"function_name": "Skill" if hit else "Bash"}]
+            (trial / "trajectory.json").write_text(
+                json.dumps({"steps": [{"tool_calls": calls}]})
+            )
+
+    job("now", current, [True, True])
+    job("then", stale, [False, False, False])
+
+    rows = census.census(tmp_path)["OFR-TEST-001"]
+    assert rows == {
+        "invoked": 2,
+        "trials": 5,
+        "by_fleet": {
+            "candidate": {"invoked": 2, "trials": 2},
+            "candidate@experiment/older": {"invoked": 0, "trials": 3},
+        },
+    }
+    assert census.split(rows) == "candidate 2 of 2; candidate@experiment/older 0 of 3"

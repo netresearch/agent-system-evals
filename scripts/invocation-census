@@ -43,6 +43,35 @@ def equipped_fleets() -> set[str]:
     }
 
 
+def arm_name(recorded: dict) -> str:
+    """What to group a job's trials under.
+
+    Not the fleet name alone. `candidate` is a moving target by design — it is
+    the one fleet allowed to point at a branch — so two experiments a fortnight
+    apart both call themselves `candidate` and pool into one count. That is the
+    same defect as pooling two fleets, one level down: the release row read
+    "6 of 16" across arms that differed, and the candidate row then read
+    "3 of 8" across branches that differed.
+
+    So a fleet whose skill set is not the one its name currently resolves to is
+    named with the ref that differs. A job recorded before snapshots carried
+    `fleet_requested` keeps the bare fleet name; there is nothing to compare.
+    """
+    fleet = recorded.get("fleet") or "unknown"
+    requested = recorded.get("fleet_requested")
+    if not requested:
+        return fleet
+    try:
+        current = set(fleets.skill_refs(fleet))
+    except Exception:
+        return fleet
+    differing = sorted(set(requested) - current)
+    if not differing:
+        return fleet
+    refs = ", ".join(entry.split("@", 1)[-1] for entry in differing)
+    return f"{fleet}@{refs}"
+
+
 def invoked(trajectory: Path) -> bool:
     try:
         recorded = json.loads(trajectory.read_text())
@@ -69,7 +98,7 @@ def census(jobs_dir: Path | None = None) -> dict[str, dict[str, int]]:
         if recorded.get("fleet") not in equipped:
             continue
         case = recorded.get("case_id") or "unknown"
-        fleet = recorded.get("fleet") or "unknown"
+        fleet = arm_name(recorded)
         row = out.setdefault(case, {"invoked": 0, "trials": 0, "by_fleet": {}})
         # Per fleet as well as per case. A case run against two fleets that
         # differ in whether they carry a matching skill pools two populations,
@@ -87,24 +116,24 @@ def census(jobs_dir: Path | None = None) -> dict[str, dict[str, int]]:
 
 
 def split(row: dict) -> str | None:
-    """Which fleets account for a case's invocations, when not all of them do.
+    """Per-arm counts, when a case's arms do not all answer the same way.
 
-    Returns None when the case does not split — every fleet at zero, or every
-    fleet invoking — because then the pooled count says the whole truth.
+    Returns None when every arm invokes or none does, because then the pooled
+    count says the whole truth. Otherwise every arm is listed with its own
+    count rather than folded into "hot" and "cold": three arms folded into two
+    groups reproduces the pooling this exists to prevent, one level further in.
     """
-    fleets_seen = row.get("by_fleet") or {}
-    if len(fleets_seen) < 2:
+    arms = row.get("by_fleet") or {}
+    if len(arms) < 2:
         return None
-    hot = {f: v for f, v in fleets_seen.items() if v["invoked"]}
-    cold = {f: v for f, v in fleets_seen.items() if not v["invoked"]}
-    if not hot or not cold:
+    rates = {bool(v["invoked"]) for v in arms.values()}
+    if len(rates) < 2:
         return None
-    hot_i = sum(v["invoked"] for v in hot.values())
-    hot_n = sum(v["trials"] for v in hot.values())
-    cold_n = sum(v["trials"] for v in cold.values())
-    return (
-        f"{hot_i} of {hot_n} on {', '.join(sorted(hot))}; "
-        f"0 of {cold_n} on {', '.join(sorted(cold))}"
+    return "; ".join(
+        f"{name} {v['invoked']} of {v['trials']}"
+        for name, v in sorted(
+            arms.items(), key=lambda kv: (-kv[1]["invoked"] / max(kv[1]["trials"], 1), kv[0])
+        )
     )
 
 
