@@ -208,6 +208,68 @@ loaded the release skill; zero of six prepared the release.
 [agent-harness#61](https://github.com/netresearch/agent-harness-skill/issues/61)
 carries that thread.
 
+## Why "0 of 6 either way" is the wrong summary
+
+The mechanical check is a gate over four places a TYPO3 extension states its
+version, and it reports one line. Both arms fail it, so the aggregate says
+nothing happened. Reading the four places separately says something else
+entirely.
+
+| place the version is stated | nr | nr-release |
+|---|---|---|
+| `ext_emconf.php` | **6/6** | 3/6 |
+| `Documentation/guides.xml` | 0/6 | **2/6** |
+| `CHANGELOG.md` | **6/6** | 3/6 |
+| `Documentation/Changelog/Index.rst` | 0/6 | 0/6 |
+
+The unaided arm is deterministic: it updates two places every time and never
+touches the other two. The equipped arm is not — it splits in half.
+
+## The split, and what caused it
+
+Counting how often each trial's transcript mentions the extension repository at
+`/app` against the running instance at `/instance`, and how many edits it made:
+
+| arm | trials | `/app` mentions | edits | steps |
+|---|---|---|---|---|
+| nr | 6 of 6 | 40–65 | 2–3 | 19–28 |
+| nr-release | 3 of 6 | 67–100 | 2–3 | 27–36 |
+| nr-release | 3 of 6 | **0–5** | **0** | **8–10** |
+
+Three equipped trials never found the extension at all. They ran the skill's
+`release-status.sh` in the working directory, got `fatal: not a git repository`,
+looked around `/instance` — a TYPO3 distribution with `composer.json`, `vendor/`
+and `packages/` — and stopped after eight to ten steps to ask which repository
+was meant. Their closing messages are questions, not answers:
+
+> *"I need clarification: this working directory isn't a git repository, and
+> what I see is a TYPO3 CMS distribution rather than a single extension."*
+
+The unaided arm, with no script to run first, explored until it found `/app`.
+Six times out of six.
+
+**So the skill did change behaviour, in both directions.** Where the agent got
+past the first script it did *more* than the unaided arm — 27 to 36 steps
+against 19 to 28 — and updated `guides.xml`, which the unaided arm never touched
+in six trials. Where the script's failure came first, it derailed the trial
+completely.
+
+That is what the aggregate hid. `0 of 6` against `0 of 6` is true, and it
+describes a case where one arm reliably does half the job and the other either
+does more than half or none of it.
+
+## The fourth place, which nobody touched
+
+`Documentation/Changelog/Index.rst` was updated in **0 of 12 trials**, with and
+without a release skill. A TYPO3 extension states its version in four places and
+the release skill's checklist does not name that one. This is the part of the
+finding that is not about routing, not about the environment, and fixable in a
+skill: filed as
+[github-release-skill#93](https://github.com/netresearch/github-release-skill/issues/93).
+
+The cwd assumption is filed as
+[github-release-skill#94](https://github.com/netresearch/github-release-skill/issues/94).
+
 ## One thing the reader should weigh
 
 The added skill names this case's target extension. `github-release-skill`

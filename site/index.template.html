@@ -560,6 +560,45 @@ from rarely; what it could have done, and did not, is fail.</p>
   case either way.
 </div>
 
+<h3>"No difference" was hiding two opposite effects</h3>
+
+<p>The release check is a gate over the four places a TYPO3 extension states its version, and it
+reports one line. Both arms fail it, so the aggregate says nothing happened. The four places
+separately say something else.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>place the version is stated</th><th class="num">unaided</th><th class="num">with the release skill</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>ext_emconf.php</code></td><td class="num">6 of 6</td><td class="num">3 of 6</td></tr>
+    <tr><td><code>Documentation/guides.xml</code></td><td class="num">0 of 6</td><td class="num">2 of 6</td></tr>
+    <tr><td><code>CHANGELOG.md</code></td><td class="num">6 of 6</td><td class="num">3 of 6</td></tr>
+    <tr><td><code>Documentation/Changelog/Index.rst</code></td><td class="num">0 of 6</td><td class="num">0 of 6</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The unaided agent is consistent: two places every run, the other two never. The equipped agent
+splits in half. Three of its six runs went <em>further</em> than the unaided ones — 27 to 36 steps
+against 19 to 28 — and updated <code>guides.xml</code>, which no unaided run ever touched. The other
+three never found the extension at all: they ran the skill's status script first, it reported
+<code>fatal: not a git repository</code> because the agent starts in the running TYPO3 instance
+rather than in the extension checkout, and they closed after eight to ten steps by asking which
+repository was meant. Agents without the skill had no script to run first and searched until they
+found it, six times out of six.</p>
+
+<div class="note">
+  <strong>The skill was not ignored — its first step decided the run.</strong> That is a mechanism
+  rather than a verdict, and it is the useful shape of "loaded but no better": one row of a
+  checklist missing, and one script assuming it starts where the repository is. Both are filed
+  against the skill
+  (<a href="https://github.com/netresearch/github-release-skill/issues/93">#93</a>,
+  <a href="https://github.com/netresearch/github-release-skill/issues/94">#94</a>). And the fourth
+  row is the one nobody touched with or without help: 0 of 12.
+</div>
+
 <h3>Where the skill did fire, the direction is not the same</h3>
 
 <div class="scroll">
