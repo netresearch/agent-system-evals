@@ -37,6 +37,16 @@ Where the gaps stand:
   fleet at all. A zero is read against the fleet's contents before it is read
   as a choice — see issue #24 and each case's README.
 
+- **The instrument, measured.** Judges were calibrated on 26 and 28 August:
+  four recorded fixtures, five gradings of each on identical input. Roughly a
+  quarter of dimension verdicts flip between met and not-met, and the ones that
+  flip are the ones scoring near the 0.75 threshold. Across every experiment on
+  record, 49 of 61 dimension rows contain at least one boundary trial. So a
+  **2/3 against 3/3** row is inside the instrument's own step and has to be read
+  as its per-trial scores; `scripts/analyze` marks such rows.
+  ([issue #9](https://github.com/netresearch/agent-system-evals/issues/9),
+  instrument failure 24.)
+
 Tracked as [issue #16](https://github.com/netresearch/agent-system-evals/issues/16).
 
 ## Open Forward Reviews

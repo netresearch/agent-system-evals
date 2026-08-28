@@ -496,6 +496,19 @@ maximum by a single deviant answer. So criterion-level instability is now gated
 as a share of the rubric, which does reproduce, and named individually as
 advisory.
 
+**How far it reaches.** `scripts/analyze` was taught to mark a dimension where
+any trial scores within one judge step of the threshold, and the mark was then
+run over every experiment on record: **49 of 61 dimension rows carry it, and
+155 of the 282 trials behind those rows — 55% — are boundary scores.** Half the
+lines have three or more of six trials on the line; six lines have all six.
+
+That is not a claim that half the numbers are wrong. Two arms whose scores both
+sit on the boundary are still being compared, and a difference between them can
+still be real. It is a claim about what a count of three can carry: where the
+underlying scores sit where the verdict flips, `2/3 → 3/3` is a coin the
+instrument tossed, and the row has to be read as the per-trial scores rather
+than as its count. Every recorded row now says so where it applies.
+
 **Fix:** the calibration records `met` and `verdict_stable` per dimension, and
 `check-calibration` gates on the share that flips. The threshold is set just
 above the rate that was found, so a worsening fails while today's number stays
