@@ -83,6 +83,21 @@ MECHANICAL = "mechanical_outcome"
 # the bill did.
 RESOURCE = {"cost": "cost_usd", "input_tokens": "n_input_tokens"}
 
+# Whether the arm reached for anything it was given. A rate per trial, like the
+# mechanical outcome, and read from the trajectory rather than from a judge.
+#
+# It is declarable for the same reason cost is: it is where the benchmark's
+# largest structural finding lives and could not be planned around. Six of ten
+# cases on Haiku recorded zero skill invocations, and in four of those the
+# matching skill was in the fleet — so a run asking "does this change make the
+# capability get selected" had no endpoint to declare and could only report the
+# answer as an aside.
+#
+# Zero is not a failure of the arm. A control arm is given nothing and cannot
+# invoke; a task may genuinely need no capability. What the number answers is
+# narrower and is the question: was anything reached for.
+INVOCATION = "skill_invoked"
+
 
 def mechanical_outcomes(jobs: list[Path], case_id: str) -> list[float]:
     """Pass/fail per valid trial, from the check the case declares itself."""
@@ -150,6 +165,26 @@ def valid_trials(jobs: list[Path], case_id: str) -> int:
     return sum(1 for _ in gated(jobs, case_id))
 
 
+def invocations(jobs: list[Path], case_id: str) -> list[float]:
+    """1.0 per valid trial that invoked at least one skill, else 0.0."""
+    out: list[float] = []
+    for trial in gated(jobs, case_id):
+        trajectory = validity.read_json(trial / "verifier" / "trajectory.json")
+        if not isinstance(trajectory, dict):
+            continue
+        calls = (
+            call
+            for step in trajectory.get("steps") or []
+            for call in (step.get("tool_calls") or [])
+        )
+        used = any(
+            str(c.get("function_name", "")).lower() in ("skill", "invokeskill")
+            for c in calls
+        )
+        out.append(1.0 if used else 0.0)
+    return out
+
+
 def resources(jobs: list[Path], case_id: str, field: str) -> list[float]:
     """What the valid trials cost, or how much they read."""
     out: list[float] = []
@@ -209,7 +244,7 @@ def main() -> int:
     # the matrix outcome reproduced across two independent runs while the
     # dimension that separated once did not.
     has_ground_truth = bool(cases.metadata(args.case_id).get("mechanical_outcome"))
-    allowed = graded | set(RESOURCE) | (
+    allowed = graded | set(RESOURCE) | {INVOCATION} | (
         {MECHANICAL} if has_ground_truth else set()
     )
     if args.primary not in allowed:
@@ -245,7 +280,8 @@ def main() -> int:
         # Recorded so a reader of the record knows which kind of endpoint was
         # declared without inferring it from the name.
         "primary_kind": (
-            "resource" if args.primary in RESOURCE
+            "invocation" if args.primary == INVOCATION
+            else "resource" if args.primary in RESOURCE
             else "mechanical" if args.primary == MECHANICAL
             else "dimension"
         ),
@@ -343,6 +379,23 @@ def main() -> int:
             # because it is the one number no judge decided.
             primary_a = mechanical_outcomes(collected[first], args.case_id)
             primary_b = mechanical_outcomes(collected[second], args.case_id)
+            p = stats.fisher_p(
+                int(sum(primary_a)), len(primary_a),
+                int(sum(primary_b)), len(primary_b),
+            )
+            moved = bool(primary_a) and bool(primary_b) and (
+                sum(primary_a) / len(primary_a) != sum(primary_b) / len(primary_b)
+            )
+            summary = (
+                f"{sum(primary_a):.0f}/{len(primary_a)} against "
+                f"{sum(primary_b):.0f}/{len(primary_b)}"
+            )
+        elif args.primary == INVOCATION:
+            # A rate, so tested as the mechanical outcome is: [0,0,0] against
+            # [3,3,3] can never "separate completely" in the sense a score can,
+            # and that difference is the entire finding.
+            primary_a = invocations(collected[first], args.case_id)
+            primary_b = invocations(collected[second], args.case_id)
             p = stats.fisher_p(
                 int(sum(primary_a)), len(primary_a),
                 int(sum(primary_b)), len(primary_b),
