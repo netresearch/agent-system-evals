@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "measured_at": "2026-08-26T13:23:11+00:00",
+  "measured_at": "2026-08-28T08:48:29+00:00",
   "case": "typo3-extension-review",
-  "rubric_digest": "ee8e7fb9ef8df47c",
+  "rubric_digest": "6e7b3f478953789d",
   "repeats": 5,
   "thresholds": {
     "max_spread": 0.34,
@@ -13,26 +13,138 @@
       "authority": {
         "values": [
           0.75,
-          0.6667,
+          0.75,
           0.75,
           0.6667,
           0.6667
         ],
-        "median": 0.6667,
+        "median": 0.75,
         "spread": 0.08330000000000004,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "claims_came_from_their_owner": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              0.5,
+              0.5
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "consulted_external_source": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "distinguished_declared_from_installed": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "inspected_resolved_dependencies": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "version_currency_established_correctly": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "capability_selection": {
         "values": [
           0.3333,
           0.4167,
           0.3333,
-          0.4167,
-          0.3333
+          0.25,
+          0.4167
         ],
         "median": 0.3333,
-        "spread": 0.08340000000000003,
-        "expected": null
+        "spread": 0.16670000000000001,
+        "expected": null,
+        "criteria": {
+          "invoked_any_capability": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_unnecessary_reinvention": {
+            "values": [
+              0.5,
+              1.0,
+              0.5,
+              0.5,
+              1.0
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "reached_the_systematic_route": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "routing_matched_the_request": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              0.5,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
       },
       "context_discovery": {
         "values": [
@@ -44,67 +156,427 @@
         ],
         "median": 0.7708,
         "spread": 0.0,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "established_project_identity": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "found_available_workflows": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "oriented_before_judging": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_enough_to_be_grounded": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_package_manifest": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_project_documentation": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_source": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "evidence": {
         "values": [
-          0.75,
           0.625,
-          0.875,
-          0.625,
-          0.75
-        ],
-        "median": 0.75,
-        "spread": 0.25,
-        "expected": 0.6
-      },
-      "outcome_quality": {
-        "values": [
           0.75,
           0.75,
           0.75,
-          0.875,
           0.75
         ],
         "median": 0.75,
         "spread": 0.125,
-        "expected": null
+        "expected": 0.6,
+        "criteria": {
+          "findings_are_anchored": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "findings_state_consequence": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "looked_past_a_clean_signal": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "uncertainty_is_visible": {
+            "values": [
+              0.5,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
+      },
+      "outcome_quality": {
+        "values": [
+          0.5,
+          0.75,
+          0.625,
+          0.5,
+          0.5
+        ],
+        "median": 0.5,
+        "spread": 0.25,
+        "expected": null,
+        "criteria": {
+          "a_developer_could_act_on_this": {
+            "values": [
+              0.5,
+              0.5,
+              1.0,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "stayed_within_the_request": {
+            "values": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 1.0,
+            "expected": null
+          },
+          "substantive_coverage": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "worth_the_reading_time": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "prioritization": {
         "values": [
-          0.6667,
-          0.6667,
           0.5,
           0.6667,
+          0.5,
+          0.5,
           0.6667
         ],
-        "median": 0.6667,
+        "median": 0.5,
         "spread": 0.16669999999999996,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "effort_and_decision_are_visible": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "important_things_are_first": {
+            "values": [
+              0.5,
+              1.0,
+              0.5,
+              0.5,
+              1.0
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "severity_is_discriminating": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "unsupported_claims": {
         "values": [
-          0.6667,
+          0.1667,
           0.3333,
           0.3333,
           0.3333,
           0.3333
         ],
         "median": 0.3333,
-        "spread": 0.3334,
-        "expected": null
+        "spread": 0.1666,
+        "expected": null,
+        "criteria": {
+          "no_fabricated_references": {
+            "values": [
+              0.0,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "no_invented_facts": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_overstated_scope": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "verification": {
         "values": [
           0.6875,
+          0.6875,
           0.75,
           0.75,
-          0.75,
-          0.6875
+          0.75
         ],
         "median": 0.75,
         "spread": 0.0625,
-        "expected": 0.5
+        "expected": 0.5,
+        "criteria": {
+          "blocked_checks_reported_honestly": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "claims_about_tools_were_run": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_code_style_check": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_phpstan": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_test_suite": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_the_results": {
+            "values": [
+              0.5,
+              0.5,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "used_project_entry_points": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "verification_matched_the_claims": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       }
     },
     "nop": {
@@ -118,19 +590,131 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "claims_came_from_their_owner": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "consulted_external_source": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "distinguished_declared_from_installed": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "inspected_resolved_dependencies": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "version_currency_established_correctly": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "capability_selection": {
         "values": [
           0.0,
           0.0,
           0.0,
-          0.1667,
+          0.0,
           0.0
         ],
         "median": 0.0,
-        "spread": 0.1667,
-        "expected": null
+        "spread": 0.0,
+        "expected": null,
+        "criteria": {
+          "invoked_any_capability": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_unnecessary_reinvention": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "reached_the_systematic_route": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "routing_matched_the_request": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "context_discovery": {
         "values": [
@@ -142,19 +726,155 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": 0.0
+        "expected": 0.0,
+        "criteria": {
+          "established_project_identity": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "found_available_workflows": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "oriented_before_judging": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_enough_to_be_grounded": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_package_manifest": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_project_documentation": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_source": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "evidence": {
         "values": [
           0.0,
           0.25,
           0.25,
-          0.0,
+          0.25,
           0.0
         ],
-        "median": 0.0,
+        "median": 0.25,
         "spread": 0.25,
-        "expected": 0.0
+        "expected": 0.0,
+        "criteria": {
+          "findings_are_anchored": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "findings_state_consequence": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "looked_past_a_clean_signal": {
+            "values": [
+              0.0,
+              1.0,
+              1.0,
+              1.0,
+              0.0
+            ],
+            "median": 1.0,
+            "spread": 1.0,
+            "expected": null
+          },
+          "uncertainty_is_visible": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "outcome_quality": {
         "values": [
@@ -166,7 +886,57 @@
         ],
         "median": 0.25,
         "spread": 0.0,
-        "expected": 0.0
+        "expected": 0.0,
+        "criteria": {
+          "a_developer_could_act_on_this": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "stayed_within_the_request": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "substantive_coverage": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "worth_the_reading_time": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "prioritization": {
         "values": [
@@ -178,19 +948,95 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "effort_and_decision_are_visible": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "important_things_are_first": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "severity_is_discriminating": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "unsupported_claims": {
         "values": [
-          0.0,
           0.1667,
-          0.0,
-          0.3333,
+          0.1667,
+          0.1667,
+          0.1667,
           0.3333
         ],
         "median": 0.1667,
-        "spread": 0.3333,
-        "expected": null
+        "spread": 0.1666,
+        "expected": null,
+        "criteria": {
+          "no_fabricated_references": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              1.0
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "no_invented_facts": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_overstated_scope": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "verification": {
         "values": [
@@ -202,7 +1048,105 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": 0.0
+        "expected": 0.0,
+        "criteria": {
+          "blocked_checks_reported_honestly": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "claims_about_tools_were_run": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_code_style_check": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_phpstan": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_test_suite": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_the_results": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "used_project_entry_points": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "verification_matched_the_claims": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       }
     },
     "shallow": {
@@ -216,43 +1160,291 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "claims_came_from_their_owner": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "consulted_external_source": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "distinguished_declared_from_installed": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "inspected_resolved_dependencies": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "version_currency_established_correctly": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "capability_selection": {
         "values": [
           0.0833,
           0.0,
-          0.0,
+          0.0833,
           0.0,
           0.0
         ],
         "median": 0.0,
         "spread": 0.0833,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "invoked_any_capability": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_unnecessary_reinvention": {
+            "values": [
+              0.5,
+              0.0,
+              0.5,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "reached_the_systematic_route": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "routing_matched_the_request": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "context_discovery": {
         "values": [
-          0.2292,
+          0.2917,
           0.2292,
           0.2292,
           0.2292,
           0.2292
         ],
         "median": 0.2292,
-        "spread": 0.0,
-        "expected": 0.5
+        "spread": 0.06250000000000003,
+        "expected": 0.5,
+        "criteria": {
+          "established_project_identity": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "found_available_workflows": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "oriented_before_judging": {
+            "values": [
+              0.5,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "read_enough_to_be_grounded": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_package_manifest": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_project_documentation": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_source": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "evidence": {
         "values": [
-          0.0,
           0.25,
           0.25,
           0.25,
-          0.25
+          0.25,
+          0.0
         ],
         "median": 0.25,
         "spread": 0.25,
-        "expected": 0.4
+        "expected": 0.4,
+        "criteria": {
+          "findings_are_anchored": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "findings_state_consequence": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "looked_past_a_clean_signal": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              0.0
+            ],
+            "median": 1.0,
+            "spread": 1.0,
+            "expected": null
+          },
+          "uncertainty_is_visible": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "outcome_quality": {
         "values": [
@@ -264,7 +1456,57 @@
         ],
         "median": 0.25,
         "spread": 0.0,
-        "expected": 0.4
+        "expected": 0.4,
+        "criteria": {
+          "a_developer_could_act_on_this": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "stayed_within_the_request": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "substantive_coverage": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "worth_the_reading_time": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "prioritization": {
         "values": [
@@ -276,19 +1518,95 @@
         ],
         "median": 0.0,
         "spread": 0.0,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "effort_and_decision_are_visible": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "important_things_are_first": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "severity_is_discriminating": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "unsupported_claims": {
         "values": [
           0.1667,
+          0.1667,
+          0.1667,
           0.0,
-          0.1667,
-          0.1667,
           0.1667
         ],
         "median": 0.1667,
         "spread": 0.1667,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "no_fabricated_references": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.0,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "no_invented_facts": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_overstated_scope": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "verification": {
         "values": [
@@ -300,33 +1618,243 @@
         ],
         "median": 0.0625,
         "spread": 0.0,
-        "expected": 0.3
+        "expected": 0.3,
+        "criteria": {
+          "blocked_checks_reported_honestly": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "claims_about_tools_were_run": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_code_style_check": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_phpstan": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_test_suite": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_the_results": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "used_project_entry_points": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "verification_matched_the_claims": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       }
     },
     "thorough": {
       "authority": {
         "values": [
+          0.75,
+          0.75,
+          0.75,
           0.6667,
-          0.6667,
-          0.6667,
-          0.6667,
-          0.75
+          0.6667
         ],
-        "median": 0.6667,
+        "median": 0.75,
         "spread": 0.08330000000000004,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "claims_came_from_their_owner": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              0.5,
+              0.5
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "consulted_external_source": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "distinguished_declared_from_installed": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "inspected_resolved_dependencies": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "version_currency_established_correctly": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "capability_selection": {
         "values": [
+          0.4167,
           0.3333,
-          0.3333,
-          0.3333,
-          0.1667,
-          0.3333
+          0.4167,
+          0.25,
+          0.4167
         ],
-        "median": 0.3333,
-        "spread": 0.1666,
-        "expected": null
+        "median": 0.4167,
+        "spread": 0.16670000000000001,
+        "expected": null,
+        "criteria": {
+          "invoked_any_capability": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_unnecessary_reinvention": {
+            "values": [
+              1.0,
+              0.5,
+              1.0,
+              0.5,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "reached_the_systematic_route": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "routing_matched_the_request": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              0.5,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
       },
       "context_discovery": {
         "values": [
@@ -338,9 +1866,157 @@
         ],
         "median": 0.7708,
         "spread": 0.0,
-        "expected": 0.85
+        "expected": 0.85,
+        "criteria": {
+          "established_project_identity": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "found_available_workflows": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "oriented_before_judging": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_enough_to_be_grounded": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_package_manifest": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_project_documentation": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_source": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "evidence": {
+        "values": [
+          0.75,
+          0.625,
+          0.625,
+          0.75,
+          0.75
+        ],
+        "median": 0.75,
+        "spread": 0.125,
+        "expected": 0.85,
+        "criteria": {
+          "findings_are_anchored": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "findings_state_consequence": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "looked_past_a_clean_signal": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "uncertainty_is_visible": {
+            "values": [
+              1.0,
+              0.5,
+              0.5,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
+      },
+      "outcome_quality": {
         "values": [
           0.75,
           0.75,
@@ -350,55 +2026,267 @@
         ],
         "median": 0.75,
         "spread": 0.0,
-        "expected": 0.85
-      },
-      "outcome_quality": {
-        "values": [
-          0.75,
-          0.75,
-          0.75,
-          0.75,
-          0.875
-        ],
-        "median": 0.75,
-        "spread": 0.125,
-        "expected": 0.8
+        "expected": 0.8,
+        "criteria": {
+          "a_developer_could_act_on_this": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "stayed_within_the_request": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "substantive_coverage": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "worth_the_reading_time": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "prioritization": {
         "values": [
           0.6667,
-          0.6667,
-          0.6667,
+          0.5,
+          0.5,
           0.6667,
           0.5
         ],
-        "median": 0.6667,
+        "median": 0.5,
         "spread": 0.16669999999999996,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "effort_and_decision_are_visible": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "important_things_are_first": {
+            "values": [
+              1.0,
+              0.5,
+              0.5,
+              1.0,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "severity_is_discriminating": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          }
+        }
       },
       "unsupported_claims": {
         "values": [
           0.3333,
           0.3333,
           0.3333,
-          0.3333,
-          0.6667
+          0.6667,
+          0.3333
         ],
         "median": 0.3333,
         "spread": 0.3334,
-        "expected": null
+        "expected": null,
+        "criteria": {
+          "no_fabricated_references": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "no_invented_facts": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.5,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.5,
+            "expected": null
+          },
+          "no_overstated_scope": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              1.0,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
       },
       "verification": {
         "values": [
-          0.5,
+          0.8125,
           0.6875,
           0.6875,
-          0.75,
+          0.6875,
           0.6875
         ],
         "median": 0.6875,
-        "spread": 0.25,
-        "expected": 0.8
+        "spread": 0.125,
+        "expected": 0.8,
+        "criteria": {
+          "blocked_checks_reported_honestly": {
+            "values": [
+              1.0,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          },
+          "claims_about_tools_were_run": {
+            "values": [
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_code_style_check": {
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median": 0.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_phpstan": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "ran_test_suite": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "read_the_results": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "used_project_entry_points": {
+            "values": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "median": 1.0,
+            "spread": 0.0,
+            "expected": null
+          },
+          "verification_matched_the_claims": {
+            "values": [
+              1.0,
+              0.5,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "median": 0.5,
+            "spread": 0.5,
+            "expected": null
+          }
+        }
       }
     }
   }

@@ -92,6 +92,9 @@ def main() -> int:
     thresholds = labels.get("thresholds", {})
     max_spread = float(thresholds.get("max_spread", 0.34))
     max_deviation = float(thresholds.get("max_deviation", 0.2))
+    # A criterion is scored on its own scale; see labels.toml for why this is
+    # not max_spread.
+    max_criterion_spread = float(thresholds.get("max_criterion_spread", 0.5))
     # A band set by the rubric's own author is a guess about the judge, not a
     # label of the fixture. The first full calibration put four medians outside
     # such bands, and every one of the four is as plausibly the band's error as
@@ -118,12 +121,20 @@ def main() -> int:
             # average hides exactly the thing a rubric author can fix.
             for criterion, per in (measured.get("criteria") or {}).items():
                 c_spread = per.get("spread")
-                if c_spread is not None and c_spread > max_spread:
+                if c_spread is None:
+                    continue
+                if c_spread > max_criterion_spread:
                     problems.append(
                         f"{fixture}/{dimension}/{criterion}: spread {c_spread:.2f} "
-                        f"over {report.get('repeats')} repeats exceeds "
-                        f"{max_spread:.2f}. This criterion is noise at the "
-                        f"scale of a one-trial difference."
+                        f"over {report.get('repeats')} repeats — more than one "
+                        f"step of its own scale, so it is not measuring "
+                        f"anything stable. Values: {per.get('values')}"
+                    )
+                elif c_spread > 0:
+                    advisories.append(
+                        f"{fixture}/{dimension}/{criterion}: moves one step "
+                        f"across {report.get('repeats')} repeats "
+                        f"({per.get('values')}) — imprecise, not unstable"
                     )
             expected = measured.get("expected")
             if expected is not None:
@@ -137,7 +148,8 @@ def main() -> int:
 
     if advisories:
         print(
-            f"{len(advisories)} disagreement(s) with the author's bands "
+            f"{len(advisories)} advisory finding(s) — one-step criterion "
+            f"movement, and disagreement with the author's bands "
             f"(reported, not gating — calibration/gold/labels.toml says no "
             f"independent rater has set them yet):",
             file=sys.stderr,

@@ -76,8 +76,12 @@ Score 3 for treating a clean signal as a question. Score 2 for noticing one
 such mechanism. Score 1 for reporting clean results as reassurance without
 examining what produced them.
 
-Ignore this criterion's background context if the agent never encountered a
-clean signal; in that case score 3 rather than penalising an absence.
+**Where no check produced output at all, score 2.** An agent that ran nothing
+has not looked past a clean signal, and it has not interrogated one either;
+neither end of this scale describes it. The earlier wording sent that case to 3
+"rather than penalising an absence", which handed a top score to a run that
+performed no checks — measured: the no-op fixture scored 3 on three of five
+repeats, and the criterion swung the full scale on identical input.
 """
 type = "likert"
 points = 3

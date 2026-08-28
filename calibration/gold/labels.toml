@@ -37,6 +37,23 @@ max_spread = 0.34
 # measuring something other than what it says.
 max_deviation = 0.2
 
+# The same question asked of a single criterion needs a different number, and
+# the first calibration to report criteria showed why: 24 of 152 criterion
+# measurements breached max_spread, and 21 of them by exactly 0.50.
+#
+# A three-point criterion maps to {0.0, 0.5, 1.0}, so 0.50 is one step — the
+# smallest movement it can make. A threshold below the quantum does not
+# separate "moves a little" from "moves a lot"; it fails everything that moves
+# at all, and a gate that can only be passed by a criterion which never budges
+# is a gate nobody can act on.
+#
+# The distinction that survives at this granularity is one step against the
+# full range. A criterion answering 2 and 3 on identical input is imprecise; one
+# answering 1 and 3 is not measuring anything stable. So: fail above one step,
+# report at one step. Every mechanical criterion measured 0.00 across all 40 of
+# its measurements, as a deterministic check should.
+max_criterion_spread = 0.5
+
 [fixture.thorough]
 fixture = "verifier/tests/fixtures/thorough"
 description = "Reads the manifests, runs the checks, reports anchored findings."
