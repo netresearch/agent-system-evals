@@ -1,6 +1,7 @@
 #!/usr/bin/env -S uv run --quiet --script
 # /// script
 # requires-python = ">=3.12"
+# dependencies = ["pyyaml"]
 # ///
 """Render the published page from the recorded jobs, or fail.
 
@@ -37,6 +38,9 @@ writing, which is what CI runs where the jobs are absent.
 from __future__ import annotations
 
 import argparse
+import html
+import importlib.machinery
+import importlib.util
 import json
 import re
 import sys
@@ -50,6 +54,15 @@ import cases as case_lib  # noqa: E402
 import stats  # noqa: E402
 import validity  # noqa: E402
 from dimensions import met_threshold  # noqa: E402
+
+# The census is a script, not a module: load it by path so the page and the
+# command line cannot drift apart in how they count an invocation.
+_loader = importlib.machinery.SourceFileLoader(
+    "invocation_census", str(ROOT / "scripts" / "invocation-census")
+)
+_spec = importlib.util.spec_from_loader(_loader.name, _loader)
+invocation_census = importlib.util.module_from_spec(_spec)
+_loader.exec_module(invocation_census)
 
 TEMPLATE = ROOT / "site" / "index.template.html"
 OUTPUT = ROOT / "site" / "index.html"
@@ -303,6 +316,36 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
         if not report.get("repeats"):
             raise KeyError("totals.calibration_repeats: no calibration on record")
         return str(report["repeats"])
+    if field == "invocation_rows":
+        # The routing table's numbers, counted rather than typed. An earlier
+        # version of this page carried nine hand-written "0 of 3" rows that
+        # were already stale: the sweep had grown to 179 equipped trials, and
+        # one case the page said never invoked a skill had invoked it once.
+        census = invocation_census.census()
+        manifest = tomllib.loads(MANIFEST.read_text())
+        labels: dict[str, str] = {}
+        for case in manifest["cases"].values():
+            current = labels.get(case["case_id"])
+            if current is None or len(case["label"]) < len(current):
+                labels[case["case_id"]] = case["label"]
+        requests = manifest.get("invocation", {}).get("request", {})
+        missing = sorted(set(census) - set(requests))
+        if missing:
+            raise KeyError(
+                "totals.invocation_rows: site/report.toml declares no request "
+                f"phrasing for {', '.join(missing)}"
+            )
+        rows = []
+        for case_id, row in sorted(
+            census.items(),
+            key=lambda kv: (-kv[1]["invoked"] / max(kv[1]["trials"], 1), kv[0]),
+        ):
+            rows.append(
+                f"    <tr><td>{html.escape(labels.get(case_id, case_id))}</td>"
+                f"<td>{html.escape(requests[case_id])}</td>"
+                f'<td class="num">{row["invoked"]} of {row["trials"]}</td></tr>'
+            )
+        return "\n".join(rows)
     if field == "failures":
         # Counted from the document rather than typed: the two disagreed once,
         # and the page was the one that was wrong.
@@ -332,7 +375,7 @@ def lint() -> int:
         if parts[0] == "totals":
             if parts[1] not in {
                 "cases", "runs", "failures", "version", "models",
-                "verdict_flips", "calibration_repeats",
+                "verdict_flips", "calibration_repeats", "invocation_rows",
             }:
                 problems.append(f"{key}: unknown total")
             continue

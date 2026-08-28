@@ -12,7 +12,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with typo3-conformance describing version declarations — testing whether a description changes routing
+description: nr with typo3-conformance describing version declarations — the description did not change routing, measured 28 August 2026
 
 derives_from: nr
 at:
@@ -31,4 +31,11 @@ at:
   #
   # Resolved commit at the time of writing: 55b0c46. The lock records what each
   # trial actually got, and a branch that moves mid-series is why that matters.
+  #
+  # ANSWERED, 28 August 2026: it does not. Twelve trials, `skill_invoked` 0/6
+  # on `nr` against 1/6 here, Fisher p 1.000. Do not re-run this arm expecting
+  # a routing effect — see
+  # tasks/open/typo3-version-metadata-consistent/RESULTS.md, section "The
+  # description experiment". Point `at:` at the next question instead; leaving
+  # it here costs twelve trials to re-derive a recorded answer.
   netresearch/typo3-conformance-skill: experiment/version-declarations-in-description

@@ -142,3 +142,20 @@ label = "a scheduled job's exit status (Python)"
 [cases.h_py.arms]
 control = "OFR-PY-CI-001-control-20260826-151248,OFR-PY-CI-001-control-20260826-152551,OFR-PY-CI-001-control-20260826-153001"
 nr = "OFR-PY-CI-001-nr-general-20260826-151737,OFR-PY-CI-001-nr-general-20260826-152156,OFR-PY-CI-001-nr-general-20260826-153452"
+
+# How each case's request is phrased, for the invocation table. The counts in
+# that table are computed by scripts/invocation-census over every job on disk;
+# only this classification is editorial, and it is declared once here rather
+# than typed into the page beside numbers that move.
+[invocation.request]
+"OFR-TYPO3-EXT-001" = 'a domain — "review this extension"'
+"OFR-TYPO3-DOCS-001" = 'a domain — "documentation"'
+"OFR-TYPO3-UPGRADE-001" = 'a domain — "upgrade"'
+"OFR-TYPO3-CONSISTENT-001" = "a task"
+"CON-TYPO3-EXTBASE-001" = "a task"
+"OFR-GO-LDAP-001" = "a task"
+"OFR-PY-CI-001" = "a task"
+"OFR-TYPO3-METADATA-001" = "a task"
+"OFR-TYPO3-METADATA-001-BARE" = "a task"
+"OFR-TYPO3-RELEASE-001" = "a task"
+"OFR-TYPO3-RUNTIME-001" = "a task"

@@ -363,21 +363,29 @@ case could.</p>
 
 <h3>Whether a skill is reached for at all</h3>
 
+<p>Counted over every equipped trial on record rather than over one series — every job on disk
+whose fleet resolves to at least one skill, across both models and every ablation, 113
+graded runs and the earlier ones besides. The counts are computed by
+<a href="https://github.com/netresearch/agent-system-evals/blob/main/scripts/invocation-census"><code>scripts/invocation-census</code></a>
+at build time, because the hand-written version of this table was stale within a week.</p>
+
 <div class="scroll">
 <table>
   <thead>
     <tr><th>case</th><th>request names</th><th class="num">skill invoked</th></tr>
   </thead>
   <tbody>
-    <tr><td>documentation from nothing</td><td>a domain — "documentation"</td><td class="num">3 of 3</td></tr>
-    <tr><td>a review</td><td>a domain — "review this extension"</td><td class="num">3 of 3</td></tr>
-    <tr><td>an upgrade</td><td>a domain — "upgrade"</td><td class="num">3 of 3</td></tr>
-    <tr><td>release preparation</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>version metadata, prepared</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>version metadata, unprepared</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">41 of 42</td></tr>
+    <tr><td>documentation from nothing</td><td>a domain — &quot;documentation&quot;</td><td class="num">15 of 17</td></tr>
+    <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">23 of 29</td></tr>
+    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">1 of 15</td></tr>
+    <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 6</td></tr>
+    <tr><td>a timing side channel (Go)</td><td>a task</td><td class="num">0 of 5</td></tr>
+    <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 5</td></tr>
+    <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">0 of 7</td></tr>
+    <tr><td>version metadata, unprepared repository</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>release preparation</td><td>a task</td><td class="num">0 of 4</td></tr>
+    <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 46</td></tr>
   </tbody>
 </table>
 </div>
@@ -400,11 +408,24 @@ every trial failed. Its description names <code>guides.xml</code> and never ment
 version bumps. That is a routing observation about one skill, and unlike the first it is testable in
 one series: change the description, re-run the case.</p>
 
+<p><strong>That series has now run, and the description did not move it.</strong> Twelve trials on
+the restraint case, 28 August, identical in everything but one skill: <code>typo3-conformance</code>
+at its release against the same skill on a branch whose only change adds a sentence naming the
+artefacts the case is about — version declarations that disagree, <code>composer.json</code> against
+<code>ext_emconf.php</code>, supported TYPO3 versions. Nothing was removed. Skill invocation was
+declared as the endpoint before the first trial and came back <strong>0 of 6 against 1 of 6</strong>,
+Fisher exact p 1.000. Rewriting a description to name the artefact did not get the skill reached
+for, and the branch stays unreleased.
+<a href="https://github.com/netresearch/agent-system-evals/blob/main/tasks/open/typo3-version-metadata-consistent/RESULTS.md">The
+full record</a> carries four other lines in that report that do separate — all of them exploratory,
+and one of them pointing the wrong way.</p>
+
 <div class="note">
   <strong>A fleet whose capability is never selected is being measured on its selection; a fleet
-  that does not carry the capability is being measured on its composition.</strong> Of the nine
-  cases, three report on what the skills contain. The rest report on one of those two things, and
-  the benchmark's next job is to separate them case by case rather than in one sentence.
+  that does not carry the capability is being measured on its composition.</strong> Three of the
+  eleven cases report on what the skills contain. The rest report on one of those two things, and
+  separating them case by case is the benchmark's next job — with one route through it now closed,
+  since the skill's own wording is not what decides it.
 </div>
 
 <h3>Where the skill did fire, the direction is not the same</h3>
@@ -598,7 +619,7 @@ not fail the build until an independent rater has set the bands.</p>
 <div class="grid">
   <div class="card"><span class="big">11</span><span class="lbl">cases, one environment baseline</span></div>
   <div class="card"><span class="big">113</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">24</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">25</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
