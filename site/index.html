@@ -268,6 +268,54 @@ clearest measured effect is on spend, that effect is large, and its sign depends
 task</strong>. Whether the work comes out better is the question three runs per side cannot answer,
 and the sections below say so one task at a time.</p>
 
+<h2>Two bugs from the world, and what they cost</h2>
+
+<p>Every case above was written here. The two below were not: the request is a user's bug report,
+quoted, and the answer is the one the maintainers' own fix established — a test that fails at the
+commit before the fix and passes at it, verified both ways before either case was built. Nobody in
+this project chose what counts as correct.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr>
+      <th>task</th>
+      <th class="num">fixed it<br><span class="lbl">unaided</span></th>
+      <th class="num">fixed it<br><span class="lbl">equipped</span></th>
+      <th class="num">skill loaded<br><span class="lbl">equipped runs</span></th>
+      <th class="num">$ per run<br><span class="lbl">median</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a resize lost when rendering (<a href="https://github.com/netresearch/t3x-rte_ckeditor_image/issues/863">reported here</a>)</td>
+        <td class="num">0 of 3</td><td class="num">0 of 3</td><td class="num">0 of 3</td><td class="num">$0.45&ndash;0.72</td></tr>
+    <tr><td>an event lost on the day the clocks change (<a href="https://github.com/derhansen/sf_event_mgt/issues/1219">reported here</a>)</td>
+        <td class="num">2 of 6</td><td class="num">1 of 6</td><td class="num">0 of 6</td><td class="num">$0.49&ndash;0.64</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Three runs of twenty-four fixed a real reported defect</strong>, and the tooling was
+never opened on either task — the requests describe an artefact, and no skill's first sentence
+names that work. These two tasks are also the most expensive here by an order of magnitude: half a
+dollar and millions of input tokens per run, against a cent or two on the tasks written for this
+benchmark.</p>
+
+<div class="note">
+  <strong>The finding is not the score. It is how the runs ended.</strong> The rubric asks one
+  question of the run an agent treats as proof: <em>what would it have done had the fix been
+  wrong?</em> Across both arms that criterion is <strong>not met in 12 of 13 gradings</strong>, and
+  "established the defect before changing it" fails in 11 of 13. Nearly every run — with the stack
+  and without — changed code before establishing what the code did with the reported input, then
+  confirmed it with something that could not have come out wrong. On the first task five of six
+  runs closed with a sentence like <em>"Perfect! The fix is working correctly"</em> over a check
+  that says it is not.
+  <br><br>
+  One difference between the arms, offered as a hypothesis and not a result: the equipped runs were
+  more careful about what they <em>claimed</em> — 6 of 6 against 3 of 7 on "claims match what was
+  shown" — and exactly as unable to produce a check that could fail.
+</div>
+
 <h2>What is being measured</h2>
 
 <p class="lede">Whether an agent equipped with the Netresearch engineering stack takes a
@@ -433,7 +481,7 @@ that reports one number for it is answering a question nobody asked.</p>
 
 <p>On 21 and 22 August 2026 the whole benchmark ran on
 <code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm,
-113 graded runs in all. Every trial passed the validity gate; none was discarded.
+131 graded runs in all. Every trial passed the validity gate; none was discarded.
 The four sections above stay as they are — they are Opus figures, and putting the two models in
 one table would place numbers side by side under a heading that names neither.</p>
 
@@ -445,7 +493,7 @@ case could.</p>
 <h3>Whether a skill is reached for at all</h3>
 
 <p>Counted over every equipped trial on record rather than over one series — every job on disk
-whose fleet resolves to at least one skill, across both models and every ablation, 113
+whose fleet resolves to at least one skill, across both models and every ablation, 131
 graded runs and the earlier ones besides. The counts are computed by
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/scripts/invocation-census"><code>scripts/invocation-census</code></a>
 at build time, because the hand-written version of this table was stale within a week.</p>
@@ -464,8 +512,10 @@ at build time, because the hand-written version of this table was stale within a
     <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 6</td></tr>
     <tr><td>a timing side channel (Go)</td><td>a task</td><td class="num">0 of 5</td></tr>
     <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 11</td></tr>
+    <tr><td>a reported calendar bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 6</td></tr>
     <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">0 of 7</td></tr>
     <tr><td>version metadata, unprepared repository</td><td>a task</td><td class="num">0 of 3</td></tr>
+    <tr><td>a reported rendering bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 3</td></tr>
     <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 52</td></tr>
   </tbody>
 </table>
@@ -805,8 +855,8 @@ not fail the build until an independent rater has set the bands.</p>
 <h2>Method</h2>
 
 <div class="grid">
-  <div class="card"><span class="big">11</span><span class="lbl">cases, one environment baseline</span></div>
-  <div class="card"><span class="big">113</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">13</span><span class="lbl">cases, one environment baseline</span></div>
+  <div class="card"><span class="big">131</span><span class="lbl">graded runs in the current series</span></div>
   <div class="card"><span class="big">27</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
