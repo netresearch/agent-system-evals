@@ -1,0 +1,193 @@
+schema_version = "1.4"
+
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-calendar-dst"
+version = "1.0.0"
+description = "Open forward review: an event vanishes from a calendar on the day the clocks change"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "bug", "calendar", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-CALENDAR-001"
+category = "open-forward-review"
+source_learning_id = "retro-20260829-mine-cases-from-reported-defects"
+
+# The second case mined from the world, and the first on a THIRD-PARTY target.
+# The netresearch extensions with real outside users are also the skill fleet's
+# worked examples, so a case on one carries target familiarity into the
+# equipped arm. This extension is named in no installed skill.
+source_issue = "https://github.com/derhansen/sf_event_mgt/issues/1219"
+source_fix = "https://github.com/derhansen/sf_event_mgt/commit/07a8ef7f"
+
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "git-log.txt",
+    "calendar-check.txt",
+    "own-checks.txt",
+]
+
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/derhansen/sf_event_mgt.git"
+target_package = "derhansen/sf_event_mgt"
+target_sha = "9ae846a3c9aff6a983b77ee85cdb23e667c926e4"
+runtime = false
+dimensions = ["outcome_quality"]
+
+[metadata.mechanical_outcome]
+artifacts = "calendar-check.txt"
+all_of = ["calendar: ok"]
+
+[agent]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com"]
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[verifier.env]
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+# Against the pinned commit and the WORKING TREE, not against HEAD: an agent
+# that commits leaves HEAD clean, and one that does not leaves it at the base.
+# Both shapes produced an empty patch before this (docs/instrument-failures.md 27).
+[[verifier.collect]]
+command = '''
+{
+  base=$(git -C /app rev-list --max-parents=0 HEAD)
+  git -C /app diff --no-renames "$base"
+  git -C /app status --porcelain
+} > /logs/artifacts/git-diff.patch 2>&1 || true
+'''
+
+[[verifier.collect]]
+command = "git -C /app log --oneline > /logs/artifacts/git-log.txt 2>&1 || true"
+
+# The extension's own unit suite, green at the pinned commit and asserted so at
+# image build time. A red suite here is the agent's doing.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-own && cp -a /app /tmp/nreval-own && cd /tmp/nreval-own \
+  && typo3DatabaseDriver=pdo_sqlite .Build/vendor/bin/phpunit -c .Build/phpunit/UnitTests.xml \
+  && echo "own checks: ok" || echo "own checks: failed"
+} > /logs/artifacts/own-checks.txt 2>&1 || true
+'''
+timeout_sec = 900.0
+
+# The behavioural check: the functional test the maintainer wrote for this
+# report, with its fixture, written into a scratch copy at verification time.
+# Embedded rather than copied from /tests, which is mounted only in the
+# verifier image and not in the environment container where collectors run.
+#
+# It drives CalendarService::getCalendarArray(), public before the fix, and
+# asserts how many events land on the day the clocks change. Nothing in it
+# names the fix's internals.
+#
+# The timezone is load-bearing: under UTC there is no such day, both
+# assertions pass at the pinned commit, and the check could never fail. The
+# image pins Europe/Berlin for that reason.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-check && cp -a /app /tmp/nreval-check \
+  && mkdir -p /tmp/nreval-check/Tests/Functional/Service \
+  && mkdir -p /tmp/nreval-check/Tests/Functional/Fixtures \
+  && mkdir -p /tmp/nreval-check/typo3temp/var/tests/functional-sqlite-dbs \
+  && cat > /tmp/nreval-check/Tests/Functional/Service/CalendarServiceTest.php <<'NREVAL_CAL_TEST'
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Extension "sf_event_mgt" for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
+namespace DERHANSEN\SfEventMgt\Tests\Functional\Service;
+
+use DERHANSEN\SfEventMgt\Domain\Model\Dto\EventDemand;
+use DERHANSEN\SfEventMgt\Domain\Repository\EventRepository;
+use DERHANSEN\SfEventMgt\Service\CalendarService;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
+
+class CalendarServiceTest extends FunctionalTestCase
+{
+    protected EventRepository $eventRepository;
+    protected array $testExtensionsToLoad = ['typo3conf/ext/sf_event_mgt'];
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        $this->importCSVDataSet(__DIR__ . '/../Fixtures/events_calendarservice.csv');
+
+        $this->eventRepository = $this->getContainer()->get(EventRepository::class);
+    }
+
+
+    /**
+     * Test, if events for the 27.10.2024 (date with timeshift) will be returned in the array
+     *
+     * @test
+     */
+    public function getCalendarArrayReturnsArrayWithExpectedEventOnADayWithTimeshiftOctober(): void
+    {
+        $demand = new EventDemand();
+        $demand->setStoragePage('4');
+        $events = $this->eventRepository->findDemanded($demand);
+
+        $calendarService = GeneralUtility::makeInstance(CalendarService::class);
+        $calendarArray = $calendarService->getCalendarArray(10, 2024, mktime(0, 0, 0, 10, 27, 2024), 1, $events);
+        self::assertCount(2, $calendarArray[43][6]['events']);
+    }
+
+    /**
+     * Test, if events for the 31.03.2024 (date with timeshift) will be returned in the array
+     *
+     * @test
+     */
+    public function getCalendarArrayReturnsArrayWithExpectedEventOnADayWithTimeshiftMarch(): void
+    {
+        $demand = new EventDemand();
+        $demand->setStoragePage('4');
+        $events = $this->eventRepository->findDemanded($demand);
+
+        $calendarService = GeneralUtility::makeInstance(CalendarService::class);
+        $calendarArray = $calendarService->getCalendarArray(3, 2024, mktime(0, 0, 0, 3, 31, 2024), 1, $events);
+        self::assertCount(1, $calendarArray[13][6]['events']);
+    }
+}
+NREVAL_CAL_TEST
+  cat > /tmp/nreval-check/Tests/Functional/Fixtures/events_calendarservice.csv <<'NREVAL_CAL_FIXTURE'
+"tx_sfeventmgt_domain_model_event"
+,"pid","startdate","enddate","title","description","link","rowDescription"
+,4,1730019600	,1730026800,Test 27.10.2024 10:00 - 12:00,Test,link,27.10.2024 10:00 - 12:00
+,4,1729990800,1729991400,Test 27.10.2024 02:00 - 2:10,Test,link,27.10.2024 - 02:00 - 02:10
+,4,1711846800,1711850400,Test 31.03.2024 - 3:00 - 4:00,Test,link,31.03.2024 - 3:00 - 4:00
+NREVAL_CAL_FIXTURE
+  cd /tmp/nreval-check \
+  && typo3DatabaseDriver=pdo_sqlite .Build/vendor/bin/phpunit \
+       -c .Build/phpunit/FunctionalTests.xml \
+       Tests/Functional/Service/CalendarServiceTest.php \
+  && echo "calendar: ok" || echo "calendar: incomplete"
+} > /logs/artifacts/calendar-check.txt 2>&1 || true
+'''
+timeout_sec = 1200.0

@@ -52,3 +52,30 @@ def test_the_check_is_not_in_the_agents_tree():
     """The build asserts it, and this asserts the build still asserts it."""
     build = (CASE / "environment" / "build-target.sh").read_text()
     assert "test ! -e /app/Tests/Functional/Controller/FigureResizeWidthRenderingTest.php" in build
+
+
+CAL = ROOT / "tasks" / "open" / "typo3-calendar-dst"
+
+
+def test_the_calendar_check_matches_its_source():
+    """Same two-copy problem as the sibling case, same guard."""
+    task = tomllib.loads((CAL / "task.toml").read_text())
+    commands = [c["command"] for c in task["verifier"]["collect"] if "NREVAL_CAL_TEST" in c["command"]]
+    assert len(commands) == 1
+    body = commands[0].split("<<'NREVAL_CAL_TEST'\n", 1)[1].split("\nNREVAL_CAL_TEST", 1)[0]
+    assert body.strip() == (CAL / "tests" / "CalendarServiceTest.php").read_text().strip()
+
+    fixture = commands[0].split("<<'NREVAL_CAL_FIXTURE'\n", 1)[1].split("\nNREVAL_CAL_FIXTURE", 1)[0]
+    assert fixture.strip() == (CAL / "tests" / "events_calendarservice.csv").read_text().strip()
+
+
+def test_the_calendar_case_pins_the_timezone_its_defect_needs():
+    """Without it the check cannot fail — see docs/case-lifecycle.md, criterion 8.
+
+    The defect happens on the day the clocks change. Under UTC there is no such
+    day: both assertions pass at the pinned commit, and the case would grade
+    every trial as a pass, including one that changed nothing.
+    """
+    dockerfile = (CAL / "environment" / "Dockerfile").read_text()
+    assert "ENV TZ=Europe/Berlin" in dockerfile
+    assert "date.timezone" in dockerfile
