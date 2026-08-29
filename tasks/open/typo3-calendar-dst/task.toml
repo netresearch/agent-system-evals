@@ -15,6 +15,17 @@ keywords = ["open-forward-review", "typo3", "bug", "calendar", "agent-system"]
 [metadata]
 case_id = "OFR-TYPO3-CALENDAR-001"
 category = "open-forward-review"
+# The vanilla half of a variant pair. The other half is the same case against
+# the same commit with agent-facing scaffolding added; the variable there is
+# the repository's readiness, not the fleet, and scripts/compare --variable
+# repository is what reads the two together.
+#
+# Declared after the first fleet comparison had already run, which changes this
+# case's task digest: `compare` refuses the earlier jobs against the newer ones
+# and is right to, so the pair was measured again from scratch rather than
+# mixed.
+variant_of = "OFR-TYPO3-CALENDAR-001"
+variant = "vanilla"
 source_learning_id = "retro-20260829-mine-cases-from-reported-defects"
 
 # The second case mined from the world, and the first on a THIRD-PARTY target.

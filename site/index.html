@@ -316,6 +316,47 @@ benchmark.</p>
   shown" — and exactly as unable to produce a check that could fail.
 </div>
 
+<h2>Does making a repository agent-ready help?</h2>
+
+<p>Everything above varies what the <em>agent</em> carries. This varies what the <em>repository</em>
+carries, which is the question the stack is actually about — and until now it had never been
+measured here. Same defect, same model, same fleet; the only difference is eighteen agent-facing
+files generated into the repository by <code>agent-rules</code>: a root <code>AGENTS.md</code>, five
+scoped ones, and their symlinks.</p>
+
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>&nbsp;</th><th class="num">plain repository</th><th class="num">made agent-ready</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>fixed the bug</strong> <span class="lbl">mechanical, no judge</span></td><td class="num">2 of 6</td><td class="num">1 of 6</td></tr>
+    <tr><td>the check it ran could have failed</td><td class="num">2 of 6</td><td class="num">0 of 6</td></tr>
+    <tr><td>claims match what was shown</td><td class="num">2 of 6</td><td class="num">3 of 6</td></tr>
+    <tr><td>established the defect before changing it</td><td class="num">0 of 6</td><td class="num">0 of 6</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>The difference from every other comparison on this page is that the treatment arrived.</strong>
+Five of the six runs read the generated <code>AGENTS.md</code>, mentioning it between 3 and 43 times.
+Skills, by contrast, were loaded in 0 of 6 runs on this same task — so those comparisons measured
+the base model twice, and this one did not.</p>
+
+<div class="note">
+  <strong>It was read and not followed.</strong> The generated file says, in its workflow section:
+  <em>"Before claiming done: run verification and show output as evidence — never say 'tested',
+  'verified' or 'all green' without pasted command output in the same turn."</em> That is exactly
+  the failure the plain arm shows. After the treatment, the criterion asking whether the agent's
+  evidence <em>could have failed</em> is met in <strong>0 of 6</strong> runs, against 2 of 6 before;
+  and the command the file gives for running the repository's own tests — the one that would have
+  shown a wrong fix failing — was used in 2 of 6.
+  <br><br>
+  One task, six runs a side, one model. A one-run difference is noise, and this is not a verdict on
+  harnesses. It is the first measurement here of an intervention the agent demonstrably opened, and
+  what it shows is a document read and not acted on.
+</div>
+
 <h2>What is being measured</h2>
 
 <p class="lede">Whether an agent equipped with the Netresearch engineering stack takes a
