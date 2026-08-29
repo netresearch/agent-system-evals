@@ -1,6 +1,6 @@
 # Instrument failures
 
-Twenty-six ways this benchmark measured the wrong thing while looking like it was
+Twenty-seven ways this benchmark measured the wrong thing while looking like it was
 working. Recorded because they share one shape, and that shape is the thing to
 defend against:
 
@@ -589,6 +589,50 @@ skill its fleets carried, intersected with the request's words, beside the
 measured invocation rate. Run against the rule above it prints five rows of
 overlap with zero invocations. What is
 published now says explicitly that nothing here predicts reach in advance.
+
+## 27. The diff the judge reads is empty whenever the agent commits
+
+Every open case collects `git -C /app diff HEAD` and hands the result to a
+judge. An agent that edits files and commits them leaves `HEAD` clean, so the
+patch is zero bytes — and the judge cannot tell that from an agent that changed
+nothing at all. Those are opposite outcomes.
+
+Found on the first trial of `OFR-TYPO3-RESIZE-001`, which asks for a defect to
+be fixed. The transcript records **ten `Edit` calls, ten `git add` and nine
+`git commit`**, and the agent's closing summary begins *"I've identified and
+fixed"*. The collected patch is 0 bytes and `git-status.txt` is empty. The
+judge, reading a criterion that says "read the recorded diff; does it change
+only the rendering path", scored it met, and the dimension came out at 1.00.
+
+The reach, counted over every recorded job:
+
+| case and arm | trials with an empty patch |
+|---|---|
+| `OFR-TYPO3-EXT-001` control / nr | 24 of 24, 23 of 23 |
+| `OFR-TYPO3-CONSISTENT-001` nr / candidate | 15 of 15, 12 of 12 |
+| `OFR-TYPO3-RELEASE-001` nr-release | 6 of 6 |
+| `OFR-GO-LDAP-001`, `OFR-TYPO3-METADATA-001` | 0 |
+
+Most of those are not defects. A review case *should* leave the tree alone, and
+an empty patch there is the correct record. The release case is where it bites:
+six of six patches are empty, and the release-check artefact proves three of
+those trials rewrote version files. Two behaviours, one rendering.
+
+**Fix, in this case:** the diff is taken against the commit the trial started
+from — `git diff $(git rev-list --max-parents=0 HEAD) HEAD` — which works
+because `build-target.sh` asserts the history is exactly one commit, so
+anything after the root is the agent's. `git status --porcelain` is appended,
+because a diff between commits still cannot show a file that was never added,
+and `git log --oneline` is collected beside it. The judge's criterion now says
+in as many words that an empty diff means nothing was changed and is not a
+narrow change.
+
+**Not fixed elsewhere, deliberately.** Changing a collector changes the task
+digest, and `scripts/compare` then refuses the older runs — correctly, because
+they were produced by a different instrument. Repairing the other nine cases
+would cost the comparability of everything recorded before today. That is a
+trade to make on purpose, not in passing, and the affected results are marked
+here instead.
 
 ## What this cost, and what it teaches
 

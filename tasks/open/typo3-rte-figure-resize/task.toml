@@ -36,6 +36,7 @@ required_artifacts = [
     "git-diff.patch",
     "figure-resize-check.txt",
     "own-checks.txt",
+    "git-log.txt",
 ]
 
 domain = "typo3"
@@ -81,8 +82,32 @@ allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
 [[verifier.collect]]
 command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
 
+# The diff against the PINNED COMMIT, not against HEAD.
+#
+# `git diff HEAD` records nothing once an agent commits its work, and agents
+# commit: the first trial of this case made ten edits and nine commits, and
+# left a zero-byte patch for the judge to read "is the change narrow" from.
+# Across the recorded jobs that shape covers most trials of most cases, and it
+# renders "changed nothing" and "changed a great deal, then committed"
+# identically — opposite outcomes (docs/instrument-failures.md 27).
+#
+# environment/build-target.sh asserts the history is exactly one commit, so
+# the root commit is the pinned one and everything after it is the agent's.
+# `git status --porcelain` is appended because a diff between commits still
+# does not show a file that was never added.
 [[verifier.collect]]
-command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+command = '''
+{
+  base=$(git -C /app rev-list --max-parents=0 HEAD)
+  git -C /app diff --no-renames "$base" HEAD
+  git -C /app status --porcelain
+} > /logs/artifacts/git-diff.patch 2>&1 || true
+'''
+
+# What the agent committed, in its own words. For an agent that commits, the
+# message is the only place it states what it believes it changed.
+[[verifier.collect]]
+command = "git -C /app log --oneline > /logs/artifacts/git-log.txt 2>&1 || true"
 
 # The extension's own unit suite, in a scratch copy (ADR 0007). It was green at
 # the pinned commit — proved at image build time — so a red suite here is

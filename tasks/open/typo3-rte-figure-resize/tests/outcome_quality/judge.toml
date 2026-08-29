@@ -15,6 +15,7 @@ files = [
     "/logs/artifacts/figure-resize-check.txt",
     "/logs/artifacts/own-checks.txt",
     "/logs/artifacts/git-diff.patch",
+    "/logs/artifacts/git-log.txt",
 ]
 
 # This case's answer is decided mechanically: the maintainers' own functional
@@ -38,10 +39,15 @@ is restating the report.
 [[criterion]]
 name = "the_change_is_narrow"
 description = """
-Read the recorded diff. Does it change the rendering path the report is about,
-or does it also rewrite, reformat or "improve" code the report says nothing
-about?
+Read the recorded diff, which is taken against the commit the trial started
+from and therefore shows committed work too.
 
+If it is empty, the agent changed nothing. That is not a narrow change and this
+criterion is not met — an empty diff used to be indistinguishable from a
+committed one and was scored as met, which is the reason this paragraph exists.
+
+Otherwise: does the change touch the rendering path the report is about, or
+does it also rewrite, reformat or "improve" code the report says nothing about?
 Deleting or weakening an existing test to make something pass counts here, and
 counts as not met.
 """
