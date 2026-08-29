@@ -1,0 +1,184 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""Find reported defects whose fix shipped a test, as candidates for a case.
+
+A case mined from the world has something no case written here can have: a
+request nobody phrased for a benchmark, and an expected behaviour nobody here
+chose. This finds the raw material — a closed issue, the commit or pull request
+that fixed it, and a test that came with the fix.
+
+**It cannot decide admission and does not pretend to.** The criterion that
+rejects most candidates is that the fix's test must FAIL at the commit before
+the fix, and that is only knowable by building the tree twice and running it.
+Of seven candidates mined in August 2026, two survived; the five rejections
+split between a test that reflects into a method the fix introduced, a test
+that exercises a different method than the fix changed, and one this script
+would have ranked highly. See docs/case-lifecycle.md, criteria 7 to 9.
+
+So the output ends in the two commands to run, per candidate, and nothing here
+is a verdict.
+
+    scripts/mine-cases derhansen/sf_event_mgt
+    scripts/mine-cases --insiders CybotTM,magicsunday netresearch/t3x-cowriter
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+
+BOT = re.compile(r"renovate|dependabot|copilot|\[bot\]", re.I)
+TEST = re.compile(r"(^|/)[Tt]ests?/")
+CODE = re.compile(r"^(Classes|src|lib|Resources)/")
+
+PR_QUERY = """
+{ repository(owner:"%s", name:"%s") {
+    pullRequests(states:MERGED, first:%d, orderBy:{field:UPDATED_AT, direction:DESC}) {
+      nodes { number title bodyText author{login} baseRefOid
+              mergeCommit{oid}
+              files(first:60){nodes{path additions deletions}} } } } }
+"""
+
+ISSUE_QUERY = """
+{ repository(owner:"%s", name:"%s") {
+    issues(first:100, orderBy:{field:UPDATED_AT, direction:DESC}) {
+      nodes { number title author{login} } } } }
+"""
+
+
+def gql(query: str) -> dict:
+    done = subprocess.run(
+        ["gh", "api", "graphql", "-f", "query=" + query],
+        capture_output=True, text=True,
+    )
+    if done.returncode != 0:
+        sys.exit(f"gh api graphql failed: {done.stderr.strip()[:200]}")
+    return json.loads(done.stdout).get("data") or {}
+
+
+def candidates_from_prs(owner: str, name: str, limit: int) -> list[dict]:
+    repo = (gql(PR_QUERY % (owner, name, limit)).get("repository") or {})
+    out = []
+    for pr in (repo.get("pullRequests") or {}).get("nodes") or []:
+        author = (pr.get("author") or {}).get("login", "")
+        if BOT.search(author):
+            continue
+        paths = [f["path"] for f in pr["files"]["nodes"]]
+        tests = [p for p in paths if TEST.search(p)]
+        code = [p for p in paths if CODE.match(p) and not TEST.search(p)]
+        if not (tests and code):
+            continue
+        out.append({
+            "kind": "pr", "ref": (pr.get("mergeCommit") or {}).get("oid", "")[:10]
+                                  or f"#{pr['number']}",
+            "title": pr["title"],
+            "base": pr["baseRefOid"], "tests": tests, "code": code,
+            "issues": sorted(set(re.findall(r"#(\d+)",
+                             (pr.get("bodyText") or "") + " " + pr["title"]))),
+            "new_test_files": [
+                f["path"] for f in pr["files"]["nodes"]
+                if TEST.search(f["path"]) and f["deletions"] == 0
+            ],
+        })
+    return out
+
+
+def candidates_from_commits(repo: str, since: str) -> list[dict]:
+    """Repositories whose maintainer commits directly rather than via PRs.
+
+    sf_event_mgt has four merged PRs carrying a test in its newest sixty and
+    twenty-eight bugfix commits in the same period, so a PR-only miner reports
+    that seam as empty.
+    """
+    log = subprocess.run(
+        ["git", "log", f"--since={since}", "--format=%H|%s"],
+        capture_output=True, text=True, cwd=repo,
+    ).stdout
+    out = []
+    for line in log.splitlines():
+        sha, subject = line.split("|", 1)
+        if not re.match(r"\[?(BUGFIX|FIX|fix)", subject):
+            continue
+        files = subprocess.run(
+            ["git", "show", "--name-only", "--format=", "-r", sha],
+            capture_output=True, text=True, cwd=repo,
+        ).stdout.split()
+        tests = [f for f in files if TEST.search(f)]
+        code = [f for f in files if CODE.match(f) and not TEST.search(f)]
+        if not (tests and code):
+            continue
+        body = subprocess.run(
+            ["git", "log", "-1", "--format=%B", sha],
+            capture_output=True, text=True, cwd=repo,
+        ).stdout
+        out.append({"kind": "commit", "ref": sha[:10], "title": subject,
+                    "base": sha + "^", "tests": tests, "code": code,
+                    "issues": sorted(set(re.findall(r"#(\d+)", body))),
+                    "new_test_files": []})
+    return out
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("repo", help="owner/name")
+    parser.add_argument("--insiders", default="",
+                        help="comma-separated logins whose issues are not "
+                             "'from the world' — maintainers, and this project")
+    parser.add_argument("--limit", type=int, default=60)
+    parser.add_argument("--from-commits", metavar="CHECKOUT",
+                        help="mine a local clone's history instead of its PRs")
+    parser.add_argument("--since", default="2024-01-01")
+    args = parser.parse_args()
+
+    owner, name = args.repo.split("/", 1)
+    insiders = {s.strip() for s in args.insiders.split(",") if s.strip()}
+
+    reporters = {}
+    for issue in ((gql(ISSUE_QUERY % (owner, name)).get("repository") or {})
+                  .get("issues") or {}).get("nodes") or []:
+        reporters[issue["number"]] = ((issue.get("author") or {}).get("login", "?"),
+                                      issue["title"])
+
+    found = (candidates_from_commits(args.from_commits, args.since)
+             if args.from_commits else
+             candidates_from_prs(owner, name, args.limit))
+
+    shown = 0
+    for c in found:
+        external = [n for n in c["issues"]
+                    if int(n) in reporters
+                    and reporters[int(n)][0] not in insiders
+                    and not BOT.search(reporters[int(n)][0])]
+        if not external:
+            continue
+        shown += 1
+        issue = int(external[0])
+        who, what = reporters[issue]
+        print(f"\n{args.repo}#{issue} [{who}]  fixed by {c['kind']} {c['ref']}")
+        print(f"  {what[:76]}")
+        print(f"  code:  {', '.join(p.split('/')[-1] for p in c['code'][:3])}")
+        print(f"  tests: {', '.join(p.split('/')[-1] for p in c['tests'][:3])}")
+        if c["new_test_files"]:
+            print("  note:  the test file is new with the fix — read it for "
+                  "reflection into methods the fix introduced")
+        print(f"  verify (both directions, under the settings the defect needs):")
+        print(f"    git checkout {c['base']} && <install> && <run the fix's test>   # must FAIL")
+        print(f"    git checkout {c['ref']}  && <install> && <run the fix's test>   # must PASS")
+
+    label = "with a reporter outside the given insiders" if insiders else "with a reporter"
+    print(f"\n{shown} candidate(s) {label}, of {len(found)} fix(es) carrying a test.")
+    if not insiders:
+        print("  --insiders was empty, so 'reporter' includes the maintainers. "
+              "A defect the maintainer found and reported is real, but it is not "
+              "a request phrased by someone who did not know the code.")
+    print("None of them is admitted until both commands above have been run.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

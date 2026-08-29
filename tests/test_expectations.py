@@ -100,3 +100,19 @@ def test_the_job_is_read_from_the_run_not_guessed_from_a_glob():
 
 def test_a_run_that_reported_no_job_resolves_to_nothing():
     assert runner.resolve_job("harbor: failed to start\n") is None
+
+
+def test_the_miner_refuses_to_call_a_candidate_admitted():
+    """It finds raw material and cannot decide admission.
+
+    The criterion that rejected five of seven candidates in August 2026 — the
+    fix's test must fail at the commit before the fix — is only knowable by
+    building the tree twice. A miner that printed a verdict would have admitted
+    at least one case whose check could never fail (docs/case-lifecycle.md 7-9).
+    """
+    source = (ROOT / "scripts" / "mine-cases").read_text()
+    assert "None of them is admitted until both commands above have been run." in source
+    assert "must FAIL" in source and "must PASS" in source
+    # And it must not silently treat a maintainer's own report as an outside
+    # request when no insider list was given.
+    assert "--insiders was empty" in source
