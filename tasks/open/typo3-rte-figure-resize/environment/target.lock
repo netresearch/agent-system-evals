@@ -1,0 +1,25 @@
+# The extension under review, pinned to the commit before the reported defect
+# was fixed. See docs/reproducibility.md.
+#
+# This is the first case mined from the real world rather than written for the
+# benchmark: the request is a user's bug report, and the expected behaviour is
+# the one the maintainers' own fix established. Both halves were verified
+# before the case was built — the fix's functional test fails 4 of 13 at
+# TARGET_COMMIT and passes 13 of 13 at TARGET_FIX_COMMIT, same file, same
+# command, same environment.
+TARGET_REPOSITORY=https://github.com/netresearch/t3x-rte_ckeditor_image.git
+TARGET_COMMIT=31ea08989b3daf9f44dae17e95ac92646633d5b5
+TARGET_PACKAGE=netresearch/rte-ckeditor-image
+TARGET_EXTENSION_KEY=rte_ckeditor_image
+TARGET_TYPE=typo3-cms-extension
+
+# Recorded, never checked out in the trial: the commit that fixed the reported
+# defect. It is where the expected behaviour comes from, and an agent that
+# reaches it must not be able to read it.
+TARGET_FIX_COMMIT=4796899
+TARGET_ISSUE=https://github.com/netresearch/t3x-rte_ckeditor_image/issues/863
+TARGET_FIX_PR=https://github.com/netresearch/t3x-rte_ckeditor_image/pull/865
+
+# Shallow: this case is about behaviour in the working tree, and the history
+# carries the fix on later branches.
+TARGET_HISTORY=shallow

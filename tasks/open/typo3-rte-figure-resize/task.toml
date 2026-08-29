@@ -1,0 +1,125 @@
+schema_version = "1.4"
+
+# Must stay above the first table header: `artifacts` is a top-level key, and
+# TOML assigns any key written after a table header to that table instead.
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-rte-figure-resize"
+version = "1.0.0"
+description = "Open forward review: a reported CKEditor 5 resize width lost in frontend rendering"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "bug", "rendering", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-RESIZE-001"
+category = "open-forward-review"
+
+# The first case mined from the world rather than written for the benchmark.
+# The request is a user's bug report, quoted; the expected behaviour is the one
+# the maintainers' own fix established; and neither was chosen with a benchmark
+# in mind. What that buys is a ground truth nobody here selected — and it costs
+# the ability to tune the case, which is the point.
+#
+# Both halves were verified before the case was built, same file, same command,
+# same environment:
+#   31ea0898 (pinned here)  13 tests, 4 failures
+#   4796899  (the real fix) 13 tests, 0 failures
+source_issue = "https://github.com/netresearch/t3x-rte_ckeditor_image/issues/863"
+source_fix = "https://github.com/netresearch/t3x-rte_ckeditor_image/pull/865"
+
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "figure-resize-check.txt",
+    "own-checks.txt",
+]
+
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/netresearch/t3x-rte_ckeditor_image.git"
+target_package = "netresearch/rte-ckeditor-image"
+target_sha = "31ea08989b3daf9f44dae17e95ac92646633d5b5"
+
+# No HTTP instance, unlike the other open cases. The reported behaviour is a
+# pure rendering path and is reachable through the extension's own functional
+# stack on SQLite; the reasoning and what it costs are in environment/Dockerfile
+# and in the README.
+runtime = false
+
+# One dimension, not eight. The answer here is decided mechanically; the judge
+# is asked only about what a pass/fail cannot see.
+dimensions = ["outcome_quality"]
+
+# Ground truth, decided by the framework rather than by a judge: the
+# maintainers' own functional test, staged after the agent has finished.
+[metadata.mechanical_outcome]
+artifacts = "figure-resize-check.txt"
+all_of = ["figure resize: ok"]
+
+[agent]
+# The task needs no network. The agent still needs its own model endpoint.
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com"]
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[verifier.env]
+# Harbor removes every value in this table from all captured output.
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+
+# The extension's own unit suite, in a scratch copy (ADR 0007). It was green at
+# the pinned commit — proved at image build time — so a red suite here is
+# something the agent did, and separates "fixed it" from "made it green".
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-own && cp -a /app /tmp/nreval-own && cd /tmp/nreval-own \
+  && typo3DatabaseDriver=pdo_sqlite .Build/bin/phpunit -c Build/phpunit/UnitTests.xml --no-coverage \
+  && echo "own checks: ok" || echo "own checks: failed"
+} > /logs/artifacts/own-checks.txt 2>&1 || true
+'''
+timeout_sec = 900.0
+
+# The behavioural check: the functional test the maintainers wrote for this
+# report, staged into a scratch copy of the agent's tree and run there. It
+# never exists in the agent's environment — in the tree it would hand over the
+# expected output as a fixture, which environment/build-target.sh asserts
+# against.
+#
+# It drives ImageRenderingAdapter::renderFigure(), a public method that existed
+# before the fix, with stored HTML and asserts the rendered HTML. Nothing in it
+# names the fix's internals, so a correct fix reached another way passes. That
+# property was the reason this candidate was adopted and four others were not.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-check && cp -a /app /tmp/nreval-check \
+  && mkdir -p /tmp/nreval-check/Tests/Functional/Controller \
+  && cp /tests/FigureResizeWidthRenderingTest.php \
+        /tmp/nreval-check/Tests/Functional/Controller/ \
+  && mkdir -p /tmp/nreval-check/typo3temp/var/tests/functional-sqlite-dbs \
+  && cd /tmp/nreval-check \
+  && typo3DatabaseDriver=pdo_sqlite .Build/bin/phpunit \
+       -c Build/phpunit/FunctionalTests.xml --no-coverage \
+       Tests/Functional/Controller/FigureResizeWidthRenderingTest.php \
+  && echo "figure resize: ok" || echo "figure resize: incomplete"
+} > /logs/artifacts/figure-resize-check.txt 2>&1 || true
+'''
+timeout_sec = 1200.0

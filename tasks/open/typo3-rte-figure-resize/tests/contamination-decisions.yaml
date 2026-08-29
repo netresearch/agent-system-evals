@@ -1,0 +1,148 @@
+# Recorded human decisions on contamination-check hits for this case.
+#
+# Every entry is a hit that scripts/contamination-check reported and a human
+# judged a learning by the test in docs/contamination.md: the text helps an
+# agent on a repository it has never seen. An entry is pinned to the skill ref
+# it was judged at — bumping the skill in a fleet lapses the decision, and the
+# new version's text is judged fresh.
+#
+# There are twenty-one of them, which is the most of any case here and is worth
+# reading as a fact about the target rather than about the skills. This
+# extension is the skill fleet's worked example: its name appears in 47 files
+# across the installed skills, against 0 to 17 for every other target this
+# benchmark uses. Six reference files account for all twenty-one hits, and each
+# uses the extension to show a tooling shape — an XLIFF header, a runTests
+# configuration, a docs URL, an RST directive, a JavaScript test layout.
+#
+# None of them touches rendering, figures, resizing or the reported defect. But
+# the exposure is real and is stated in this case's README: an equipped arm
+# carries documentation that names this repository far more often than it names
+# any other target, and a win for that arm cannot be read as skill quality
+# without weighing it.
+
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.1
+  path: typo3-conformance-skill-2.19.1/skills/typo3-conformance/references/runtests-validation.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.1
+  path: typo3-conformance-skill-2.19.1/skills/typo3-conformance/references/crowdin-integration.md
+  marker: rte_ckeditor_image
+  reason: The extension key appears as the `product-name` in an example XLIFF header. A translation-file shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.1
+  path: typo3-conformance-skill-2.19.1/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte_ckeditor_image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.1
+  path: typo3-conformance-skill-2.19.1/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.3
+  path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/javascript-testing.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.3
+  path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/javascript-testing.md
+  marker: t3x-rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path.
+
+- skill: netresearch/typo3-testing-skill
+  ref: v5.20.3
+  path: typo3-testing-skill-5.20.3/skills/typo3-testing/references/javascript-testing.md
+  marker: rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/README.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/extraction-patterns.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/README.md
+  marker: t3x-rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/extraction-patterns.md
+  marker: t3x-rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/typo3-directives.md
+  marker: t3x-rte_ckeditor_image
+  reason: Named as the source of an example RST directive. Documentation syntax, nothing about rendering.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/README.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/extraction-patterns.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/intercept-deployment.md
+  marker: netresearch/rte-ckeditor-image
+  reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/README.md
+  marker: rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/extraction-patterns.md
+  marker: rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/typo3-directives.md
+  marker: rte_ckeditor_image
+  reason: Named as the source of an example RST directive. Documentation syntax, nothing about rendering.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/README.md
+  marker: rte-ckeditor-image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/extraction-patterns.md
+  marker: rte-ckeditor-image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: v2.16.0
+  path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/intercept-deployment.md
+  marker: rte-ckeditor-image
+  reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
