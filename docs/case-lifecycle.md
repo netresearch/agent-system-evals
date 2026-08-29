@@ -55,12 +55,20 @@ A candidate becomes a case only when all of these hold:
    `target.lock`.
 
    This is the criterion that rejects most candidates, and it cannot be read
-   off the diff. Of seven mined in August 2026, two survived it:
+   off the diff. Of eight mined in August 2026, two survived it:
 
    | why a candidate failed | example |
    |---|---|
    | the test reflects into a method the fix introduces | `rte_ckeditor_image#846` |
    | the test exercises a different method than the fix changes, and passes before it | `sf_event_mgt#1361` |
+   | the test grew from 4 cases to 20 and all 20 pass before the fix | `sf_event_mgt#1364` |
+
+   That last one is worth dwelling on, because everything readable from the
+   diff said yes: an externally visible defect, a fix of eighteen lines, a test
+   class that already existed, a data provider quadrupled, assertions on a
+   public method with no reflection anywhere. It still does not discriminate.
+   A test that ships with a fix is evidence that the author cared, not that the
+   test would have caught the defect.
 
 8. **The check could have failed for the right reason.** A ground truth that
    passes at the pinned commit is not always a bad candidate — it can be an
