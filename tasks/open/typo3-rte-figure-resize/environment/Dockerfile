@@ -40,5 +40,14 @@ RUN chmod +x /usr/local/bin/install-toolchain \
     && ! command -v rg > /dev/null \
     && rm -f /usr/local/bin/install-toolchain
 
+# The timezone the case's checks run in, pinned rather than inherited.
+# This case's defect does not depend on it — a sibling candidate's did, and its
+# test passed at the pinned commit under UTC because UTC has no
+# daylight-saving day for the defect to occur on. A check that cannot fail
+# grades every trial as a pass. See docs/case-lifecycle.md, criterion 8.
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo "$TZ" > /etc/timezone \
+    && printf 'date.timezone=%s\n' "$TZ" > /usr/local/etc/php/conf.d/timezone.ini
+
 WORKDIR /app
 RUN mkdir -p /logs/artifacts

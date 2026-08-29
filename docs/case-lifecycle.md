@@ -44,7 +44,43 @@ A candidate becomes a case only when all of these hold:
 5. **Human baseline.** An experienced reviewer has worked the case once and
    recorded relevant areas, reasonable investigation paths, and known blind
    spots — verifier-side only.
-6. **Contamination clean.** `scripts/contamination-check` passes.
+6. **Contamination clean.** `scripts/contamination-check` passes — for every
+   fleet, not one. A decision is pinned to a skill *and* a ref, so each fleet
+   and each version needs its own; CI iterates all of them and a check run
+   against a single fleet proves nothing about the rest.
+7. **The ground truth fails before it passes.** Where a case is mined from a
+   reported defect and graded by the fix's own test, that test must be run
+   twice — at the pinned commit and at the fix — and must **fail at the pinned
+   commit**. Same file, same command, same environment; record both numbers in
+   `target.lock`.
+
+   This is the criterion that rejects most candidates, and it cannot be read
+   off the diff. Of seven mined in August 2026, two survived it:
+
+   | why a candidate failed | example |
+   |---|---|
+   | the test reflects into a method the fix introduces | `rte_ckeditor_image#846` |
+   | the test exercises a different method than the fix changes, and passes before it | `sf_event_mgt#1361` |
+
+8. **The check could have failed for the right reason.** A ground truth that
+   passes at the pinned commit is not always a bad candidate — it can be an
+   environment that cannot produce the defect. `sf_event_mgt#1219` reports a
+   calendar event lost on a daylight-saving day; its test passed at the pinned
+   commit under `TZ=UTC`, where there is no such day, and failed under
+   `TZ=Europe/Berlin` as reported. Had that case shipped without the timezone
+   pinned, its check would have passed in every trial, including for an agent
+   that changed nothing, and the case could never have failed anyone.
+
+   So pin whatever the defect depends on — timezone, locale, PHP version — in
+   the case environment, and satisfy criterion 7 *under those pinned settings*.
+
+9. **The dependency tree still resolves.** Composer refuses versions with
+   published advisories, and every `typo3/cms-core ^12.4` is now blocked. A
+   commit from an older LTS needs `--no-security-blocking` in the case's build,
+   which puts known-vulnerable dependencies in the image — acceptable in a
+   sandboxed, network-restricted container, and to be stated in the case rather
+   than left in a build script. This window keeps closing: a case that builds
+   today may not build next year, for reasons that have nothing to do with it.
 
 ## Retirement
 
