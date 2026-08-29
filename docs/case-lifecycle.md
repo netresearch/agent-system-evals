@@ -70,6 +70,24 @@ A candidate becomes a case only when all of these hold:
    A test that ships with a fix is evidence that the author cared, not that the
    test would have caught the defect.
 
+   **A candidate rejected here can often be recovered, and `#1364` was.** Read
+   the fix for the *behaviour* it changed rather than the test it shipped, find
+   an input the two versions disagree on, and write that one assertion against
+   the same public surface. In that case the fix widened "an array counts as
+   empty" from exactly `['']` to any array of empty strings, so the
+   disagreement is a checkbox group with several options and none ticked —
+   which the maintainer's provider cannot construct at all, because it passes a
+   plain string for every row and `getValue()` wraps that as `['']`, the one
+   shape both versions already agreed on. One added test method fails at the
+   pinned commit and passes at the fix.
+
+   The cost is that part of the ground truth becomes ours again, which is what
+   mining was meant to avoid. Keep the boundary explicit: the expected
+   behaviour comes from the maintainer's fix, the input comes from the
+   disagreement between the two versions, and only the assertion is written
+   here. Record which is which in the case's `README.md`, and never write an
+   assertion the fix's behaviour does not already imply.
+
 8. **The check could have failed for the right reason.** A ground truth that
    passes at the pinned commit is not always a bad candidate — it can be an
    environment that cannot produce the defect. `sf_event_mgt#1219` reports a
