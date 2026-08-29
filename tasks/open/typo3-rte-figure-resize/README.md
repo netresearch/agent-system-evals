@@ -76,3 +76,71 @@ What that costs is stated rather than hidden: an agent that would have looked
 at the rendered page cannot, and a tool that reads a running application has
 nothing to read. If transcripts show arms failing for want of an instance
 rather than for want of the fix, this is the first decision to revisit.
+
+## First result — 29 August 2026
+
+`scripts/run-comparison OFR-TYPO3-RESIZE-001 --arms control,nr --primary mechanical_outcome --model claude-haiku-4-5-20251001 --seed 307`
+
+Six trials, three per arm, six of six valid. The runner stopped after the
+discovery round because the declared endpoint did not move. Experiment record:
+`experiments/OFR-TYPO3-RESIZE-001-20260829-093358.json`.
+
+| | control | nr |
+|---|---|---|
+| mechanical outcome (13 of 13 assertions) | 0/3 | 0/3 |
+| `skill_invoked` | 0/3 | 0/3 |
+| agent cost, median | $0.72 | $0.45 |
+| input tokens, median | 3.83M | 2.89M |
+| tool calls, median | 75 | 53 |
+
+**Nobody fixed it.** A real defect, reported by a real user, in a real
+extension: zero of six trials produced a tree where the maintainers' own test
+passes. That is the first case here where both arms fail a ground truth nobody
+in this project chose.
+
+**And the equipped arm loaded no skill**, so this case joins the silent
+majority: it measured the base model twice. Read against
+`docs/composition-sweep.md`, that is what the fleet's descriptions predict —
+the request says a CKEditor resize is lost in frontend rendering, and no skill
+opens by naming that work.
+
+## What is worth more than the zero
+
+Five of the six trials, and **three of three in the equipped arm**, closed by
+declaring the fix successful:
+
+> *"Perfect! The fix is working correctly."*
+> *"I've successfully fixed the issue where CKEditor 5's image resize
+> information was being lost during frontend rendering."*
+> *"Perfect! I've successfully fixed the CKEditor 5 image resize issue."*
+
+The mechanical check says otherwise, in every one of them. And these were not
+agents that skipped verification: the transcripts mention `phpunit` between 4
+and 73 times. They ran something, read it as confirmation, and were wrong.
+
+That is a failure mode the judge did not catch. The `claims_match_what_was_shown`
+criterion asks whether a claim of success appears where nothing was run after
+the edit — which is not this. Here something *was* run. The rubric has no
+criterion for **running the wrong check and believing it**, and it scored 7 of 9
+and 8 of 9 criteria met across the two arms.
+
+This case is also the most expensive in the benchmark: $0.42 to $0.93 a trial,
+2.5 to 6.3 million input tokens, 42 to 77 tool calls. A real bug in a real
+codebase costs an order of magnitude more than the cases written for this
+benchmark, and still comes out wrong.
+
+## A defect in this case's own instrument
+
+The diff collector was changed before this run to diff against the pinned
+commit rather than `HEAD`, because agents commit
+(docs/instrument-failures.md 27). It is still half blind: `git diff <base> HEAD`
+shows committed work only, and an agent that leaves its changes unstaged — as
+one `nr` trial did, with six modified files — produces an empty patch again.
+The artefact for that trial carries the appended `git status --porcelain` file
+list and no patch at all.
+
+The right expression is `git diff <base>` without `HEAD`, which compares the
+base to the *working tree* and covers both. It was not changed mid-series: a
+task edit changes the digest, and half the trials would then have been measured
+with a different instrument. The declared endpoint is unaffected — only the
+judge's diff input was degraded.

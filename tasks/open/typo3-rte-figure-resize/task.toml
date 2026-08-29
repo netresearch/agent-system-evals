@@ -93,13 +93,18 @@ command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 
 #
 # environment/build-target.sh asserts the history is exactly one commit, so
 # the root commit is the pinned one and everything after it is the agent's.
-# `git status --porcelain` is appended because a diff between commits still
-# does not show a file that was never added.
+#
+# `git diff <base>` without `HEAD`, deliberately: with `HEAD` it shows
+# committed work only, and the first series on this case had an arm leave six
+# files modified and unstaged, which produced an empty patch for the second
+# time. Without `HEAD` the comparison is base against the WORKING TREE and
+# covers both. `git status --porcelain` is still appended, because neither form
+# shows a file that was never added.
 [[verifier.collect]]
 command = '''
 {
   base=$(git -C /app rev-list --max-parents=0 HEAD)
-  git -C /app diff --no-renames "$base" HEAD
+  git -C /app diff --no-renames "$base"
   git -C /app status --porcelain
 } > /logs/artifacts/git-diff.patch 2>&1 || true
 '''
