@@ -1,0 +1,28 @@
+# The extension under review, pinned to the commit before the reported defect
+# was fixed. See docs/reproducibility.md.
+#
+# A THIRD-PARTY repository, unlike every other target here. That is the point:
+# the netresearch extensions with real outside users are also the skill fleet's
+# worked examples, so a case built on one carries target familiarity into the
+# equipped arm (see tasks/open/typo3-rte-figure-resize/README.md). This one is
+# named in no installed skill. It is cloned read-only for evaluation; nothing
+# is contributed back and nothing is published from it.
+TARGET_REPOSITORY=https://github.com/derhansen/sf_event_mgt.git
+TARGET_COMMIT=9ae846a3c9aff6a983b77ee85cdb23e667c926e4
+TARGET_PACKAGE=derhansen/sf_event_mgt
+TARGET_EXTENSION_KEY=sf_event_mgt
+TARGET_TYPE=typo3-cms-extension
+
+# Recorded, never checked out in a trial: the commit that fixed the defect.
+TARGET_FIX_COMMIT=07a8ef7fe7
+TARGET_ISSUE=https://github.com/derhansen/sf_event_mgt/issues/1219
+
+# The ground truth, measured before the case was built — same file, same
+# command, same environment, both under TZ=Europe/Berlin:
+#   9ae846a3 (pinned here)   2 tests, 1 failure
+#   07a8ef7f (the real fix)  2 tests, 0 failures
+#
+# Under TZ=UTC both come out green, because UTC has no daylight-saving day for
+# the defect to occur on. The environment pins the timezone for that reason and
+# docs/case-lifecycle.md criterion 8 records why.
+TARGET_HISTORY=shallow
