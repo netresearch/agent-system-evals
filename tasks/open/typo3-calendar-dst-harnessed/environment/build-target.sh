@@ -73,8 +73,16 @@ test -L /app/CLAUDE.md
 # None of the scaffolding may name the defect. Asserted here rather than
 # trusted: an AGENTS.md that explains the calendar arithmetic would hand the
 # answer to the arm under test.
-! grep -rilE "daylight|timeshift|time change|clocks|getCalendarArray" \
-    /app/AGENTS.md /app/*/AGENTS.md /app/.github/workflows/AGENTS.md
+#
+# `&& exit 1` rather than a leading `!`: under `set -e` a negated command is
+# not a condition and does not abort, so the first version of this assertion
+# could not have failed the build however loud the leak. Caught by shellcheck
+# (SC2251), which is the same failure this case's rubric asks agents about.
+if grep -rilE "daylight|timeshift|time change|clocks|getCalendarArray" \
+    /app/AGENTS.md /app/*/AGENTS.md /app/.github/workflows/AGENTS.md; then
+  echo "the generated scaffolding names the defect" >&2
+  exit 1
+fi
 
 # The case's own test and its fixture must NOT be here — the verifier writes
 # them after the agent has finished.
