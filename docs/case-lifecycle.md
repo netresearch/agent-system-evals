@@ -108,6 +108,40 @@ A candidate becomes a case only when all of these hold:
    than left in a build script. This window keeps closing: a case that builds
    today may not build next year, for reasons that have nothing to do with it.
 
+## Why mined cases are scarce, which is structural rather than bad luck
+
+Eight candidates were mined in August 2026 and two were admitted. The rejections
+are not random: reading the requests and the fixes together, the material splits
+along a line that makes both halves hard to use.
+
+| who reports it | what the request looks like | what the fix looks like |
+|---|---|---|
+| an outside user | a symptom — *"the style button is greyed out, nothing is selectable"* | often UI, integration or configuration; no unit-testable ground truth |
+| a maintainer | a diagnosis — *"when a field is of type `check` and `required`, the validator does not flag it"* | small, unit-testable, with a test |
+
+A good **request** for an open forward review is one that does not name the
+component; a good **ground truth** is one a check can decide. Users supply the
+first and rarely the second; maintainers supply the second and rarely the first.
+
+`sf_event_mgt#1364` is the clean example of the second row and was not built for
+that reason: the reporter names the field type, the condition and the validator,
+so an agent is handed the location and most of the diagnosis. Its ground truth
+is sound — verified in both directions after the recovery described above — and
+its request would have measured something narrower than this benchmark claims to
+measure.
+
+Two consequences worth stating before anyone spends on more cases:
+
+1. **A case whose request is over-specified is still usable where the request is
+   held constant on both arms** — a repository before-and-after, or a fleet
+   comparison. What it risks there is a ceiling: if the request nearly performs
+   the fix, both arms succeed and the comparison measures nothing. Three trials
+   on one arm settle that before the case is built.
+2. **Widening the seam means paying for mechanical checks on symptom-shaped
+   bugs** — a browser-level assertion for a greyed-out button, an integration
+   fixture for a configuration defect. That is the expensive direction, and it
+   is the one that buys cases whose requests look like the work.
+
 ## Retirement
 
 A case is retired when it stops discriminating: when every variant, including
