@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-CALENDAR-001-20260829-115437",
+  "case": "OFR-TYPO3-CALENDAR-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "outcome_quality"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 331,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-29T11:54:37+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-115437",
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-120420"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-121740",
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-122320"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-123339",
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-124146"
+      },
+      "primary_p": 0.4
+    },
+    {
+      "round": 2,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-125101",
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-130135"
+      }
+    },
+    {
+      "round": 2,
+      "block": 2,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-131159",
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-132358"
+      }
+    },
+    {
+      "round": 2,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-133230",
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-134334"
+      }
+    }
+  ],
+  "stop_reason": "budget exhausted at 12 of 12 trials",
+  "trials_spent": 12,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-115437",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-122320",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-124146",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-130135",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-131159",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260829-133230"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-120420",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-121740",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-123339",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-125101",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-132358",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260829-134334"
+    ]
+  },
+  "finished_at": "2026-08-29T13:53:40+00:00",
+  "valid_trials": {
+    "control": 6,
+    "nr": 6
+  }
+}
