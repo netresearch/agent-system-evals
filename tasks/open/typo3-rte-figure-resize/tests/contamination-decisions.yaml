@@ -146,3 +146,125 @@
   path: typo3-docs-skill-2.16.0/skills/typo3-docs/references/intercept-deployment.md
   marker: rte-ckeditor-image
   reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
+
+# A second round, from the fleets the first check did not cover. I ran the
+# check against `nr` and CI runs it against all thirteen, which is the lesson:
+# a decision is pinned to a skill AND a ref, so `nr-full` carrying typo3-ddev,
+# `nr-ci` carrying github-project, and the candidate branch's own copy of
+# typo3-conformance each need their own. Every one is the extension named as an
+# example again — a label query, a repository setup, a list of extensions with
+# simple content elements — and none touches rendering.
+#
+# This is what a target with 47 fleet mentions costs per fleet and per bump.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/version-declarations-in-lead-clause
+  path: typo3-conformance-skill-experiment-version-declarations-in-lead-clause/skills/typo3-conformance/references/runtests-validation.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/version-declarations-in-lead-clause
+  path: typo3-conformance-skill-experiment-version-declarations-in-lead-clause/skills/typo3-conformance/references/crowdin-integration.md
+  marker: rte_ckeditor_image
+  reason: The extension key as the `product-name` in an example XLIFF header. A translation-file shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/version-declarations-in-lead-clause
+  path: typo3-conformance-skill-experiment-version-declarations-in-lead-clause/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte_ckeditor_image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/version-declarations-in-lead-clause
+  path: typo3-conformance-skill-experiment-version-declarations-in-lead-clause/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/release-labeling.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: A link to this repository's issue search, as an example of a released-in label query. Names where to look at labels, nothing about the code.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/release-labeling.md
+  marker: t3x-rte_ckeditor_image
+  reason: A link to this repository's issue search, as an example of a released-in label query. Names where to look at labels, nothing about the code.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/repo-setup-guide.md
+  marker: t3x-rte_ckeditor_image
+  reason: Named as the source of an example repository setup. Configuration shape, nothing about rendering.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/release-labeling.md
+  marker: rte_ckeditor_image
+  reason: A link to this repository's issue search, as an example of a released-in label query. Names where to look at labels, nothing about the code.
+
+- skill: netresearch/github-project-skill
+  ref: v2.17.0
+  path: github-project-skill-2.17.0/skills/github-project/references/repo-setup-guide.md
+  marker: rte_ckeditor_image
+  reason: Named as the source of an example repository setup. Configuration shape, nothing about rendering.
+
+- skill: netresearch/typo3-ddev-skill
+  ref: v1.22.1
+  path: typo3-ddev-skill-1.22.1/skills/typo3-ddev/references/advanced-options.md
+  marker: rte_ckeditor_image
+  reason: Listed as an example of an extension with simple content elements, in a note about DDEV options. Nothing about rendering.
+
+- skill: netresearch/typo3-ddev-skill
+  ref: v1.22.2
+  path: typo3-ddev-skill-1.22.2/skills/typo3-ddev/references/advanced-options.md
+  marker: rte_ckeditor_image
+  reason: Listed as an example of an extension with simple content elements, in a note about DDEV options. Nothing about rendering.
+
+# A third round, from `nr-release`. Same citation twice over, in the script and
+# in its test: this repository's v13.10.0 release is the worked example behind
+# a pipefail race and a release-line comparison rule.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/release-notes-status.sh
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/tests/release-notes-status.test.sh
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/release-notes-status.sh
+  marker: t3x-rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/tests/release-notes-status.test.sh
+  marker: t3x-rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/release-notes-status.sh
+  marker: rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+- skill: netresearch/github-release-skill
+  ref: v0.11.0
+  path: github-release-skill-0.11.0/skills/github-release/scripts/tests/release-notes-status.test.sh
+  marker: rte_ckeditor_image
+  reason: >-
+    A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.

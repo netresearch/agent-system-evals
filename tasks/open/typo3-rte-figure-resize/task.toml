@@ -28,6 +28,7 @@ category = "open-forward-review"
 # same environment:
 #   31ea0898 (pinned here)  13 tests, 4 failures
 #   4796899  (the real fix) 13 tests, 0 failures
+source_learning_id = "retro-20260829-mine-cases-from-reported-defects"
 source_issue = "https://github.com/netresearch/t3x-rte_ckeditor_image/issues/863"
 source_fix = "https://github.com/netresearch/t3x-rte_ckeditor_image/pull/865"
 
