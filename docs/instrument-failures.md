@@ -634,6 +634,39 @@ would cost the comparability of everything recorded before today. That is a
 trade to make on purpose, not in passing, and the affected results are marked
 here instead.
 
+## 28. The experiment record named the model as "run-evaluation default"
+
+`scripts/run-comparison` recorded the model with the fallback
+`args.model or "run-evaluation default"`, directly under a comment saying that
+a result which does not name its model cannot be read a year later and that the
+default is a thing that changes. The comment stated the requirement and the
+line below it did not meet it.
+
+Two failures, and the second is the expensive one. `run-evaluation`'s default
+is `claude-opus-5`. Every recorded run before 30 August passed `--model`
+explicitly, so the fallback had never been exercised and the default's identity
+had never mattered. A round-three run of the description experiment was then
+started without the flag: twelve trials at roughly $1.60 each rather than the
+$0.04 the same case costs on Haiku, about forty times the intended spend, with
+nothing in the header, the plan or the record naming the model that had been
+chosen. It surfaced only because the per-trial cost lines in the analysis were
+two orders of magnitude above every earlier run of the same case.
+
+The result itself stands and is reported as an Opus measurement; what was lost
+is its comparability with rounds one and two, which is why the run was repeated
+on Haiku.
+
+**Fixed.** `--model` is required, like `--primary` and for the same reason: a
+run declares what it spends before it spends it, rather than inheriting a
+default from a script it calls. The record now carries the model itself,
+because there is no longer a case in which it is absent.
+
+Two habits behind it. A default is a decision, and a script that calls another
+script inherits its defaults silently -- so the caller declares them. And the
+cheapest instrument check available here is the per-trial cost column: it is
+printed for every run, it is stable within a case, and an unexplained factor of
+forty in it is a question about the instrument before it is anything else.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the
