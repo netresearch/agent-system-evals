@@ -99,20 +99,55 @@ def census(jobs_dir: Path | None = None) -> dict[str, dict[str, int]]:
             continue
         case = recorded.get("case_id") or "unknown"
         fleet = arm_name(recorded)
+        model = recorded.get("model") or "unrecorded"
         row = out.setdefault(case, {"invoked": 0, "trials": 0, "by_fleet": {}})
         # Per fleet as well as per case. A case run against two fleets that
         # differ in whether they carry a matching skill pools two populations,
         # and the pooled number then contradicts the very split the table is
         # drawn to show: the release case read "6 of 16" under a paragraph
         # arguing it is never routed.
-        per = row["by_fleet"].setdefault(fleet, {"invoked": 0, "trials": 0})
+        #
+        # And per model within the fleet, for the same reason one level out:
+        # an arm's identity is what it carries *and* what ran it. Counted
+        # separately here and folded back below, so a row only names a model
+        # where two of them actually met.
+        per = row["by_fleet"].setdefault(fleet, {}).setdefault(
+            model, {"invoked": 0, "trials": 0}
+        )
         for trajectory in job.glob("*/verifier/trajectory.json"):
             hit = invoked(trajectory)
             row["trials"] += 1
             row["invoked"] += hit
             per["trials"] += 1
             per["invoked"] += hit
-    return out
+    return {case: fold_models(row) for case, row in out.items()}
+
+
+def fold_models(row: dict) -> dict:
+    """Name the model only where one arm was run on more than one.
+
+    Until 30 August every run of a case named a single model, so no arm ever
+    spanned two and this could not show. Then an Opus 5 run went out beside the
+    Haiku series by accident and the row read `candidate 11 of 12` — one number
+    over two models, which is a rate of nothing. Naming the model on every arm
+    instead would rewrite every earlier row for a distinction those rows do not
+    make.
+    """
+    folded: dict[str, dict[str, int]] = {}
+    for fleet, by_model in row["by_fleet"].items():
+        if len(by_model) == 1:
+            folded[fleet] = next(iter(by_model.values()))
+            continue
+        for model, counts in sorted(by_model.items()):
+            folded[f"{fleet} on {short_model(model)}"] = counts
+    return {**row, "by_fleet": folded}
+
+
+def short_model(model: str) -> str:
+    """`claude-haiku-4-5-20251001` is `haiku-4-5` in a table cell."""
+    name = model.removeprefix("claude-")
+    head, _, tail = name.rpartition("-")
+    return head if head and tail.isdigit() and len(tail) == 8 else name
 
 
 def split(row: dict) -> str | None:
