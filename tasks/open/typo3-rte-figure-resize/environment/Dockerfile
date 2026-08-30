@@ -13,7 +13,7 @@
 # application has nothing to read. If the transcripts show arms failing for
 # want of an instance rather than for want of the fix, this decision is the
 # first thing to revisit.
-FROM php:8.3-cli
+FROM php:8.5-cli
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \

@@ -5,7 +5,7 @@
 # extension's own functional stack on SQLite, which is where the check runs.
 # The cost of that choice is stated in the sibling case's Dockerfile and holds
 # here too — an agent that would have clicked through a calendar cannot.
-FROM php:8.2-cli
+FROM php:8.5-cli
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \

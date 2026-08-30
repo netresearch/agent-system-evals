@@ -11,7 +11,7 @@
 # described: the earlier version of this environment had to seed the damaged
 # rows because clicking Save was impossible. The target's own .ddev/config.yaml
 # specifies apache-fpm, so this follows it.
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
