@@ -137,6 +137,18 @@ Two consequences worth stating before anyone spends on more cases:
    comparison. What it risks there is a ceiling: if the request nearly performs
    the fix, both arms succeed and the comparison measures nothing. Three trials
    on one arm settle that before the case is built.
+
+   Run and recorded: `OFR-TYPO3-REGISTRATION-001` came back **2 of 3** and was
+   therefore *not* used as a before-and-after arm. At six trials a side a
+   baseline that high leaves an improvement nowhere to go — 6/6 against 4/6 is
+   p ≈ 0.45 — so the comparison could have shown a decline and not a gain, and
+   one that can only fail in a single direction is not a comparison.
+
+   **The usable band is narrow.** Of the three mined cases, one sits at 0 of 6
+   (nobody fixes it), one at 2 of 3 (nearly everybody does), and one at 2 of 6,
+   which is the only one a before-and-after can read. Budget for that: a
+   candidate that clears the ground-truth criteria still has roughly even odds
+   of being unusable as a comparison arm, and three trials are what tell you.
 2. **Widening the seam means paying for mechanical checks on symptom-shaped
    bugs** — a browser-level assertion for a greyed-out button, an integration
    fixture for a configuration defect. That is the expensive direction, and it
