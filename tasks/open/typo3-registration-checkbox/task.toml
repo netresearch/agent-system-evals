@@ -1,0 +1,370 @@
+schema_version = "1.4"
+
+artifacts = [
+    "/logs/artifacts",
+    "/logs/agent",
+]
+
+[task]
+name = "netresearch/ofr-typo3-registration-checkbox"
+version = "1.0.0"
+description = "Open forward review: a required checkbox registration field passes validation while empty"
+authors = [{ name = "Netresearch DTT GmbH" }]
+keywords = ["open-forward-review", "typo3", "bug", "validation", "agent-system"]
+
+[metadata]
+case_id = "OFR-TYPO3-REGISTRATION-001"
+category = "open-forward-review"
+source_learning_id = "retro-20260829-mine-cases-from-reported-defects"
+
+# Third mined case, and the first whose graded check is partly ours. The
+# maintainer's own test does not discriminate; the expected behaviour comes
+# from the fix, the input from where the two versions disagree, and only the
+# assertion was written here. docs/case-lifecycle.md records that boundary.
+#
+# The request is a MAINTAINER's, not a user's, and it names the field type, the
+# condition and the validator. That is weaker than this benchmark's other
+# requests and is the reason this case exists as a before-and-after arm rather
+# than as an open forward review on its own: the request is identical on both
+# arms, so what it gives away is given away equally.
+source_issue = "https://github.com/derhansen/sf_event_mgt/issues/1364"
+source_fix = "https://github.com/derhansen/sf_event_mgt/commit/c29ca59be3"
+
+required_artifacts = [
+    "git-status.txt",
+    "git-diff.patch",
+    "git-log.txt",
+    "validation-check.txt",
+    "own-checks.txt",
+]
+
+domain = "typo3"
+target_type = "extension"
+target_repository = "https://github.com/derhansen/sf_event_mgt.git"
+target_package = "derhansen/sf_event_mgt"
+target_sha = "a6632b59bb4b8315430b474153cc9ac7748eea5b"
+runtime = false
+dimensions = ["outcome_quality"]
+
+[metadata.mechanical_outcome]
+artifacts = "validation-check.txt"
+all_of = ["validation: ok"]
+
+[agent]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com"]
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[verifier.env]
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY}"
+CLAUDE_CODE_OAUTH_TOKEN = "${CLAUDE_CODE_OAUTH_TOKEN}"
+
+[verifier.environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
+
+[[verifier.collect]]
+command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = '''
+{
+  base=$(git -C /app rev-list --max-parents=0 HEAD)
+  git -C /app diff --no-renames "$base"
+  git -C /app status --porcelain
+} > /logs/artifacts/git-diff.patch 2>&1 || true
+'''
+
+[[verifier.collect]]
+command = "git -C /app log --oneline > /logs/artifacts/git-log.txt 2>&1 || true"
+
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-own && cp -a /app /tmp/nreval-own && cd /tmp/nreval-own \
+  && typo3DatabaseDriver=pdo_sqlite .Build/vendor/bin/phpunit -c .Build/phpunit/UnitTests.xml \
+  && echo "own checks: ok" || echo "own checks: failed"
+} > /logs/artifacts/own-checks.txt 2>&1 || true
+'''
+timeout_sec = 900.0
+
+# The behavioural check. The maintainer's test class, plus one method that
+# reaches the branch the fix changed — a required checkbox group with several
+# options and none ticked, which their own data provider cannot construct
+# because it passes a plain string for every row.
+#
+# It overwrites whatever the agent left in that file. That is deliberate: the
+# grading question is whether the VALIDATOR behaves, not whether the agent
+# edited a test, and an agent that weakens the suite is caught by the unit
+# collector above instead.
+[[verifier.collect]]
+command = '''
+{
+  rm -rf /tmp/nreval-check && cp -a /app /tmp/nreval-check \
+  && mkdir -p /tmp/nreval-check/Tests/Functional/Validation/Validator \
+  && mkdir -p /tmp/nreval-check/typo3temp/var/tests/functional-sqlite-dbs \
+  && cat > /tmp/nreval-check/Tests/Functional/Validation/Validator/RegistrationFieldValidatorTest.php <<'NREVAL_REG_TEST'
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the Extension "sf_event_mgt" for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
+namespace DERHANSEN\SfEventMgt\Tests\Functional\Validation\Validator;
+
+use DERHANSEN\SfEventMgt\Domain\Model\Event;
+use DERHANSEN\SfEventMgt\Domain\Model\Registration;
+use DERHANSEN\SfEventMgt\Domain\Model\Registration\Field;
+use DERHANSEN\SfEventMgt\Domain\Model\Registration\FieldValue;
+use DERHANSEN\SfEventMgt\Utility\FieldType;
+use DERHANSEN\SfEventMgt\Validation\Validator\RegistrationFieldValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
+use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
+use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
+use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
+
+class RegistrationFieldValidatorTest extends FunctionalTestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $GLOBALS['LANG'] = $this->getContainer()->get(LanguageServiceFactory::class)->create('default');
+
+        $request = (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
+        $GLOBALS['TYPO3_REQUEST'] = $request;
+    }
+
+    #[Test]
+    public function validatorHasNoErrorsWhenRegistrationHasNoFields(): void
+    {
+        $registration = new Registration();
+        $subject = new RegistrationFieldValidator();
+        $result = $subject->validate($registration);
+        self::assertFalse($result->hasErrors());
+    }
+
+    public static function validatorDataProvider(): array
+    {
+        return [
+            'required string field with no value' => [
+                true,
+                FieldType::TEXT,
+                '',
+                true,
+            ],
+            'required string field with value' => [
+                true,
+                FieldType::TEXT,
+                'foo',
+                false,
+            ],
+            'non required string field with no value' => [
+                false,
+                FieldType::TEXT,
+                '',
+                false,
+            ],
+            'non required string field with value' => [
+                false,
+                FieldType::TEXT,
+                'foo',
+                false,
+            ],
+            'required check field with no value' => [
+                true,
+                FieldType::CHECK,
+                '',
+                true,
+            ],
+            'required check field with no value (empty array)' => [
+                true,
+                FieldType::CHECK,
+                json_encode(['']),
+                true,
+            ],
+            'required check field with value (non empty array)' => [
+                true,
+                FieldType::CHECK,
+                json_encode(['foo']),
+                false,
+            ],
+            'required check field with value (non empty multi value array)' => [
+                true,
+                FieldType::CHECK,
+                json_encode(['foo', 'bar']),
+                false,
+            ],
+            'required check field with value (non empty multi value array - first item empty)' => [
+                true,
+                FieldType::CHECK,
+                json_encode(['', 'bar']),
+                false,
+            ],
+            'non required check field with no value' => [
+                false,
+                FieldType::CHECK,
+                '',
+                false,
+            ],
+            'non required check field with no value (empty array)' => [
+                false,
+                FieldType::CHECK,
+                json_encode(['']),
+                false,
+            ],
+            'required select field with no value' => [
+                true,
+                FieldType::SELECT,
+                '',
+                true,
+            ],
+            'required select field with no value (empty array)' => [
+                true,
+                FieldType::SELECT,
+                json_encode(['']),
+                true,
+            ],
+            'required select field with value (non empty array)' => [
+                true,
+                FieldType::SELECT,
+                json_encode(['foo']),
+                false,
+            ],
+            'required select field with value (non empty multi value array)' => [
+                true,
+                FieldType::SELECT,
+                json_encode(['foo', 'bar']),
+                false,
+            ],
+            'required select field with value (non empty multi value array - first item empty)' => [
+                true,
+                FieldType::SELECT,
+                json_encode(['', 'bar']),
+                false,
+            ],
+            'required radio field with no value' => [
+                true,
+                FieldType::RADIO,
+                '',
+                true,
+            ],
+            'required radio field with value' => [
+                true,
+                FieldType::RADIO,
+                'foo',
+                false,
+            ],
+            'non required radio field with no value' => [
+                false,
+                FieldType::RADIO,
+                '',
+                false,
+            ],
+            'non required radio field with value' => [
+                false,
+                FieldType::RADIO,
+                'foo',
+                false,
+            ],
+        ];
+    }
+
+    #[DataProvider('validatorDataProvider')]
+    #[Test]
+    public function validatorReturnsExpectedResultForRegistrationField(
+        bool $required,
+        string $fieldType,
+        string $fieldValue,
+        bool $expectedResult
+    ): void {
+        $registrationField = new Field();
+        $registrationField->setType($fieldType);
+        $registrationField->setRequired($required);
+
+        $event = new Event();
+        $event->setTitle('Test event');
+        $event->setEnableRegistration(true);
+        $event->addRegistrationFields($registrationField);
+
+        $registration = new Registration();
+        $registration->setEvent($event);
+
+        $registrationFieldValue = new FieldValue();
+        $registrationFieldValue->setField($registrationField);
+        $registrationFieldValue->setValue($fieldValue);
+
+        $fieldValues = new ObjectStorage();
+        $fieldValues->attach($registrationFieldValue);
+
+        $registration->setFieldValues($fieldValues);
+
+        $subject = new RegistrationFieldValidator();
+        $result = $subject->validate($registration);
+
+        self::assertEquals($expectedResult, $result->hasErrors());
+    }
+
+    /**
+     * The reported case, which the fix's own data provider cannot construct.
+     *
+     * A checkbox field with several options stores its value as a JSON array;
+     * `FieldValue::getValue()` decodes it, so an untouched group of two
+     * options arrives as ['', '']. The provider above passes a plain string
+     * for every row, which `getValue()` wraps as [''] — the one array shape
+     * both versions of the validator already agreed on. So every row passes
+     * before the fix as well as after it.
+     *
+     * This drives the same public method the provider does and asserts the
+     * behaviour the fix established: a REQUIRED checkbox group with nothing
+     * ticked is empty and must produce an error.
+     */
+    #[Test]
+    public function requiredCheckboxGroupWithNothingTickedIsAnError(): void
+    {
+        $registrationField = new Field();
+        $registrationField->setType(FieldType::CHECK);
+        $registrationField->setRequired(true);
+
+        $event = new Event();
+        $event->setTitle('Test event');
+        $event->setEnableRegistration(true);
+        $event->addRegistrationFields($registrationField);
+
+        $registration = new Registration();
+        $registration->setEvent($event);
+
+        $registrationFieldValue = new FieldValue();
+        $registrationFieldValue->setField($registrationField);
+        $registrationFieldValue->setValue('["",""]');
+
+        $fieldValues = new ObjectStorage();
+        $fieldValues->attach($registrationFieldValue);
+        $registration->setFieldValues($fieldValues);
+
+        $subject = new RegistrationFieldValidator();
+        self::assertTrue(
+            $subject->validate($registration)->hasErrors(),
+            'A required checkbox group with no option ticked must be rejected',
+        );
+    }
+}
+NREVAL_REG_TEST
+  cd /tmp/nreval-check \
+  && typo3DatabaseDriver=pdo_sqlite .Build/vendor/bin/phpunit \
+       -c .Build/phpunit/FunctionalTests.xml \
+       Tests/Functional/Validation/Validator/RegistrationFieldValidatorTest.php \
+  && echo "validation: ok" || echo "validation: incomplete"
+} > /logs/artifacts/validation-check.txt 2>&1 || true
+'''
+timeout_sec = 1200.0

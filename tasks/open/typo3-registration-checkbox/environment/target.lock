@@ -1,0 +1,21 @@
+# The extension under review, pinned to the commit before the reported defect
+# was fixed. A third-party target, named in no installed skill.
+TARGET_REPOSITORY=https://github.com/derhansen/sf_event_mgt.git
+TARGET_COMMIT=a6632b59bb4b8315430b474153cc9ac7748eea5b
+TARGET_PACKAGE=derhansen/sf_event_mgt
+TARGET_EXTENSION_KEY=sf_event_mgt
+TARGET_TYPE=typo3-cms-extension
+
+TARGET_FIX_COMMIT=c29ca59be3
+TARGET_ISSUE=https://github.com/derhansen/sf_event_mgt/issues/1364
+
+# The ground truth, measured before the case was built. The maintainer's own
+# test does NOT discriminate — twenty-one assertions pass at both commits,
+# because its provider passes a plain string for every row and getValue() wraps
+# a string as [''], the one array shape both versions of the validator already
+# agreed on. The added method reaches the branch the fix changed:
+#   a6632b59 (pinned here)  1 test, 1 failure
+#   c29ca59b (the real fix) 1 test, 0 failures
+#
+# See docs/case-lifecycle.md, criterion 7 and the recovery route beneath it.
+TARGET_HISTORY=shallow
