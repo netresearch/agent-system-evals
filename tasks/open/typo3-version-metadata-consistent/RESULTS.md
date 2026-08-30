@@ -303,3 +303,73 @@ scripts/run-comparison OFR-TYPO3-CONSISTENT-001 --arms nr,candidate \
     --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 233
 scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260828-162519.json
 ```
+
+---
+
+# Round three: the description that actually shipped
+
+Round two's branch was never releasable — nine words over the skill
+repository's cap, and it failed that repository's own validator. What merged
+instead ([netresearch/typo3-conformance-skill#119](https://github.com/netresearch/typo3-conformance-skill/pull/119))
+is a rewrite rather than that branch: the same three artefacts in the same
+opening position, said in fewer words, with the `Also triggers on:` label gone
+entirely, at 358 characters.
+
+Different words in the same position are a different arm. Round two does not
+answer for them, so the shipped description was measured on its own.
+
+`candidate` points at `main` (`310dc33`), because no release carries the change
+yet: the `v2.19.2` tag predates it and holds the old description. `nr` stays at
+`v2.19.1`, so its recorded baseline still applies. Stated rather than removed:
+the arm therefore also carries two documentation commits and a checkpoints fix.
+Neither touches the description, which is the only text routing reads.
+
+## It routes, on both models
+
+| | `nr` | `candidate` | Fisher exact |
+|---|---|---|---|
+| Haiku 4.5 | 0/6 | **5/6** | **p 0.015** two-sided, 0.008 one-sided |
+| Opus 5 | 0/6 | **6/6** | **p 0.002** two-sided, 0.001 one-sided |
+
+Haiku is the comparable measurement — same model, same case, same seed as
+rounds one and two. Opus is there by accident (instrument failure 28: `--model`
+was omitted and `run-evaluation`'s default is the largest model), and is worth
+keeping for one reason: the effect is not a property of the small model.
+
+Across the three rounds, on Haiku, on the same case and the same skill:
+
+| where the artefacts are named | invoked | p |
+|---|---|---|
+| appended to the `Also triggers on:` tail | 1/6 | 1.000 |
+| in the opening clause, experiment branch | 6/6 | 0.002 |
+| in the opening clause, as released | 5/6 | 0.015 |
+
+The one `candidate` trial that did not route made four tool calls, the fewest
+of the twelve, and stopped without reading the extension's manifests at all.
+
+## Reached, and still no better
+
+| | `nr` | `candidate` |
+|---|---|---|
+| `consistency` met | 1/6 | 3/6 |
+| Cliff's delta | — | +0.06, p 0.935 |
+| criteria behind it | 29 met / 11 partial / 14 not met | 33 met / 8 partial / 13 not met |
+| agent cost, median | $0.02 | $0.04 |
+| tool calls, median | 5.0 | 7.0 |
+
+Exploratory, all of it, and inside the judge's own noise. This is the fourth
+case where routing was fixed and the outcome did not follow. **How to get a
+skill loaded is now a solved problem with a named, reproduced mechanism —
+across two models and two wordings. How to make the loaded skill improve the
+work is not.**
+
+## Reproducing
+
+```
+scripts/run-comparison OFR-TYPO3-CONSISTENT-001 --arms nr,candidate \
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 233
+scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260830-202628.json
+```
+
+The Opus run is `experiments/OFR-TYPO3-CONSISTENT-001-20260830-183502.json`.
+

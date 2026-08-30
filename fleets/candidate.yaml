@@ -49,7 +49,16 @@ at:
   # This branch moves the same two artefacts to the front and changes nothing
   # else. Unlike round one it passes the skill repository's own validator, so a
   # positive result is releasable as it stands. Resolved commit: 6174033.
-  # ROUND THREE, open: does the released wording route, or only the
+  # ROUND THREE, ANSWERED 30 August 2026: the released wording routes too, and
+  # on both models. Haiku 0/6 against 5/6, Fisher exact p 0.015; the same
+  # comparison on Opus 5, run by accident, 0/6 against 6/6 at p 0.002. So the
+  # mechanism is not a property of the small model, and not of the one wording
+  # that never shipped. Recorded in
+  # tasks/open/typo3-version-metadata-consistent/RESULTS.md. Resolved commit:
+  # 310dc33 in all twelve candidate locks, checked. The arm may be repointed;
+  # this question is closed.
+  #
+  # The question it answered: does the released wording route, or only the
   # experiment branch's? Round two's branch was nine words over the skill
   # repository's cap and never shippable. What merged instead
   # (netresearch/typo3-conformance-skill#119) is a rewrite, not that branch:
