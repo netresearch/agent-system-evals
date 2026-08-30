@@ -90,7 +90,10 @@ def demanded(paths: list[str]) -> list[tuple[str, str, str]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--against", default="origin/main")
     args = parser.parse_args()

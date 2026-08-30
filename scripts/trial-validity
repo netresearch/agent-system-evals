@@ -55,7 +55,10 @@ def report(job: Path, quiet: bool) -> tuple[int, int]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("jobs", nargs="*", type=Path)
     parser.add_argument("--all", action="store_true")
     parser.add_argument("--quiet", action="store_true", help="hide unchecked notes")

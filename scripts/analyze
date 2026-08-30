@@ -312,7 +312,10 @@ def show_continuous(row: dict, a: str, b: str) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("experiment", nargs="?", type=Path)
     parser.add_argument(
         "--arm",

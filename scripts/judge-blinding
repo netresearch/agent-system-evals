@@ -104,7 +104,10 @@ def cosine(a: Counter, b: Counter) -> float:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--arm", action="append", default=[], metavar="NAME=job[,job]")
     parser.add_argument("--case", help="use the newest job per fleet for this case")
     parser.add_argument(

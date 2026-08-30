@@ -210,7 +210,10 @@ def scores(jobs: list[Path], case_id: str) -> dict[str, list[float]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("case_id")
     parser.add_argument("--arms", required=True, help="comma-separated fleets")
     parser.add_argument(
