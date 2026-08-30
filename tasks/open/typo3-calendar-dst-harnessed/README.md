@@ -7,22 +7,25 @@ is the variable.
 
 | | vanilla | harnessed |
 |---|---|---|
-| **fixed it (mechanical, no judge)** | **2/6** | **1/6** |
-| the check it ran could have failed | 2/6 | 0/6 |
-| claims match what was shown | 2/6 | 3/6 |
-| established the defect before changing it | 0/6 | 0/6 |
-| the change is narrow | 4/6 | 4/6 |
+| **fixed it (mechanical, no judge)** | **2/12** | **2/12** |
+| Wilson interval | [0.05, 0.45] | [0.05, 0.45] |
+| Fisher exact p | — | 1.000 |
+| the check it ran could have failed | 2/12 | 1/12 |
+| claims match what was shown | 5/12 | 5/12 |
+| established the defect before changing it | 1/12 | 1/12 |
+| the change is narrow | 8/12 | 10/12 |
 
-`scripts/compare --variable repository` reads the pair and says what it is worth:
-*"a one-trial difference is within the noise of a stochastic agent."*
+At six trials a side this read 2/6 against 1/6, and `scripts/compare` said what
+that was worth: *"a one-trial difference is within the noise of a stochastic
+agent."* Doubling both sides dissolved it — the two arms are now identical on
+every line that matters. The first reading was noise, and the tool called it
+before the second series existed.
 
-A seventh harnessed trial was added later and did not fix it either, so the
-pooled count on that side is **1 of 7**. It is not part of the formal pair —
-`compare` requires the two sides to carry the same number of trials — and the
-attempt to take both sides to twelve stopped before it started: the runner
-refuses to begin a series longer than the session token's remaining life,
-because trials past that point fail with a 401 and are recorded as errored
-trials rather than as a credential problem.
+**What twelve a side does and does not license.** It does not establish that the
+treatment has no effect; the Wilson interval puts both true rates somewhere
+between 5% and 45%, which excludes a large effect and leaves a moderate one
+possible. What it does establish is that nothing was observed, on this defect,
+with this model, at a sample size twice what the first claim rested on.
 
 ## The treatment, and that it arrived
 
