@@ -1,7 +1,7 @@
 # PHP 8.3. Both matrix legs declare `php ^8.2` — checked against Packagist
 # rather than assumed, because a wrong floor here would silently make one leg
 # unresolvable and look like an agent failure.
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \

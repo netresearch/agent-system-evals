@@ -1,7 +1,7 @@
 # A contract eval: cheap and deterministic by construction. No database, no web
 # server, no judge — the condition is known and the check either fires or does
 # not. See ADR 0002 and this case's README.
-FROM php:8.3-cli
+FROM php:8.5-cli
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \

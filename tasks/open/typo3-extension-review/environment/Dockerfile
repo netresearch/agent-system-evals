@@ -1,6 +1,6 @@
 # PHP 8.3: within the target's declared TYPO3 v12.4 support window and new
 # enough for the PHPUnit and PHPStan majors its dev dependencies allow.
-FROM php:8.3-apache
+FROM php:8.5-apache
 
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
