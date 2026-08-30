@@ -12,7 +12,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with typo3-conformance naming version declarations in its leading clause — position routes where vocabulary alone did not, measured 28 August 2026
+description: nr with the released typo3-conformance description — the merged rewrite of the leading clause, measured on its own because what round two proved was a branch that never shipped
 
 derives_from: nr
 at:
@@ -49,4 +49,19 @@ at:
   # This branch moves the same two artefacts to the front and changes nothing
   # else. Unlike round one it passes the skill repository's own validator, so a
   # positive result is releasable as it stands. Resolved commit: 6174033.
-  netresearch/typo3-conformance-skill: experiment/version-declarations-in-lead-clause
+  # ROUND THREE, open: does the released wording route, or only the
+  # experiment branch's? Round two's branch was nine words over the skill
+  # repository's cap and never shippable. What merged instead
+  # (netresearch/typo3-conformance-skill#119) is a rewrite, not that branch:
+  # it opens with the same three artefacts but says them in fewer words, drops
+  # the "Also triggers on:" label entirely, and lands at 358 characters. A
+  # positive round two does not transfer to different words in the same
+  # position, so the shipped description is measured on its own.
+  #
+  # Pointed at `main`, not at a tag, because no release carries the change yet:
+  # v2.19.2 predates it and holds the old description. Resolved commit at the
+  # time of writing: 310dc33. Confound, stated rather than removed: `nr` pins
+  # v2.19.1, so this arm also carries two documentation commits and a
+  # checkpoints fix. Neither touches the description, which is the only text
+  # routing reads, but both are in the arm and could move a graded dimension.
+  netresearch/typo3-conformance-skill: main
