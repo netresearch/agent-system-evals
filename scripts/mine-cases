@@ -166,9 +166,12 @@ def main() -> int:
         if c["new_test_files"]:
             print("  note:  the test file is new with the fix — read it for "
                   "reflection into methods the fix introduced")
-        print(f"  verify (both directions, under the settings the defect needs):")
+        print("  verify (both directions, under the settings the defect needs):")
         print(f"    git checkout {c['base']} && <install> && <run the fix's test>   # must FAIL")
         print(f"    git checkout {c['ref']}  && <install> && <run the fix's test>   # must PASS")
+        print("  then, before using it as a comparison arm:")
+        print("    scripts/run-evaluation <case> --fleet control --trials 3")
+        print("    #  0 of 3 or 3 of 3 -> unusable as an arm; the band is roughly 1 to 2")
 
     label = "with a reporter outside the given insiders" if insiders else "with a reporter"
     print(f"\n{shown} candidate(s) {label}, of {len(found)} fix(es) carrying a test.")
@@ -177,6 +180,8 @@ def main() -> int:
               "A defect the maintainer found and reported is real, but it is not "
               "a request phrased by someone who did not know the code.")
     print("None of them is admitted until both commands above have been run.")
+    print("Clearing them is not enough either: of three cases that did, one came")
+    print("back 0 of 6 and one 2 of 3, and neither can carry a comparison.")
     return 0
 
 
