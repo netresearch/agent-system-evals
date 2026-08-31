@@ -203,7 +203,10 @@ def stage_verifier_layout(fixture: Path, work: Path, tests: Path) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("case", nargs="?", type=Path,
                         default=ROOT / "tasks/open/typo3-extension-review")
     parser.add_argument("--repeats", type=int, default=5)

@@ -49,7 +49,10 @@ def rubric_digest(case_dir: Path) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--require", action="store_true")
     args = parser.parse_args()
 

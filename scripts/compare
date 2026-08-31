@@ -342,7 +342,10 @@ def dimensions_present(*trial_sets: list[dict[str, float]]) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(usage=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     # One side may be several jobs. A job used to be an arm, because
     # `harbor run -k 3` recorded three trials in one directory; a randomised
     # block series is one trial per Harbor call, so an arm of three trials is
