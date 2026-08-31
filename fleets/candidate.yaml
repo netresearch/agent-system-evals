@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the upgrade skill searching Tests/ as well as Classes/ — the fix for the one line four resolving trials died on
+description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
 
 derives_from: nr
 at:
@@ -80,6 +80,25 @@ at:
   # acceptable for this arm and only this arm; it does not say a branch may be
   # touched while the arm is in use, and now it does.
   netresearch/typo3-extension-upgrade-skill: main
+
+  # ROUND FIVE, open: can a description hand a request to a named sibling?
+  #
+  # Round four answered its own question in the negative and asked a better
+  # one. The upgrade skill's opening clause is nearly the request verbatim --
+  # "an extension has to work with a newer or the current TYPO3 LTS" against
+  # "We need this extension to work with the current TYPO3 LTS" -- and it lost
+  # 3 of 3 to typo3-conformance, which claims the same request through
+  # "modernization to v12/v13/v14 (v14.3 LTS is the default)". Both SKILL.md
+  # files were installed in every trial; this was a choice, not an absence.
+  #
+  # So the boundary goes into the other half too. The branch adds one sentence
+  # to conformance: raising an extension to a newer TYPO3 version is not this
+  # skill, that belongs to typo3-extension-upgrade. Whether a description can
+  # hand work to a sibling it names is the open question -- every earlier round
+  # measured a skill against silence, and none against a competitor.
+  #
+  # Resolved commit at the time of writing: b53d0a9.
+  netresearch/typo3-conformance-skill: experiment/hand-the-version-raise-to-the-upgrade-skill
 
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
