@@ -324,17 +324,40 @@ yet: the `v2.19.2` tag predates it and holds the old description. `nr` stays at
 the arm therefore also carries two documentation commits and a checkpoints fix.
 Neither touches the description, which is the only text routing reads.
 
-## It routes, on both models
+## The arm had to be cleaned before the result could be kept
 
-| | `nr` | `candidate` | Fisher exact |
-|---|---|---|---|
-| Haiku 4.5 | 0/6 | **5/6** | **p 0.015** two-sided, 0.008 one-sided |
-| Opus 5 | 0/6 | **6/6** | **p 0.002** two-sided, 0.001 one-sided |
+The first two round-three runs are superseded, and by this repository's own
+gate rather than by an argument. Pointing `candidate` at `main` put the skill's
+newly added `evals/eval_queries.json` into the fleet, and that file carried the
+benchmark's case instructions verbatim, its case identifiers, and its measured
+routing rates — including the rate for this case. `scripts/contamination-check`
+raised nineteen hits the first time the fleet resolved.
 
-Haiku is the comparable measurement — same model, same case, same seed as
-rounds one and two. Opus is there by accident (instrument failure 28: `--model`
-was omitted and `run-evaluation`'s default is the largest model), and is worth
-keeping for one reason: the effect is not a property of the small model.
+Routing is decided from descriptions before any file inside a skill can be
+read, so the primary endpoint could not have been moved by it. That argument is
+correct and was not accepted: a benchmark that talks its way past its own gate
+has no gate. The file was rewritten at the source
+([typo3-conformance-skill#120](https://github.com/netresearch/typo3-conformance-skill/pull/120))
+and the comparison re-run on the decontaminated commit `88df0ce`, confirmed in
+all six `candidate` locks.
+
+## It routes
+
+| | `nr` | `candidate` | Fisher exact | |
+|---|---|---|---|---|
+| **Haiku 4.5, `88df0ce`** | **0/6** | **6/6** | **p 0.002** two-sided, 0.001 one-sided | the measurement |
+| Haiku 4.5, `310dc33` | 0/6 | 5/6 | p 0.015 | superseded: contaminated arm |
+| Opus 5, `310dc33` | 0/6 | 6/6 | p 0.002 | superseded, and by accident |
+
+Haiku is the comparable model — same case, same skill, same instrument as
+rounds one and two. The Opus run happened because `--model` was omitted and
+`run-evaluation`'s default is the largest model (instrument failure 28); it is
+kept in the record for one reason, that the effect is not a property of the
+small model.
+
+Worth stating plainly: the contaminated arm scored *lower*, 5/6 against 6/6.
+Carrying the benchmark's own prompts bought this skill nothing measurable. That
+is not why it had to go.
 
 Across the three rounds, on Haiku, on the same case and the same skill:
 
@@ -342,34 +365,41 @@ Across the three rounds, on Haiku, on the same case and the same skill:
 |---|---|---|
 | appended to the `Also triggers on:` tail | 1/6 | 1.000 |
 | in the opening clause, experiment branch | 6/6 | 0.002 |
-| in the opening clause, as released | 5/6 | 0.015 |
-
-The one `candidate` trial that did not route made four tool calls, the fewest
-of the twelve, and stopped without reading the extension's manifests at all.
+| in the opening clause, as released | 6/6 | 0.002 |
 
 ## Reached, and still no better
 
+On the clean run:
+
 | | `nr` | `candidate` |
 |---|---|---|
-| `consistency` met | 1/6 | 3/6 |
-| Cliff's delta | — | +0.06, p 0.935 |
-| criteria behind it | 29 met / 11 partial / 14 not met | 33 met / 8 partial / 13 not met |
-| agent cost, median | $0.02 | $0.04 |
-| tool calls, median | 5.0 | 7.0 |
+| `consistency` met | 4/6 | 5/6 |
+| Cliff's delta | — | +0.31, p 0.394 |
+| criteria behind it | 38 met / 7 partial / 9 not met | 47 met / 4 partial / 3 not met |
+| agent cost, median | $0.05 | $0.05 |
+| tool calls, median | 9.0 | 8.5 |
 
-Exploratory, all of it, and inside the judge's own noise. This is the fourth
-case where routing was fixed and the outcome did not follow. **How to get a
-skill loaded is now a solved problem with a named, reproduced mechanism —
-across two models and two wordings. How to make the loaded skill improve the
-work is not.**
+Exploratory, all of it. The criteria move further here than in any earlier
+round — nine more met, six fewer not met — and it still cannot be read as a
+finding: four of the twelve trials sit within one judge step of the threshold,
+the endpoint was not declared, and the two earlier round-three runs put the
+same comparison at +0.06 and −0.03. A quantity that lands at −0.03, +0.06 and
++0.31 across three runs of one comparison is measuring the judge.
+
+So this is the fourth case where routing was fixed and the outcome did not
+follow. **How to get a skill loaded is now a solved problem with a named,
+reproduced mechanism — across two models and two wordings. How to make the
+loaded skill improve the work is not, and `consistency` is not sensitive enough
+to tell us at this sample size.**
 
 ## Reproducing
 
 ```
 scripts/run-comparison OFR-TYPO3-CONSISTENT-001 --arms nr,candidate \
-    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 233
-scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260830-202628.json
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 907
+scripts/analyze experiments/OFR-TYPO3-CONSISTENT-001-20260831-050859.json
 ```
 
-The Opus run is `experiments/OFR-TYPO3-CONSISTENT-001-20260830-183502.json`.
+The two superseded runs are `…-20260830-202628.json` (Haiku, contaminated arm)
+and `…-20260830-183502.json` (Opus, contaminated arm).
 

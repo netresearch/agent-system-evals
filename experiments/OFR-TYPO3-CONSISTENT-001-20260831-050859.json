@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-CONSISTENT-001-20260831-050859",
+  "case": "OFR-TYPO3-CONSISTENT-001",
+  "arms": [
+    "nr",
+    "candidate"
+  ],
+  "primary_endpoint": "skill_invoked",
+  "secondary_endpoints": [
+    "consistency"
+  ],
+  "primary_kind": "invocation",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 907,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-31T05:08:59+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-050859",
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-051425"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "candidate",
+        "nr"
+      ],
+      "jobs": {
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-051945",
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-052404"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "candidate",
+        "nr"
+      ],
+      "jobs": {
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-052812",
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-053216"
+      },
+      "primary_p": 0.1
+    },
+    {
+      "round": 2,
+      "block": 1,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-053626",
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-054043"
+      }
+    },
+    {
+      "round": 2,
+      "block": 2,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-054453",
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-054903"
+      }
+    },
+    {
+      "round": 2,
+      "block": 3,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-055338",
+        "candidate": "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-055747"
+      }
+    }
+  ],
+  "stop_reason": "budget exhausted at 12 of 12 trials",
+  "trials_spent": 12,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-050859",
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-052404",
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-053216",
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-053626",
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-054453",
+      "jobs/OFR-TYPO3-CONSISTENT-001-nr-20260831-055338"
+    ],
+    "candidate": [
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-051425",
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-051945",
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-052812",
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-054043",
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-054903",
+      "jobs/OFR-TYPO3-CONSISTENT-001-candidate-20260831-055747"
+    ]
+  },
+  "finished_at": "2026-08-31T06:02:10+00:00",
+  "valid_trials": {
+    "nr": 6,
+    "candidate": 6
+  }
+}
