@@ -417,6 +417,8 @@ def test_the_census_actually_groups_by_arm(tmp_path):
             "candidate": {"invoked": 2, "trials": 2},
             "candidate@experiment/older": {"invoked": 0, "trials": 3},
         },
+        # Empty: these arms differ in what they carry, not in what ran them.
+        "model_split": [],
     }
     assert census.split(rows) == "candidate 2 of 2; candidate@experiment/older 0 of 3"
 

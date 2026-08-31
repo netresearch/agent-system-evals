@@ -31,7 +31,7 @@ before the first trial starts. With eight dimensions read per run, something
 moves in most of them; choosing which one mattered afterwards turns a coin flip
 into a finding. Everything else the analysis reports is labelled exploratory.
 
-    scripts/run-comparison <case-id> --arms control,nr --primary outcome_quality
+    scripts/run-comparison <case-id> --arms control,nr --primary outcome_quality --model claude-haiku-4-5-20251001
 """
 
 from __future__ import annotations
@@ -223,9 +223,13 @@ def main() -> int:
     )
     parser.add_argument(
         "--model",
+        required=True,
         help="the agent's model for every arm; the judge stays pinned in the "
              "rubric. Held constant across arms — a model comparison is a "
-             "different experiment, run through scripts/compare --variable model",
+             "different experiment, run through scripts/compare --variable model. "
+             "Required, and required here rather than inherited: run-evaluation's "
+             "default is the largest model, so an omitted flag spends roughly "
+             "forty times a small-model run and says nothing while doing it",
     )
     parser.add_argument("--max-trials", type=int, default=12)
     parser.add_argument("--seed", type=int, default=None,
@@ -233,6 +237,14 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="write the plan and stop, without spending a trial")
     args = parser.parse_args()
+
+    # `--model ""` satisfies argparse and then fails open: run_one omits the
+    # flag for a falsy value, run-evaluation falls back to its own default, and
+    # the record stores an empty string. That is the defect the flag was made
+    # required to close, reachable by passing it.
+    args.model = args.model.strip()
+    if not args.model:
+        parser.error("--model must name a model, not an empty string")
 
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     if len(arms) < 2:
@@ -288,10 +300,12 @@ def main() -> int:
             else "mechanical" if args.primary == MECHANICAL
             else "dimension"
         ),
-        # Recorded even when it is the default: a result that does not name the
-        # model it was produced by cannot be read a year later, and the default
-        # is a thing that changes.
-        "model": args.model or "run-evaluation default",
+        # A result that does not name the model it was produced by cannot be
+        # read a year later. This once recorded the string "run-evaluation
+        # default" when the flag was omitted -- a record that states the
+        # requirement in its own comment and then does not meet it. The flag is
+        # required now, so the value is always the model itself.
+        "model": args.model,
         "randomization": "one trial per arm per block, order shuffled per block",
         "randomization_seed": seed,
         "stopping_rule": (
