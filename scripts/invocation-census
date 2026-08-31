@@ -134,13 +134,24 @@ def fold_models(row: dict) -> dict:
     make.
     """
     folded: dict[str, dict[str, int]] = {}
+    split_arms: set[str] = set()
     for fleet, by_model in row["by_fleet"].items():
         if len(by_model) == 1:
             folded[fleet] = next(iter(by_model.values()))
             continue
+        # The short form is for reading, and it may not merge two arms back
+        # together: `claude-opus-5` and `claude-opus-5-20251001` both shorten
+        # to `opus-5`, and the second would then overwrite the first, silently
+        # restoring the pooling this exists to prevent. Where the short forms
+        # collide, every model in the arm keeps its full identifier.
+        short = {model: short_model(model) for model in by_model}
+        if len(set(short.values())) < len(short):
+            short = {model: model for model in by_model}
         for model, counts in sorted(by_model.items()):
-            folded[f"{fleet} on {short_model(model)}"] = counts
-    return {**row, "by_fleet": folded}
+            name = f"{fleet} on {short[model]}"
+            folded[name] = counts
+            split_arms.add(name)
+    return {**row, "by_fleet": folded, "model_split": sorted(split_arms)}
 
 
 def short_model(model: str) -> str:
@@ -162,7 +173,11 @@ def split(row: dict) -> str | None:
     if len(arms) < 2:
         return None
     rates = {bool(v["invoked"]) for v in arms.values()}
-    if len(rates) < 2:
+    # ...unless the case ran one arm on two models. Then the pooled count is
+    # two populations again, and "every arm invoked at least once" is exactly
+    # the situation where it hides the disagreement: 5 of 6 on one model beside
+    # 6 of 6 on another prints as 11 of 12 and reads as one rate.
+    if len(rates) < 2 and not row.get("model_split"):
         return None
     return "; ".join(
         f"{name} {v['invoked']} of {v['trials']}"

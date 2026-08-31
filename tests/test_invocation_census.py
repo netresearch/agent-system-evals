@@ -60,3 +60,35 @@ def test_a_dated_model_id_loses_only_its_date(tmp_path):
     assert short("claude-opus-5") == "opus-5"
     # Not a date: an eight-digit tail is required, and a version is not one.
     assert short("claude-sonnet-4-5") == "sonnet-4-5"
+
+
+def test_short_forms_that_collide_keep_the_full_identifier(tmp_path):
+    """`claude-opus-5` and `claude-opus-5-20251001` both shorten to `opus-5`.
+
+    Folding both into one key would let the second overwrite the first and
+    silently restore the pooling the split exists to prevent.
+    """
+    job(tmp_path, "a", "claude-opus-5", [True])
+    job(tmp_path, "b", "claude-opus-5-20251001", [False, False])
+    by_fleet = load("invocation-census").census(tmp_path)["CASE-1"]["by_fleet"]
+    assert by_fleet == {
+        "nr on claude-opus-5": {"invoked": 1, "trials": 1},
+        "nr on claude-opus-5-20251001": {"invoked": 0, "trials": 2},
+    }
+
+
+def test_a_model_split_is_always_printed_even_when_every_arm_invoked(tmp_path):
+    """`split` used to stay silent when no arm was at zero.
+
+    Two models at 5/6 and 6/6 then printed as a pooled 11 of 12 and read as one
+    rate, which is the disagreement the split exists to show.
+    """
+    census = load("invocation-census")
+    job(tmp_path, "a", "claude-haiku-4-5-20251001", [True, True, True, True, True, False])
+    job(tmp_path, "b", "claude-opus-5", [True] * 6)
+    row = census.census(tmp_path)["CASE-1"]
+    assert {bool(v["invoked"]) for v in row["by_fleet"].values()} == {True}
+    note = census.split(row)
+    assert note is not None
+    assert "nr on haiku-4-5 5 of 6" in note
+    assert "nr on opus-5 6 of 6" in note
