@@ -268,3 +268,30 @@
   marker: rte_ckeditor_image
   reason: >-
     A citation in a comment — this repository's v13.10.0 release is the evidence that a pipefail/SIGPIPE race made a check report "nothing missing" because it had found something, and that release lines must be compared within a line. About the script's own correctness, not about this extension's rendering.
+
+# The same four, once more for `main`. Decisions are keyed by ref, so pointing
+# the candidate arm at a branch re-asks every question already answered for the
+# tags — correctly: a branch is not the version that was judged.
+- skill: netresearch/typo3-conformance-skill
+  ref: main
+  path: typo3-conformance-skill-main/skills/typo3-conformance/references/runtests-validation.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: main
+  path: typo3-conformance-skill-main/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: main
+  path: typo3-conformance-skill-main/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte_ckeditor_image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: main
+  path: typo3-conformance-skill-main/skills/typo3-conformance/references/crowdin-integration.md
+  marker: rte_ckeditor_image
+  reason: The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering.
