@@ -318,3 +318,94 @@ Where two skills both claim a request, something has to say which one owns it,
 and that cannot be written in one of them alone.** That is the next thing to
 measure.
 
+---
+
+# Rounds five to seven: four skill defects, each named by an artefact
+
+Three comparisons, `nr` against `candidate`, Haiku 4.5, primary
+`mechanical_outcome` declared each time. All three read 0/3 against 0/3, and
+each one moved the failure to a different cause. The value is in the causes,
+not in the endpoint.
+
+| record | seed | what `candidate` carried |
+|---|---|---|
+| `…-20260831-094704.json` | 1013 | conformance hands the version raise away |
+| `…-20260831-110325.json` | 1201 | + one search for every removed class |
+| `…-20260831-131421.json` | 1307 | + what to write in a type declaration |
+
+## Round five: the boundary moved the routing
+
+Round four established that two skills claim this request and the one with the
+near-verbatim opening clause lost 3 of 3. Round five put the other half of the
+boundary into `typo3-conformance` — one sentence handing the version raise to
+`typo3-extension-upgrade` by name.
+
+| | loaded the upgrade skill |
+|---|---|
+| round four, `candidate` | 0/3 |
+| round five, `candidate` | 2/3 |
+| round six, both arms | 6/6 |
+
+Fisher exact for round four against five is 0.4, so this is a direction on
+three observations. And round six's 6/6 includes `nr`, which does not carry the
+boundary — at this sample size the effect cannot be attributed to the
+treatment. What can be said is that the skill is now reached, which it was not.
+
+## Round six: the search term was lost before the search ran
+
+The trial that resolved had done everything asked. It opened the reference,
+and it searched `Classes/` **and** `Tests/` — the widening from
+[#56](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/56)
+worked. Then it merged seven table rows into one pattern and, in doing so,
+turned the row's `"TSFE\|TypoScriptFrontendController\|frontend.controller"`
+into `GLOBALS\[.TSFE.\]`: it kept the `$GLOBALS` spelling and dropped the class
+name. So it fixed `Classes/Context/AbstractContext.php` in four edits and never
+saw the reference in `Tests/` that stopped the suite from loading.
+
+Fixed by putting the removed class names into one copy-and-paste search before
+the table ([#57](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/57)).
+
+## Round seven: the replacement was invalid PHP, and the real blocker was elsewhere
+
+One trial did fix the test file. The suite still refused to load:
+
+```
+Fatal error: Type FrontendUserAuthentication|object|null contains both object
+and a class type, which is redundant
+```
+
+PHP refuses a union mixing `object` with a class type — reproduced outside
+TYPO3 with `php -r 'class A{} function f(A|object $x){}'`. Documented in
+[#58](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/58).
+
+**And reading every trial rather than the endpoint showed the larger blocker
+had been missed for three rounds.** Four of six trials never reached the test
+suite at all. Their `composer.after.json` says why:
+
+| constraint written | trials | outcome |
+|---|---|---|
+| `^13.4 \|\| ^14.3` — the documented form | 2 | resolved, installed v14.3.6 |
+| `^12.4 \|\| ^13.4 \|\| ^14.4` — guessed | 4 | nothing installed |
+
+`^14.4` matches no release: v14's LTS minor is 3, and `get.typo3.org` reports
+14.3.6 as the newest. The reference showed `^14.3` twice in its first section
+and never named the wrong value — and v11.5, v12.4, v13.4 make `14.4` the
+obvious continuation. Fixed by naming the wrong value before the right one
+([#59](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/59)).
+
+## What these three rounds are worth
+
+No arm passed, so the mechanical endpoint has nothing to say yet. What the
+rounds produced is four defects in a shipped skill, each one found by reading
+a trial's own artefacts rather than by inspection, and each one general beyond
+this case:
+
+1. A search scoped to `Classes/` cannot see a removed class in `Tests/`, where
+   it is fatal rather than merely failing.
+2. A row whose search lists alternatives gets merged with its neighbours, and
+   the term that matters is the one that goes.
+3. A removed class inside a type declaration cannot be replaced by `object`
+   while another class type stays in the union.
+4. A reference that states the correct value without naming the attractive
+   wrong one loses to the pattern.
+
