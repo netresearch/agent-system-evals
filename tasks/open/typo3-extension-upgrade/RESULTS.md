@@ -166,40 +166,50 @@ its own arm's next-highest. The interval spans −0.04 to +1.18 and the median
 difference is three cents. A mean over this arm would be a number about one
 trial.
 
+
 ---
 
 # The Opus jobs of 20 August, read after the fact
 
-Not a run of this benchmark's comparison machinery: eleven separate jobs from
-19 and 20 August, before `scripts/run-comparison` existed, found by asking the
-recorded artefacts a question none of those jobs had declared. It is written
-down here because it is the strongest evidence in this repository that the
-stack changes the **work** rather than the routing, and because nothing else in
-these files says so.
+Not a run of this benchmark's comparison machinery: separate jobs from 19 and
+20 August, before `scripts/run-comparison` existed, found by asking the
+recorded artefacts a question none of those jobs had declared.
 
 ## What the artefacts say
 
 Every job on this case collects `matrix-*.txt`, the maintainers' own
 resolve-and-test matrix run after the agent stops. The case declares the pass
 condition (`resolve: ok` and a passing test leg), so the outcome can be
-recomputed for any trial ever recorded. On `claude-opus-5`, 20 August:
+recomputed for any trial ever recorded — `scripts/mechanical-ledger` does it.
+On `claude-opus-5`, 20 August, counting only trials the validity gate admits:
 
 | arm | matrix passes |
 |---|---|
-| `control` — the bare agent | 4/10 |
-| **`nr` — the equipped fleet** | **10/10** |
+| `control` — the bare agent | 4/6 |
+| **`nr` — the equipped fleet** | **9/9** |
 | `nr-full` | 5/7 |
-| `dev-mcp` | 1/7 |
-| `companion` | 0/7 |
+| `companion` | 0/3 |
+| `dev-mcp` | 0/2 |
 
-Fisher exact on the two named arms: p 0.011 two-sided.
+Fisher exact, `nr` against `control`: **p 0.14**. The direction is there and the
+sample does not carry it.
 
-## Why the 19 August jobs are excluded
+## The number this nearly became
 
-Every arm reads 0 that day — `control` 0/5, `nr` 0/3, `nr-full` 0/3, `dev-mcp`
-0/3, `companion` 0/3 — and the reason is in the artefacts rather than in the
-agents. The collector pinned the TYPO3 packages with a temporary constraint,
-and composer refused it against a manifest that still declared the old range:
+Counting every recorded trial rather than every valid one, the same table reads
+`control` 4/10 against `nr` 10/10 — Fisher exact p 0.011, and it was written up
+here as the strongest evidence in this repository that the stack changes the
+work rather than the routing.
+
+It is not. Six of `control`'s ten "failures" were trials that never ran: jobs
+from the night of 19 August whose trials all raised `ApiRateLimitError`, spent
+zero input and zero output tokens, and produced no agent transcript at all.
+`scripts/trial-validity` has always classified them `INVALID_INFRASTRUCTURE`;
+the first version of `mechanical-ledger` did not ask it, and so counted a
+rate-limited night as six failures of the bare agent.
+
+The same mistake produced a second wrong explanation on the way. Those jobs'
+matrix files end in
 
 ```
 --- pinning to ^14.3
@@ -208,25 +218,28 @@ The temporary constraint "^14.3" for "typo3/cms-backend" must be a subset of
 the constraint in your composer.json (^12.4 || ^13.4)
 ```
 
-The check could not pass for anybody. It was repaired for the 20 August jobs,
-whose files carry `resolve: ok` and an install log. Pooling the two days would
-have read a broken collector as a capability difference — the pooled figure,
-`nr` 10/13 against `control` 5/16, still reaches p 0.025 and is exactly the
-kind of number that should not be quoted.
+which reads like a broken collector, and was written up as one. It is not that
+either: the message says the manifest still declares the old range, which is
+what an unfinished upgrade looks like, and the identical message appears in
+Haiku trials whose other leg resolves and tests cleanly in the same run. The
+collector was never broken. Two explanations, both invented rather than
+measured, for an artefact of counting dead trials.
 
-## What it is not
+## What it is, and what it is not
+
+A direction worth a declared run, at a price:
 
 - **Not a declared endpoint.** The question was asked of the data afterwards.
   With eight dimensions and a mechanical outcome per case, something separates
-  somewhere; that is why this repository requires `--primary` before a run
-  starts, and this predates that rule.
-- **Not reproducible on the small model.** On Haiku the same case reads 0/6
-  against 0/6 — the upgrade is beyond that model here, so the observation
-  cannot be confirmed cheaply. A declared 12-trial run on Opus 5 costs roughly
-  $370 at the $28–31 per trial these jobs recorded.
-- **Not one arm.** `nr-full`, which carries strictly more skills than `nr`,
-  reads 5/7. If the effect were "more skills, better work" that ordering would
-  not appear.
-
-Recorded as a hypothesis with a price, not as a finding.
-
+  somewhere; that is why `--primary` is required before a run starts, and these
+  jobs predate that rule.
+- **Not reproducible on the small model.** On Haiku the case reads 0/3 and 0/3
+  for both arms on two separate days, all six trials valid. Both arms fail, and
+  they fail differently — one leaves the requirement at `^12.4 || ^13.4`
+  untouched, the other widens it to `^12.4 || ^13.4 || ^14.4`, a constraint for
+  a TYPO3 version that does not exist. There is nothing to compare at a floor,
+  so confirming this needs Opus 5: roughly $370 for twelve trials at the
+  $28–31 per trial these jobs recorded.
+- **Not monotone in skills.** `nr-full` carries strictly more skills than `nr`
+  and reads 5/7. If the effect were "more skills, better work", that ordering
+  would not appear.

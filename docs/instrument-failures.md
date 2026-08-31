@@ -667,6 +667,49 @@ cheapest instrument check available here is the per-trial cost column: it is
 printed for every run, it is stable within a case, and an unexplained factor of
 forty in it is a question about the instrument before it is anything else.
 
+## 29. A rate-limited night counted as six failures of the bare agent
+
+`scripts/mechanical-ledger` recomputes each case's ground-truth check over
+every recorded trial. The first version did not ask
+`scripts/lib/validity.py` which trials count, and so read jobs whose trials had
+all raised `ApiRateLimitError` — zero input tokens, zero output tokens, no
+agent transcript — as trials the agent had failed.
+
+On the upgrade case that turned `control` 4 of 6 into `control` 4 of 10, and a
+Fisher exact p of 0.14 into 0.011. The difference between a direction worth a
+declared run and the strongest evidence in the repository, which is how it was
+written up for an hour.
+
+**Two invented explanations on the way there, both worse than the error.** The
+dead night reads 0 for all five arms, so it looked like a discontinuity between
+19 and 20 August; the matrix files of those trials end in
+
+```
+--- resolve: failed
+The temporary constraint "^14.3" for "typo3/cms-backend" must be a subset of
+the constraint in your composer.json (^12.4 || ^13.4)
+```
+
+and that was written up as a collector that could not pass for anybody, later
+repaired. Neither half was true. The collector never changed — `git log` on the
+case's `tests/` shows the only edits that week were a judge pin and a blinding
+transcript — and the message is what an unfinished upgrade looks like: composer
+reporting that the manifest still declares the old range. The identical message
+appears in Haiku trials whose other leg resolves and tests cleanly in the same
+run, which is the check that should have been made before writing either
+sentence.
+
+**Fixed.** The ledger calls `validity.gate` with the case's expected dimensions
+and required artefacts, exactly as `scripts/analyze` does, and counts only what
+comes back valid. A test builds a job whose single trial raised
+`ApiRateLimitError` and requires the ledger to report nothing at all; it fails
+against the version that globs trial directories.
+
+The standing lesson is one this repository already holds for verifiers and had
+not applied to its own artefacts: **a trial that never ran is not a trial that
+failed.** An error is `unknown`, never `refuted` — and when a whole night reads
+zero, the first question is whether anything ran, not what the agents did.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the

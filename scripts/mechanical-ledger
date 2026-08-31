@@ -37,6 +37,10 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import cases  # noqa: E402
+import validity  # noqa: E402
 
 
 def declarations() -> dict[str, dict]:
@@ -94,7 +98,19 @@ def ledger(jobs_dir: Path | None = None) -> dict:
             short_model(recorded.get("model") or "unrecorded"),
             job.name.rsplit("-", 2)[-2],
         )
-        for artifacts in job.glob("*/artifacts/logs/artifacts"):
+        # Only trials the repository already counts. The first version of this
+        # script did not ask, and read 0 for every arm on 19 August -- jobs
+        # whose trials had all raised ApiRateLimitError, spent zero tokens and
+        # never ran an agent. Counted as failures they look like a capability
+        # collapse across five fleets in one night, which is what they were
+        # first written up as.
+        valid, _ = validity.gate(
+            job,
+            expected_dimensions=cases.graded_dimensions(case),
+            required_artifacts=cases.required_artifacts(case),
+        )
+        for trial in valid:
+            artifacts = trial / "artifacts" / "logs" / "artifacts"
             rows[case][key][0] += passed(artifacts, check)
             rows[case][key][1] += 1
     return {case: dict(sorted(by_key.items())) for case, by_key in sorted(rows.items())}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,3 +63,26 @@ def test_the_declared_cases_are_read_from_the_task_files():
     assert declared["OFR-TYPO3-UPGRADE-001"]["artifacts"] == "matrix-*.txt"
     # A case without the block is absent rather than present-and-empty.
     assert "OFR-TYPO3-CONSISTENT-001" not in declared
+
+
+def test_a_trial_that_never_ran_is_not_a_failure(tmp_path):
+    """Counting invalid trials turned a rate-limited night into six failures.
+
+    Six control trials from 19 August raised ApiRateLimitError, spent zero
+    tokens and produced no transcript. Counted, they took the arm from 4/6 to
+    4/10 and the comparison from p 0.14 to p 0.011 -- the difference between a
+    direction and a headline.
+    """
+    ledger = load()
+    job = tmp_path / "OFR-TYPO3-CALENDAR-001-nr-20260819-000000"
+    (job / "x").mkdir(parents=True)
+    (job / "nr-snapshot.json").write_text(
+        json.dumps({"case_id": "OFR-TYPO3-CALENDAR-001", "fleet": "nr",
+                    "model": "claude-opus-5"})
+    )
+    (job / "x" / "result.json").write_text(
+        json.dumps({"exception_info": {"exception_type": "ApiRateLimitError"}})
+    )
+    art = job / "x" / "artifacts" / "logs" / "artifacts"
+    art.mkdir(parents=True)
+    assert ledger.ledger(tmp_path) == {}
