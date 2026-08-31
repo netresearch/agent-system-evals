@@ -7,7 +7,10 @@
 # with no effect.
 #
 # A branch ref is acceptable here and only here, a candidate being transient by
-# definition. Record the resolved commit from the job lock with the result — a
+# definition — and it must not be touched while a comparison is using it.
+# Pushing to it mid-run gives one arm two treatments; merging and deleting it
+# leaves the next trial with nothing to resolve. Both happened on 31 August,
+# an hour apart. Record the resolved commit from the job lock with the result — a
 # branch that moves between the two runs of an A/B invalidates the comparison,
 # and the lock is the only thing that will show it.
 
@@ -69,7 +72,14 @@ at:
   # (netresearch/typo3-extension-upgrade-skill#56). If the fix works, the small
   # model passes a case it has never passed, which is the point of the whole
   # exercise rather than a detail of it.
-  netresearch/typo3-extension-upgrade-skill: fix/searches-must-include-tests
+  # Pointed at `main` rather than the branch: the branch merged and was deleted
+  # mid-run, and Harbor resolves a ref per trial, so the next one had nothing to
+  # resolve. Two runs were lost to the same class of mistake in one afternoon --
+  # the first because a push moved the branch under a running comparison, the
+  # second because a merge removed it. The header above says a branch ref is
+  # acceptable for this arm and only this arm; it does not say a branch may be
+  # touched while the arm is in use, and now it does.
+  netresearch/typo3-extension-upgrade-skill: main
 
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
