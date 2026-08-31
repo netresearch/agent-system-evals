@@ -20,6 +20,14 @@ inside that stage landed on one side. Pooling across many small jobs is what
 `scripts/analyze` reads, and the reason it takes an experiment rather than two
 directories.
 
+Since 31 August the arms of a block run *at the same time* rather than one
+after the other. Shuffling the order was the defence against a drift landing on
+one arm; running them together removes what was being defended against, because
+both arms are sampled in the same minutes. It also halves the wall time, which
+is the reason anybody notices. Concurrency is one block wide -- typically two
+trials -- never the trial budget: five fleets at once is how a night of trials
+died on the API rate limit.
+
 **Depth.** Three trials per arm was treated as the measurement. It is not: on
 the runtime case the spread inside one arm covered the gap between arms, and a
 median difference got published as a 53% saving before the per-trial figures
@@ -37,6 +45,7 @@ into a finding. Everything else the analysis reports is labelled exploratory.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
 import json
 import os
 import random
@@ -355,10 +364,27 @@ def main() -> int:
             order = list(arms)
             rng.shuffle(order)
             entry = {"round": round_number, "block": block + 1, "order": order,
-                     "jobs": {}}
+                     "concurrent": True, "jobs": {}}
             print(f"\nround {round_number} block {block + 1}: {' '.join(order)}")
+            # The arms of a block run at the same time, not one after another.
+            # Shuffling the order was the defence against drift landing on one
+            # arm; running them together removes the thing being defended
+            # against, because both arms are sampled in the same minutes. The
+            # shuffle stays for the arms' position in the printed record and
+            # for any effect of starting a container first.
+            #
+            # A block, not the whole run: concurrency stays at the number of
+            # arms, typically two. The 19 August jobs died as ApiRateLimitError
+            # across five fleets at once (instrument failure 29), and one trial
+            # asks for 4 CPUs and 8 GB.
+            with cf.ThreadPoolExecutor(max_workers=len(order)) as pool:
+                started = {
+                    fleet: pool.submit(run_one, args.case_id, fleet, env, args.model)
+                    for fleet in order
+                }
+                results = {fleet: f.result() for fleet, f in started.items()}
             for fleet in order:
-                job = run_one(args.case_id, fleet, env, args.model)
+                job = results[fleet]
                 if job is None:
                     # Fail closed. Continuing leaves the arms unequal for a
                     # reason that is not the treatment, and nothing downstream
