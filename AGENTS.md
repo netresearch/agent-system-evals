@@ -51,6 +51,10 @@ the cases and the rubric.
 | `./scripts/compare --placebo <job-a> <job-b>` | One arm against itself: the instrument's own spread |
 | `./scripts/compare --variable model <job-a> <job-b>` | A model comparison, fleet and judge held constant |
 | `./scripts/snapshot <job-dir>` | Resolved provenance from Harbor's job lock |
+| `./scripts/invocation-census` | How often each case leads an equipped agent to load a skill |
+| `./scripts/routing-overlap` | Whether a fleet skill's opening clause shares words with the request |
+| `./scripts/mechanical-ledger [--case <id>]` | Every recorded trial against its case's ground-truth check |
+| `./scripts/mine-cases` | Candidate cases from real pull requests and commits |
 | `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
 
 `run-smoke` and `run-evaluation` need one credential, used by both the agent
