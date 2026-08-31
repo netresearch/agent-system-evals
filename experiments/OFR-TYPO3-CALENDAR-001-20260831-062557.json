@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-CALENDAR-001-20260831-062557",
+  "case": "OFR-TYPO3-CALENDAR-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "outcome_quality"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 411,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-31T06:25:57+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-062557",
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-063443"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-064433",
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-065137"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-070052",
+        "nr": "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-070651"
+      },
+      "primary_p": 1.0
+    },
+    {
+      "round": 2,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "jobs": {}
+    }
+  ],
+  "stop_reason": "arm nr failed in round 2 block 1",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-063443",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-065137",
+      "jobs/OFR-TYPO3-CALENDAR-001-control-20260831-070052"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-062557",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-064433",
+      "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-070651"
+    ]
+  }
+}

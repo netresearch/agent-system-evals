@@ -12,7 +12,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the released typo3-conformance description — the merged rewrite of the leading clause, measured on its own because what round two proved was a branch that never shipped
+description: nr with the upgrade skill searching Tests/ as well as Classes/ — the fix for the one line four resolving trials died on
 
 derives_from: nr
 at:
@@ -49,6 +49,28 @@ at:
   # This branch moves the same two artefacts to the front and changes nothing
   # else. Unlike round one it passes the skill repository's own validator, so a
   # positive result is releasable as it stands. Resolved commit: 6174033.
+  # ROUND FOUR, open: can a reference fix carry the small model over a case it
+  # fails outright? This is the arm's first use for something other than a
+  # description.
+  #
+  # On OFR-TYPO3-UPGRADE-001, Haiku 4.5 reads 0/6 in both arms. The two arms do
+  # not fail alike, and the difference is already the skills' doing: the bare
+  # agent never resolves v14 at all, 0 of 6, while the equipped agent resolves
+  # v14.3.6 in 4 of 6 and then loses every one of those four to the same line --
+  #
+  #   Class "TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController"
+  #   not found, Tests/Unit/Classes/Context/AbstractContextTest.php:38
+  #
+  # -- a class removed in v14, named in the skill's own v13-to-v14 table, whose
+  # prescribed search looks only in Classes/. PHPUnit resolves it while loading
+  # the suite, so the run dies before a test executes.
+  #
+  # The branch widens fifty searches to Classes/ and Tests/ and says why
+  # (netresearch/typo3-extension-upgrade-skill#56). If the fix works, the small
+  # model passes a case it has never passed, which is the point of the whole
+  # exercise rather than a detail of it.
+  netresearch/typo3-extension-upgrade-skill: fix/searches-must-include-tests
+
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
   # 88df0ce, confirmed in all six candidate locks.
@@ -87,4 +109,4 @@ at:
   # v2.19.1, so this arm also carries two documentation commits and a
   # checkpoints fix. Neither touches the description, which is the only text
   # routing reads, but both are in the arm and could move a graded dimension.
-  netresearch/typo3-conformance-skill: main
+  #   (closed; the conformance description shipped and the arm was repointed)

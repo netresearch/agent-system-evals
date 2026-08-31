@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-REGISTRATION-001-20260831-071752",
+  "case": "OFR-TYPO3-REGISTRATION-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "outcome_quality"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 412,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-08-31T07:17:52+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "jobs": {}
+    }
+  ],
+  "stop_reason": "arm control failed in round 1 block 1",
+  "trials_spent": 0,
+  "jobs": {
+    "control": [],
+    "nr": []
+  }
+}
