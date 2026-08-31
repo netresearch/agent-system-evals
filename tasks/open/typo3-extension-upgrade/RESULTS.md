@@ -243,3 +243,78 @@ A direction worth a declared run, at a price:
 - **Not monotone in skills.** `nr-full` carries strictly more skills than `nr`
   and reads 5/7. If the effect were "more skills, better work", that ordering
   would not appear.
+
+---
+
+# Round four: two skills answer to one request, and the opening clause does not settle it
+
+`scripts/run-comparison OFR-TYPO3-UPGRADE-001 --arms nr,candidate --primary mechanical_outcome --model claude-haiku-4-5-20251001 --seed 911`
+
+Experiment record: `experiments/OFR-TYPO3-UPGRADE-001-20260831-083713.json`.
+The `candidate` arm carried `typo3-extension-upgrade-skill` at `19192dc`, in
+every lock.
+
+## What was fixed, and what it was meant to do
+
+Reading the twelve Haiku trials of the earlier rounds one by one, rather than
+as a pooled `0/6 against 0/6`, showed that the arms do not fail alike:
+
+| | resolves v14.3 | passes |
+|---|---|---|
+| `control`, the bare agent | 0/6 | 0/6 |
+| `nr`, equipped | 4/6 | 0/6 |
+
+The bare agent never gets past dependency resolution. The equipped agent
+installs v14.3.6 four times out of six and then loses every one of those four
+to a single line:
+
+```
+Class "TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController" not found
+Tests/Unit/Classes/Context/AbstractContextTest.php:38
+```
+
+A class removed in v14, named in the skill's own v13→v14 table — with a search
+that looks only in `Classes/`. PHPUnit resolves it while *loading* the suite, so
+the run dies before a test executes. Two fixes went in
+([typo3-extension-upgrade-skill#56](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/56)):
+fifty searches widened to `Classes/ Tests/`, and a description opening with the
+request maintainers actually make rather than with the word "upgrading".
+
+## It did not move, and the reason is not the fix
+
+| | `nr` | `candidate` |
+|---|---|---|
+| mechanical outcome | 0/3 | 0/3 |
+| `skill_invoked` | 3/3 | 3/3 |
+
+Both arms loaded a skill every time. **Neither loaded the one that was fixed.**
+
+| arm | skill the agent reached for |
+|---|---|
+| `candidate` | `typo3-conformance` 3 of 3 |
+| `nr` | `typo3-conformance` 1, `typo3-extension-upgrade` 1 |
+
+Checked in the container rather than inferred: both `SKILL.md` files were
+installed for every trial, `typo3-extension-upgrade` carrying the new opening
+clause and `typo3-conformance` the old `v2.19.1` one. The reference fix was
+never reached, so this run says nothing about whether it works.
+
+## The rule needs a second half
+
+Rounds one to three established that a skill is loaded when its description's
+opening clause names what the request says, and not otherwise. Every one of
+those measurements pitted a skill against **silence** — no other skill in the
+fleet claimed the request.
+
+Here two do. The request is *"We need this extension to work with the current
+TYPO3 LTS"*. `typo3-extension-upgrade` now opens with "an extension has to work
+with a newer or the current TYPO3 LTS", which is as close to the request as a
+description gets; `typo3-conformance` says "modernization to v12/v13/v14 (v14.3
+LTS is the default/gold standard)", which matches the same request through a
+different door. The near-verbatim opening lost 3 of 3.
+
+**So naming the request in the opening clause is necessary and not sufficient.
+Where two skills both claim a request, something has to say which one owns it,
+and that cannot be written in one of them alone.** That is the next thing to
+measure.
+
