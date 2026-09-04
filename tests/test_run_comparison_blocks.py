@@ -93,6 +93,13 @@ def test_a_moved_ref_is_caught_by_comparing_locks(tmp_path):
     # `{}`, or two unreadable jobs would compare equal and the check would pass
     # having proved nothing.
     assert module.resolved_skills(tmp_path / "missing") is None
+
+    # Bytes that are not UTF-8 raise UnicodeDecodeError, which is a ValueError
+    # rather than an OSError, so it would escape a narrower catch.
+    undecodable = tmp_path / "c"
+    undecodable.mkdir()
+    (undecodable / "lock.json").write_bytes(b"\xff\xfe not utf-8")
+    assert module.resolved_skills(undecodable) is None
     assert "cannot be verified" in (ROOT / "scripts" / "run-comparison").read_text()
 
     source = (ROOT / "scripts" / "run-comparison").read_text()

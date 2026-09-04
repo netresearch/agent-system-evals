@@ -154,7 +154,10 @@ def resolved_skills(job: Path) -> dict[str, str] | None:
     lock = job / "lock.json"
     try:
         text = lock.read_text()
-    except OSError:
+    except (OSError, UnicodeError):
+        # UnicodeDecodeError is a ValueError, not an OSError, so a lock written
+        # in anything but UTF-8 would otherwise escape this and take the
+        # fail-closed path with it.
         return None
     return dict(re.findall(r"skills/github\.com/([^/]+/[^/]+)/([0-9a-f]{40})",
                            text))
