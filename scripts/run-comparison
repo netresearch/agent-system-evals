@@ -140,6 +140,20 @@ def resolve_job(output: str) -> Path | None:
     return Path(match.group(1)) if match else None
 
 
+def resolved_skills(job: Path) -> dict[str, str]:
+    """Which commit each skill resolved to for this job, from Harbor's lock.
+
+    The manifest states intent; the lock states fact. Comparing the fact across
+    blocks is what catches a branch that moved under a running comparison.
+    """
+    lock = job / "lock.json"
+    if not lock.exists():
+        return {}
+    found = re.findall(r"skills/github\.com/([^/]+/[^/]+)/([0-9a-f]{40})",
+                       lock.read_text())
+    return dict(found)
+
+
 def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Path | None:
     command = [
         str(ROOT / "scripts" / "run-evaluation"),
@@ -247,6 +261,20 @@ def main() -> int:
                         help="write the plan and stop, without spending a trial")
     args = parser.parse_args()
 
+    # The schedule and the budget are two numbers that can contradict each
+    # other. ROUNDS blocks, one trial per arm per block, so the full schedule
+    # costs sum(ROUNDS) * len(arms) trials; a smaller --max-trials ends it
+    # mid-round. That is a legitimate choice — the cap exists to bound spend —
+    # but it must be said before the first trial rather than discovered in a
+    # record whose stopping_rule names a schedule it never reached.
+    _arm_count = len([a for a in args.arms.split(",") if a.strip()])
+    _full = sum(ROUNDS) * _arm_count
+    if _arm_count and args.max_trials < _full:
+        print(f"note: the full schedule is {sum(ROUNDS)} blocks = {_full} "
+              f"trials at {_arm_count} arms; --max-trials {args.max_trials} "
+              f"stops it early. Raise it to {_full} to run the schedule out.",
+              file=sys.stderr)
+
     # `--model ""` satisfies argparse and then fails open: run_one omits the
     # flag for a falsy value, run-evaluation falls back to its own default, and
     # the record stores an empty string. That is the defect the flag was made
@@ -291,6 +319,7 @@ def main() -> int:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     log = experiments / f"{args.case_id}-{stamp}.json"
 
+    pinned: dict[str, dict[str, str]] = {}
     collected: dict[str, list[Path]] = {arm: [] for arm in arms}
     record: dict = {
         "schema_version": EXPERIMENT_VERSION,
@@ -317,10 +346,17 @@ def main() -> int:
         "model": args.model,
         "randomization": "one trial per arm per block, order shuffled per block",
         "randomization_seed": seed,
+        # Written from the branch that will actually run. The mechanical
+        # endpoint continues on any gap in the rate, because [0,1,1] against
+        # [1,1,1] can never separate and that difference is the finding; every
+        # other endpoint needs complete separation. Recording one sentence for
+        # both let an audit reconstruct a protocol the run never followed.
         "stopping_rule": (
             f"rounds of {ROUNDS} blocks; stop after the discovery round unless "
-            f"the primary endpoint separates completely, and never exceed "
-            f"{args.max_trials} trials in total"
+            + ("the pass rates differ at all"
+               if args.primary == MECHANICAL
+               else "the primary endpoint separates completely")
+            + f", and never exceed {args.max_trials} trials in total"
         ),
         "max_trials": args.max_trials,
         "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -382,7 +418,20 @@ def main() -> int:
                     fleet: pool.submit(run_one, args.case_id, fleet, env, args.model)
                     for fleet in order
                 }
-                results = {fleet: f.result() for fleet, f in started.items()}
+                # `result()` re-raises whatever the worker raised, which would
+                # leave the block unrecorded and skip the fail-closed path
+                # below. An arm that raised is an arm that produced no job.
+                results = {}
+                raised = {}
+                for fleet, future in started.items():
+                    try:
+                        results[fleet] = future.result()
+                    except Exception as exc:  # noqa: BLE001 - reported, not handled
+                        results[fleet] = None
+                        raised[fleet] = exc
+            for fleet, exc in raised.items():
+                print(f"  {fleet}: raised {type(exc).__name__}: {exc}",
+                      file=sys.stderr)
             for fleet in order:
                 job = results[fleet]
                 if job is None:
@@ -403,6 +452,31 @@ def main() -> int:
                 entry["jobs"][fleet] = str(job.relative_to(ROOT))
                 spent += 1
                 print(f"  {fleet}: {job.name}")
+            # A branch ref is resolved per trial, so an arm can carry two
+            # treatments inside one comparison. That happened twice in one
+            # afternoon -- once by pushing to the branch mid-run, once by
+            # merging and deleting it -- and the locks recorded it faithfully
+            # while nothing read them. They are read now: the moment an arm's
+            # resolved skills differ from what it resolved in its first block,
+            # the run stops rather than pooling two treatments into one number.
+            for fleet, job in results.items():
+                if job is None:
+                    continue
+                resolved = resolved_skills(job)
+                first = pinned.setdefault(fleet, resolved)
+                if resolved != first:
+                    moved = sorted(set(resolved.items()) ^ set(first.items()))
+                    record["stop_reason"] = (
+                        f"arm {fleet} resolved different skills than in its "
+                        f"first block: {moved}"
+                    )
+                    record["blocks"].append(entry)
+                    record["trials_spent"] = spent
+                    save()
+                    print(f"\n{record['stop_reason']}; stopping rather than "
+                          f"pooling two treatments.", file=sys.stderr)
+                    return 1
+
             record["blocks"].append(entry)
             record["trials_spent"] = spent
             save()

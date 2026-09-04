@@ -63,3 +63,34 @@ def test_concurrency_is_one_block_wide_not_the_whole_run():
     source = (ROOT / "scripts" / "run-comparison").read_text()
     assert "max_workers=len(order)" in source
     assert "max_workers=args.max_trials" not in source
+
+
+def test_a_moved_ref_is_caught_by_comparing_locks(tmp_path):
+    """A branch resolved per trial can put two treatments in one arm.
+
+    It happened twice in one afternoon — once by pushing to the branch during a
+    run, once by merging and deleting it — and the locks recorded it while
+    nothing read them.
+    """
+    module = load()
+    first = tmp_path / "a"
+    first.mkdir()
+    (first / "lock.json").write_text(
+        '{"p":"/cache/skills/github.com/netresearch/typo3-extension-upgrade-skill/'
+        + "a" * 40 + '/skills"}'
+    )
+    moved = tmp_path / "b"
+    moved.mkdir()
+    (moved / "lock.json").write_text(
+        '{"p":"/cache/skills/github.com/netresearch/typo3-extension-upgrade-skill/'
+        + "b" * 40 + '/skills"}'
+    )
+    assert module.resolved_skills(first) != module.resolved_skills(moved)
+    assert module.resolved_skills(first) == {
+        "netresearch/typo3-extension-upgrade-skill": "a" * 40
+    }
+    # No lock at all is not a claim that the refs agree.
+    assert module.resolved_skills(tmp_path / "missing") == {}
+
+    source = (ROOT / "scripts" / "run-comparison").read_text()
+    assert "resolved different skills than in its" in source

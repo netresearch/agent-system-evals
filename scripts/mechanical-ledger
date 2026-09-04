@@ -82,12 +82,13 @@ def ledger(jobs_dir: Path | None = None) -> dict:
         lambda: defaultdict(lambda: [0, 0])
     )
     for job in sorted((jobs_dir or ROOT / "jobs").glob("*")):
-        snapshot = job / "nr-snapshot.json"
-        if not snapshot.exists():
-            continue
-        try:
-            recorded = json.loads(snapshot.read_text())
-        except ValueError:
+        # The shared reader, not json.loads: it is version-checked and raises
+        # on a record from a future writer, where parsing by hand skips the job
+        # silently and the ledger then reports a total that is quietly short.
+        # `read_snapshot` returns {} where there is no snapshot at all, which is
+        # the case this loop skips.
+        recorded = validity.read_snapshot(job)
+        if not recorded:
             continue
         case = recorded.get("case_id")
         check = declared.get(case)
