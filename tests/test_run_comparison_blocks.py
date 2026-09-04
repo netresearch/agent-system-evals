@@ -89,8 +89,11 @@ def test_a_moved_ref_is_caught_by_comparing_locks(tmp_path):
     assert module.resolved_skills(first) == {
         "netresearch/typo3-extension-upgrade-skill": "a" * 40
     }
-    # No lock at all is not a claim that the refs agree.
-    assert module.resolved_skills(tmp_path / "missing") == {}
+    # No lock at all is not a claim that the refs agree — and it must not be
+    # `{}`, or two unreadable jobs would compare equal and the check would pass
+    # having proved nothing.
+    assert module.resolved_skills(tmp_path / "missing") is None
+    assert "cannot be verified" in (ROOT / "scripts" / "run-comparison").read_text()
 
     source = (ROOT / "scripts" / "run-comparison").read_text()
     assert "resolved different skills than in its" in source

@@ -140,18 +140,24 @@ def resolve_job(output: str) -> Path | None:
     return Path(match.group(1)) if match else None
 
 
-def resolved_skills(job: Path) -> dict[str, str]:
+def resolved_skills(job: Path) -> dict[str, str] | None:
     """Which commit each skill resolved to for this job, from Harbor's lock.
 
     The manifest states intent; the lock states fact. Comparing the fact across
     blocks is what catches a branch that moved under a running comparison.
+
+    `None` where the lock cannot be read, and never `{}`: an absence is not a
+    verified empty mapping. Two jobs without a lock would compare equal and the
+    run would continue having proved nothing, which is the failure this check
+    exists to prevent, wearing the check's own clothes.
     """
     lock = job / "lock.json"
-    if not lock.exists():
-        return {}
-    found = re.findall(r"skills/github\.com/([^/]+/[^/]+)/([0-9a-f]{40})",
-                       lock.read_text())
-    return dict(found)
+    try:
+        text = lock.read_text()
+    except OSError:
+        return None
+    return dict(re.findall(r"skills/github\.com/([^/]+/[^/]+)/([0-9a-f]{40})",
+                           text))
 
 
 def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Path | None:
@@ -463,6 +469,17 @@ def main() -> int:
                 if job is None:
                     continue
                 resolved = resolved_skills(job)
+                if resolved is None:
+                    record["stop_reason"] = (
+                        f"arm {fleet} has no readable lock in {job.name}, so "
+                        f"what it resolved cannot be verified"
+                    )
+                    record["blocks"].append(entry)
+                    record["trials_spent"] = spent
+                    save()
+                    print(f"\n{record['stop_reason']}; stopping rather than "
+                          f"assuming the refs held.", file=sys.stderr)
+                    return 1
                 first = pinned.setdefault(fleet, resolved)
                 if resolved != first:
                     moved = sorted(set(resolved.items()) ^ set(first.items()))
