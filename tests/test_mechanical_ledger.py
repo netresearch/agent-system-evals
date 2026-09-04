@@ -86,3 +86,53 @@ def test_a_trial_that_never_ran_is_not_a_failure(tmp_path):
     art = job / "x" / "artifacts" / "logs" / "artifacts"
     art.mkdir(parents=True)
     assert ledger.ledger(tmp_path) == {}
+
+
+def test_the_rungs_separate_the_three_ways_a_trial_falls_short(tmp_path):
+    """The endpoint is a switch; the rungs say how far a failing trial got.
+
+    On the upgrade case the same arm went from never resolving the dependency,
+    to resolving it and failing to load the suite, to running 719 tests with
+    three errors — and every one of those reads 0 on the endpoint.
+    """
+    ledger = load()
+    check = {"artifacts": "matrix-*.txt", "all_of": ["resolve: ok", "\nOK ("]}
+
+    def leg(name: str, body: str) -> Path:
+        d = tmp_path / name
+        d.mkdir()
+        (d / "matrix-14.3.txt").write_text(body)
+        return d
+
+    # A collected file with nothing in it is the same information as no file:
+    # nothing shows the target was installed.
+    assert ledger.rung(leg("none", ""), check) == "1 no install"
+    assert ledger.rung(tmp_path / "absent", check) == "1 no install"
+    assert ledger.rung(
+        leg("unresolved", "--- resolve: failed\nLEG=14.3 RESOLVE=failed INSTALLED=none\n"),
+        check,
+    ) == "1 no install"
+    assert ledger.rung(
+        leg("noload", "--- resolve: ok\nAn error occurred inside PHPUnit.\n"
+                      "Message: Class \"X\" not found\n"),
+        check,
+    ) == "2 suite will not load"
+    assert ledger.rung(
+        leg("ran", "--- resolve: ok\nTests: 719, Assertions: 1172, Errors: 3.\n"),
+        check,
+    ) == "3 suite runs"
+    assert ledger.rung(
+        leg("green", "--- resolve: ok\nOK (719 tests, 1176 assertions)\n"),
+        check,
+    ) == "4 green"
+
+
+def test_a_green_trial_is_on_the_top_rung_and_counted_once(tmp_path):
+    """The rungs must agree with `passed`, not offer a second opinion."""
+    ledger = load()
+    check = {"artifacts": "matrix-*.txt", "all_of": ["resolve: ok", "\nOK ("]}
+    d = tmp_path / "g"
+    d.mkdir()
+    (d / "matrix-14.3.txt").write_text("--- resolve: ok\nOK (719 tests)\n")
+    assert ledger.passed(d, check) is True
+    assert ledger.rung(d, check) == "4 green"

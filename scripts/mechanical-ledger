@@ -31,9 +31,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import tomllib
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -70,6 +71,50 @@ def passed(artifacts: Path, check: dict) -> bool:
     )
 
 
+# How far a trial got, for a case whose ground truth is a matrix of legs. The
+# mechanical outcome is a switch: every leg green or nothing. That is the right
+# endpoint -- an upgrade that half works has not happened -- but it is blind to
+# movement, and on the upgrade case there has been plenty: the same arm went
+# from never resolving the dependency, to resolving it and failing to load the
+# suite, to running 719 tests with three errors. All of that reads 0.
+#
+# So the rungs are recorded beside it, never instead of it. They are read off
+# the same artefacts and they are exploratory by construction: no run is
+# declared on them, and a run that improves a rung without reaching the top has
+# still not passed.
+RUNGS = (
+    "1 no install",       # the manifest did not admit the target line
+    "2 suite will not load",  # installed; PHPUnit died resolving something
+    "3 suite runs",       # tests executed, some failed
+    "4 green",            # what mechanical_outcome counts
+)
+
+
+def rung(artifacts: Path, check: dict) -> str:
+    """Which rung a trial reached, from the same files `passed` reads."""
+    legs = sorted(artifacts.glob(check["artifacts"]))
+    if not legs:
+        return RUNGS[0]
+    text = "\n".join(leg.read_text(errors="ignore") for leg in legs)
+    if passed(artifacts, check):
+        return RUNGS[3]
+    # Nothing that says the target was installed puts a trial on the bottom
+    # rung, and that includes a collected file with nothing in it. An empty
+    # artefact is the same information as a missing one, and reading it as
+    # "the suite would not load" would credit the trial with an install it
+    # never demonstrated -- the absence-as-evidence mistake this repository
+    # keeps finding in its own instruments.
+    if not re.search(r"resolve:|^LEG=", text, re.M):
+        return RUNGS[0]
+    if re.search(r"^RESOLVE=failed", text, re.M) or "INSTALLED=none" in text:
+        return RUNGS[0]
+    # A test summary line means PHPUnit got far enough to run something; a
+    # fatal or an "an error occurred inside PHPUnit" means it did not.
+    if re.search(r"^Tests: \d+", text, re.M):
+        return RUNGS[2]
+    return RUNGS[1]
+
+
 def short_model(model: str) -> str:
     name = model.removeprefix("claude-")
     head, _, tail = name.rpartition("-")
@@ -78,8 +123,8 @@ def short_model(model: str) -> str:
 
 def ledger(jobs_dir: Path | None = None) -> dict:
     declared = declarations()
-    rows: dict[str, dict[tuple[str, str, str], list[int]]] = defaultdict(
-        lambda: defaultdict(lambda: [0, 0])
+    rows: dict[str, dict[tuple[str, str, str], list]] = defaultdict(
+        lambda: defaultdict(lambda: [0, 0, Counter()])
     )
     for job in sorted((jobs_dir or ROOT / "jobs").glob("*")):
         # The shared reader, not json.loads: it is version-checked and raises
@@ -114,6 +159,7 @@ def ledger(jobs_dir: Path | None = None) -> dict:
             artifacts = trial / "artifacts" / "logs" / "artifacts"
             rows[case][key][0] += passed(artifacts, check)
             rows[case][key][1] += 1
+            rows[case][key][2][rung(artifacts, check)] += 1
     return {case: dict(sorted(by_key.items())) for case, by_key in sorted(rows.items())}
 
 
@@ -135,7 +181,14 @@ def main() -> int:
 
     if args.json:
         print(json.dumps(
-            {c: {"|".join(k): v for k, v in by.items()} for c, by in rows.items()},
+            {
+                case: {
+                    "|".join(k): {"passed": v[0], "trials": v[1],
+                                  "rungs": dict(v[2])}
+                    for k, v in by.items()
+                }
+                for case, by in rows.items()
+            },
             indent=2,
         ))
         return 0
@@ -145,10 +198,12 @@ def main() -> int:
         check = declared[case]
         print(f"\n### {case} — `{check['artifacts']}` must contain "
               f"{', '.join(repr(t) for t in check['all_of'])}\n")
-        print("| arm | model | day | passed |")
-        print("|---|---|---|---|")
-        for (fleet, model, day), (ok, n) in by_key.items():
-            print(f"| `{fleet}` | {model} | {day} | {ok}/{n} |")
+        print("| arm | model | day | passed | how far the rest got |")
+        print("|---|---|---|---|---|")
+        for (fleet, model, day), (ok, n, rungs) in by_key.items():
+            short = ", ".join(f"{r[2:]} {c}" for r, c in sorted(rungs.items())
+                              if not r.startswith("4"))
+            print(f"| `{fleet}` | {model} | {day} | {ok}/{n} | {short or '—'} |")
     return 0
 
 
