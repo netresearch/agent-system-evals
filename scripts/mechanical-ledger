@@ -1,0 +1,156 @@
+#!/usr/bin/env -S uv run --quiet --script
+# /// script
+# requires-python = ">=3.12"
+# ///
+"""What every recorded trial did against its case's ground-truth check.
+
+Ten cases declare a `mechanical_outcome`: a file the verifier collects after
+the agent stops, and the tokens that must appear in it. Unlike a graded
+dimension it cannot drift with the judge, and unlike a dimension it can be
+recomputed for any trial ever recorded, because the artefact is on disk.
+
+That is the point of this script. The strongest evidence in this repository
+that the stack changes the work rather than the routing -- `nr` passing the
+upgrade case's matrix 10 of 10 where the bare agent passed 4 of 10 -- was never
+declared as an endpoint by the jobs that produced it, and was found by asking
+the artefacts afterwards. A number found that way is a hypothesis, not a
+finding, and it stays one; but it should be reproducible by a named command
+rather than by a snippet somebody pasted once.
+
+Split by model and by day, never pooled. Both matter and both have already
+misled: an arm run on two models reads as one rate (see `invocation-census`),
+and on this case every arm reads 0 on 19 August because the collector itself
+was broken, which pooled with the next day looks like a capability difference.
+
+    scripts/mechanical-ledger                     # a markdown table
+    scripts/mechanical-ledger --case OFR-TYPO3-UPGRADE-001
+    scripts/mechanical-ledger --json
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import tomllib
+from collections import defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+
+import cases  # noqa: E402
+import validity  # noqa: E402
+
+
+def declarations() -> dict[str, dict]:
+    """Case id -> its mechanical_outcome, for the cases that declare one."""
+    out = {}
+    for task in sorted(ROOT.glob("tasks/*/*/task.toml")):
+        meta = tomllib.load(task.open("rb")).get("metadata", {})
+        check = meta.get("mechanical_outcome")
+        if check and meta.get("case_id"):
+            out[meta["case_id"]] = check
+    return out
+
+
+def passed(artifacts: Path, check: dict) -> bool:
+    """The same reading `scripts/analyze` uses, against one trial's artefacts.
+
+    An absent artefact is a failure rather than a gap: the collector runs
+    whatever the agent did, so a missing file means the check could not be
+    made, and counting that as anything else invents a pass.
+    """
+    legs = sorted(artifacts.glob(check["artifacts"]))
+    if not legs:
+        return False
+    return all(
+        all(token in leg.read_text(errors="ignore") for token in check["all_of"])
+        for leg in legs
+    )
+
+
+def short_model(model: str) -> str:
+    name = model.removeprefix("claude-")
+    head, _, tail = name.rpartition("-")
+    return head if head and tail.isdigit() and len(tail) == 8 else name
+
+
+def ledger(jobs_dir: Path | None = None) -> dict:
+    declared = declarations()
+    rows: dict[str, dict[tuple[str, str, str], list[int]]] = defaultdict(
+        lambda: defaultdict(lambda: [0, 0])
+    )
+    for job in sorted((jobs_dir or ROOT / "jobs").glob("*")):
+        # The shared reader, not json.loads: it is version-checked and raises
+        # on a record from a future writer, where parsing by hand skips the job
+        # silently and the ledger then reports a total that is quietly short.
+        # `read_snapshot` returns {} where there is no snapshot at all, which is
+        # the case this loop skips.
+        recorded = validity.read_snapshot(job)
+        if not recorded:
+            continue
+        case = recorded.get("case_id")
+        check = declared.get(case)
+        if not check:
+            continue
+        key = (
+            recorded.get("fleet") or "unknown",
+            short_model(recorded.get("model") or "unrecorded"),
+            job.name.rsplit("-", 2)[-2],
+        )
+        # Only trials the repository already counts. The first version of this
+        # script did not ask, and read 0 for every arm on 19 August -- jobs
+        # whose trials had all raised ApiRateLimitError, spent zero tokens and
+        # never ran an agent. Counted as failures they look like a capability
+        # collapse across five fleets in one night, which is what they were
+        # first written up as.
+        valid, _ = validity.gate(
+            job,
+            expected_dimensions=cases.graded_dimensions(case),
+            required_artifacts=cases.required_artifacts(case),
+        )
+        for trial in valid:
+            artifacts = trial / "artifacts" / "logs" / "artifacts"
+            rows[case][key][0] += passed(artifacts, check)
+            rows[case][key][1] += 1
+    return {case: dict(sorted(by_key.items())) for case, by_key in sorted(rows.items())}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--case", help="one case id, instead of all of them")
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    rows = ledger()
+    if args.case:
+        rows = {k: v for k, v in rows.items() if k == args.case}
+        if not rows:
+            print(f"no recorded trials for {args.case}", file=sys.stderr)
+            return 1
+
+    if args.json:
+        print(json.dumps(
+            {c: {"|".join(k): v for k, v in by.items()} for c, by in rows.items()},
+            indent=2,
+        ))
+        return 0
+
+    declared = declarations()
+    for case, by_key in rows.items():
+        check = declared[case]
+        print(f"\n### {case} — `{check['artifacts']}` must contain "
+              f"{', '.join(repr(t) for t in check['all_of'])}\n")
+        print("| arm | model | day | passed |")
+        print("|---|---|---|---|")
+        for (fleet, model, day), (ok, n) in by_key.items():
+            print(f"| `{fleet}` | {model} | {day} | {ok}/{n} |")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

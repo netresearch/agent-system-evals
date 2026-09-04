@@ -7,12 +7,15 @@
 # with no effect.
 #
 # A branch ref is acceptable here and only here, a candidate being transient by
-# definition. Record the resolved commit from the job lock with the result — a
+# definition — and it must not be touched while a comparison is using it.
+# Pushing to it mid-run gives one arm two treatments; merging and deleting it
+# leaves the next trial with nothing to resolve. Both happened on 31 August,
+# an hour apart. Record the resolved commit from the job lock with the result — a
 # branch that moves between the two runs of an A/B invalidates the comparison,
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the released typo3-conformance description — the merged rewrite of the leading clause, measured on its own because what round two proved was a branch that never shipped
+description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
 
 derives_from: nr
 at:
@@ -49,6 +52,54 @@ at:
   # This branch moves the same two artefacts to the front and changes nothing
   # else. Unlike round one it passes the skill repository's own validator, so a
   # positive result is releasable as it stands. Resolved commit: 6174033.
+  # ROUND FOUR, open: can a reference fix carry the small model over a case it
+  # fails outright? This is the arm's first use for something other than a
+  # description.
+  #
+  # On OFR-TYPO3-UPGRADE-001, Haiku 4.5 reads 0/6 in both arms. The two arms do
+  # not fail alike, and the difference is already the skills' doing: the bare
+  # agent never resolves v14 at all, 0 of 6, while the equipped agent resolves
+  # v14.3.6 in 4 of 6 and then loses every one of those four to the same line --
+  #
+  #   Class "TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController"
+  #   not found, Tests/Unit/Classes/Context/AbstractContextTest.php:38
+  #
+  # -- a class removed in v14, named in the skill's own v13-to-v14 table, whose
+  # prescribed search looks only in Classes/. PHPUnit resolves it while loading
+  # the suite, so the run dies before a test executes.
+  #
+  # The branch widens fifty searches to Classes/ and Tests/ and says why
+  # (netresearch/typo3-extension-upgrade-skill#56). If the fix works, the small
+  # model passes a case it has never passed, which is the point of the whole
+  # exercise rather than a detail of it.
+  # Pointed at `main` rather than the branch: the branch merged and was deleted
+  # mid-run, and Harbor resolves a ref per trial, so the next one had nothing to
+  # resolve. Two runs were lost to the same class of mistake in one afternoon --
+  # the first because a push moved the branch under a running comparison, the
+  # second because a merge removed it. The header above says a branch ref is
+  # acceptable for this arm and only this arm; it does not say a branch may be
+  # touched while the arm is in use, and now it does.
+  netresearch/typo3-extension-upgrade-skill: main
+
+  # ROUND FIVE, open: can a description hand a request to a named sibling?
+  #
+  # Round four answered its own question in the negative and asked a better
+  # one. The upgrade skill's opening clause is nearly the request verbatim --
+  # "an extension has to work with a newer or the current TYPO3 LTS" against
+  # "We need this extension to work with the current TYPO3 LTS" -- and it lost
+  # 3 of 3 to typo3-conformance, which claims the same request through
+  # "modernization to v12/v13/v14 (v14.3 LTS is the default)". Both SKILL.md
+  # files were installed in every trial; this was a choice, not an absence.
+  #
+  # So the boundary goes into the other half too. The branch adds one sentence
+  # to conformance: raising an extension to a newer TYPO3 version is not this
+  # skill, that belongs to typo3-extension-upgrade. Whether a description can
+  # hand work to a sibling it names is the open question -- every earlier round
+  # measured a skill against silence, and none against a competitor.
+  #
+  # Resolved commit at the time of writing: b53d0a9.
+  netresearch/typo3-conformance-skill: experiment/hand-the-version-raise-to-the-upgrade-skill
+
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
   # 88df0ce, confirmed in all six candidate locks.
@@ -87,4 +138,4 @@ at:
   # v2.19.1, so this arm also carries two documentation commits and a
   # checkpoints fix. Neither touches the description, which is the only text
   # routing reads, but both are in the arm and could move a graded dimension.
-  netresearch/typo3-conformance-skill: main
+  #   (closed; the conformance description shipped and the arm was repointed)
