@@ -136,3 +136,38 @@ def test_a_green_trial_is_on_the_top_rung_and_counted_once(tmp_path):
     (d / "matrix-14.3.txt").write_text("--- resolve: ok\nOK (719 tests)\n")
     assert ledger.passed(d, check) is True
     assert ledger.rung(d, check) == "4 green"
+
+
+def test_the_target_leg_decides_and_a_dropped_leg_is_named(tmp_path):
+    """Pooling the legs answers neither question the legs are there to ask.
+
+    The first trial ever to pass this case's v14 leg had reached v14 by
+    dropping v13 from the manifest. Pooled one way that reads "the suite would
+    not load" — the opposite of what happened. Pooled the other way it reads
+    "some legs green", which is true of nearly every trial, because the leg the
+    extension already supported passes until someone breaks it.
+    """
+    ledger = load()
+    check = {"artifacts": "matrix-*.txt", "all_of": ["resolve: ok", "TESTS=passed"]}
+    d = tmp_path / "mixed"
+    d.mkdir()
+    (d / "matrix-13.4.txt").write_text(
+        "--- resolve: failed\nLEG=13.4 RESOLVE=failed TESTS=skipped INSTALLED=none\n"
+    )
+    (d / "matrix-14.3.txt").write_text(
+        "--- resolve: ok\nTests: 719, Assertions: 1176.\n"
+        "LEG=14.3 RESOLVE=ok TESTS=passed INSTALLED=v14.3.6\n"
+    )
+    assert ledger.passed(d, check) is False          # the outcome is conjunctive
+    assert ledger.rung(d, check) == "4 green + dropped 13.4"
+
+    # The ordinary case: the old leg green, the target not installed.
+    d2 = tmp_path / "untouched"
+    d2.mkdir()
+    (d2 / "matrix-13.4.txt").write_text(
+        "--- resolve: ok\nLEG=13.4 RESOLVE=ok TESTS=passed INSTALLED=v13.4.34\n"
+    )
+    (d2 / "matrix-14.3.txt").write_text(
+        "--- resolve: failed\nLEG=14.3 RESOLVE=failed TESTS=skipped INSTALLED=none\n"
+    )
+    assert ledger.rung(d2, check) == "1 no install"
