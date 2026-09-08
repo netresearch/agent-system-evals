@@ -684,7 +684,7 @@ written up for an hour.
 dead night reads 0 for all five arms, so it looked like a discontinuity between
 19 and 20 August; the matrix files of those trials end in
 
-```
+```text
 --- resolve: failed
 The temporary constraint "^14.3" for "typo3/cms-backend" must be a subset of
 the constraint in your composer.json (^12.4 || ^13.4)
@@ -717,7 +717,7 @@ files. PHPUnit prints that line only when a run is clean of deprecations,
 warnings and risky tests. A suite that passes while triggering one deprecation
 prints
 
-```
+```text
 Tests: 719, Assertions: 1176, Deprecations: 1.
 ```
 

@@ -141,10 +141,18 @@ def rung(artifacts: Path, check: dict) -> str:
     target = max(by_version, key=lambda v: [int(p) for p in v.split(".")
                                             if p.isdigit()] or [0])
     reached = by_version[target]
-    dropped = sorted(v for v, r in by_version.items()
-                     if v != target and r == RUNGS[0])
-    if dropped:
-        return f"{reached} + dropped {', '.join(dropped)}"
+    # Any non-target leg that is not green has to survive into the string, not
+    # only a dropped one: "target green, the other leg's suite would not load"
+    # would otherwise return "4 green" and be filtered out of the table as a
+    # clean result.
+    broke = {v: r for v, r in by_version.items()
+             if v != target and r != RUNGS[3]}
+    if broke:
+        detail = ", ".join(
+            f"dropped {v}" if r == RUNGS[0] else f"{v} {r[2:]}"
+            for v, r in sorted(broke.items())
+        )
+        return f"{reached} + {detail}"
     return reached
 
 
