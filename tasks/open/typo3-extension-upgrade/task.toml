@@ -61,9 +61,18 @@ source_learning_id = "retro-20260816-source-authority"
 # Declared here rather than hard-coded in the comparison script, which knew
 # `matrix-*.txt` and therefore had ground truth for exactly one case — while
 # calling it the most valuable signal the framework has.
+# Read from the line the collector writes for exactly this purpose --
+# `run-matrix-leg.sh` calls it "one line the rubric parses" -- and not from
+# PHPUnit's formatting. `OK (` is printed only when a run is clean of
+# deprecations, warnings and risky tests; a suite that passes while triggering
+# one deprecation prints `Tests: 719, Assertions: 1176, Deprecations: 1.` and
+# exits 0. Grepping for `OK (` therefore failed eight trials across the record
+# that had passed, including the first one ever to pass both legs of this case.
+# TESTS=passed is the exit status of `composer ci:test:php:unit`, which is the
+# verdict the raising tool actually gives.
 [metadata.mechanical_outcome]
 artifacts = "matrix-*.txt"
-all_of = ["resolve: ok", "\nOK ("]
+all_of = ["RESOLVE=ok TESTS=passed"]
 
 [agent]
 timeout_sec = 5400.0

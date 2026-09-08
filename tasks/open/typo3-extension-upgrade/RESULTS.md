@@ -183,16 +183,25 @@ condition (`resolve: ok` and a passing test leg), so the outcome can be
 recomputed for any trial ever recorded — `scripts/mechanical-ledger` does it.
 On `claude-opus-5`, 20 August, counting only trials the validity gate admits:
 
-| arm | matrix passes |
-|---|---|
-| `control` — the bare agent | 4/6 |
-| **`nr` — the equipped fleet** | **9/9** |
-| `nr-full` | 5/7 |
-| `companion` | 0/3 |
-| `dev-mcp` | 0/2 |
+| arm | matrix passes | as first recorded |
+|---|---|---|
+| `control` — the bare agent | **5/6** | 4/6 |
+| **`nr` — the equipped fleet** | **9/9** | 9/9 |
+| `nr-full` | 6/7 | 5/7 |
+| `companion` | 2/3 | 0/3 |
+| `dev-mcp` | 2/2 | 0/2 |
 
-Fisher exact, `nr` against `control`: **p 0.14**. The direction is there and the
-sample does not carry it.
+Fisher exact, `nr` against `control`: **p 0.40**. There is a direction and the
+sample comes nowhere near carrying it.
+
+**The right-hand column is a correction, not a footnote.** The check read
+`\nOK (` out of the matrix files, which PHPUnit prints only when a run is clean
+of deprecations — and v14.3 deprecates a method this extension calls, so the
+target leg could never print it. Eight trials that had passed were counted as
+failures (instrument failure 30). This claim has now been wrong twice, for two
+unrelated reasons, and both times in the direction that flattered the equipped
+arm: first by counting rate-limited trials as failures, now by counting passes
+as failures.
 
 ## The number this nearly became
 
