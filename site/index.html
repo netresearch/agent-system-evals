@@ -451,15 +451,15 @@ either produced something that installs and passes on both lines, or it did not.
     <tr><th>Upgrade completed</th><th class="num">control</th><th class="num">nr</th><th class="num">nr-full</th><th class="num">dev-mcp</th><th class="num">companion</th></tr>
   </thead>
   <tbody>
-    <tr><td>Runs completed</td><td class="num">2/3</td><td class="num delta-down">3/3</td><td class="num delta-down">3/3</td><td class="num">0/2</td><td class="num">0/3</td></tr>
+    <tr><td>Runs completed</td><td class="num">2/3</td><td class="num delta-down">3/3</td><td class="num delta-down">3/3</td><td class="num">2/2</td><td class="num">2/3</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>Both Netresearch configurations completed the upgrade in every run; the unaided agent in two of
-three; the companion in none, one of its trees failing to resolve at all. Three runs make that a
-reason to spend more, not a finished claim — and the deepening stage that was spending them died
-on the subscription's rate limit.</p>
+three; the companion in two of three, its third tree failing to resolve at all. Three runs make
+that a reason to spend more, not a finished claim — and the deepening stage that was spending them
+died on the subscription's rate limit.</p>
 
 <p>Cost separates nothing here and is an order of magnitude above the other cases. The companion's
 cheapest run, at $1.23, is the one that produced the unresolvable tree: cheap because it stopped,
@@ -471,8 +471,26 @@ which is why a cost column is only readable beside an outcome column.</p>
   MCP server, and in one of its three runs the server was never called — so the run was
   indistinguishable from an unaided one. It is also the only one of the three that completed the
   upgrade. Counted, it credited the tool with a success achieved without it; excluded, the arm reads
-  0 of 2. Nothing about the runs changed. What changed is that a trial which measured something
+  2 of 2. Nothing about the runs changed. What changed is that a trial which measured something
   other than its arm is now named instead of averaged in.
+</div>
+
+<div class="note">
+  <strong>These counts changed again on 5 September 2026, and the reason is worse.</strong> The
+  check read <code>OK (</code> out of the collected test output. PHPUnit prints that line only when
+  a run is clean of deprecations — and the version being upgraded to deprecates a method this
+  extension calls, so the target leg could never print it. Eight trials across the record had
+  passed and were counted as failures. Six of the eight sit in the table above,
+  which is why its counts rise by six and not by eight: the other two are a
+  <code>control</code> trial from 19 August and a Haiku trial from 5 September,
+  neither of them in this table's day or model. A trial passes only when every
+  matrix leg passes, so a corrected trial and a corrected arm count are
+  different units and only ever coincide by luck. The six here:
+  <code>control</code> 4 of 6 → 5 of 6, <code>companion</code> 0 of 3 → 2 of 3,
+  <code>dev-mcp</code> 0 of 2 → 2 of 2, <code>nr-full</code> 5 of 7 → 6 of 7. Only
+  <code>nr</code> is unchanged, at 9 of 9. The check now reads the verdict the collector writes
+  from the test runner's exit status, and the strongest claim on this page — the equipped fleet
+  against the unaided agent — falls from p 0.14 to p 0.40.
 </div>
 
 <h2>Case 4 — a contract eval: does the check fire</h2>
@@ -549,7 +567,7 @@ at build time, because the hand-written version of this table was stale within a
   </thead>
   <tbody>
     <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">41 of 42</td></tr>
-    <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">63 of 69</td></tr>
+    <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">99 of 105</td></tr>
     <tr><td>documentation from nothing</td><td>a domain — &quot;documentation&quot;</td><td class="num">15 of 17</td></tr>
     <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">24 of 63<span class="lbl">candidate@experiment/version-declarations-in-lead-clause, v3.11.1 6 of 6; candidate@main, v3.11.1 on opus-5 6 of 6; candidate@main, v3.11.1 on haiku-4-5 11 of 12; candidate@experiment/version-declarations-in-description, v3.11.1 1 of 6; nr on haiku-4-5 0 of 27; nr on opus-5 0 of 6</span></td></tr>
     <tr><td>release preparation</td><td>a task</td><td class="num">6 of 16<span class="lbl">nr-release 6 of 6; nr 0 of 10</span></td></tr>
@@ -901,7 +919,7 @@ not fail the build until an independent rater has set the bands.</p>
 <div class="grid">
   <div class="card"><span class="big">13</span><span class="lbl">cases, one environment baseline</span></div>
   <div class="card"><span class="big">131</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">29</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">30</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by

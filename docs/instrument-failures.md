@@ -684,7 +684,7 @@ written up for an hour.
 dead night reads 0 for all five arms, so it looked like a discontinuity between
 19 and 20 August; the matrix files of those trials end in
 
-```
+```text
 --- resolve: failed
 The temporary constraint "^14.3" for "typo3/cms-backend" must be a subset of
 the constraint in your composer.json (^12.4 || ^13.4)
@@ -709,6 +709,60 @@ The standing lesson is one this repository already holds for verifiers and had
 not applied to its own artefacts: **a trial that never ran is not a trial that
 failed.** An error is `unknown`, never `refuted` — and when a whole night reads
 zero, the first question is whether anything ran, not what the agents did.
+
+## 30. The endpoint called a passing run a failure
+
+The upgrade case's ground truth read `\nOK (` out of the collected matrix
+files. PHPUnit prints that line only when a run is clean of deprecations,
+warnings and risky tests. A suite that passes while triggering one deprecation
+prints
+
+```text
+Tests: 719, Assertions: 1176, Deprecations: 1.
+```
+
+and exits 0. Grepping for `OK (` therefore reads a formatting detail as the
+verdict, and TYPO3 v14.3 deprecates `GeneralUtility::getIndpEnv()` — which this
+extension calls — so the target line could not produce a clean `OK (` at all.
+The endpoint was, for the version being upgraded to, unreachable by
+construction.
+
+Eight trials across the whole record had passed and were counted as failures.
+Among them the first trial ever to pass both legs of this case, and, less
+comfortably, several that carried a published claim:
+
+| arm, 20 August, Opus 5 | as recorded | actually |
+|---|---|---|
+| `control` | 4/6 | 5/6 |
+| `companion` | 0/3 | 2/3 |
+| `dev-mcp` | 0/2 | 2/2 |
+| `nr-full` | 5/7 | 6/7 |
+| `nr` | 9/9 | 9/9 |
+
+`nr` against `control` was written up here as the strongest evidence in this
+repository that the stack changes the work rather than the routing, at Fisher
+exact p 0.14. Corrected, it is 9/9 against 5/6 and p 0.40. That claim has now
+been wrong twice for two different reasons — first by counting rate-limited
+trials as failures (failure 29), now by counting passes as failures — and both
+times in the direction that flattered the equipped arm.
+
+**Fixed.** The check reads `RESOLVE=ok TESTS=passed`, the line
+`run-matrix-leg.sh` writes and calls "one line the rubric parses", set from the
+exit status of `composer ci:test:php:unit`. The verdict comes from the tool
+that raises it rather than from how that tool formats a summary.
+
+**What it cost.** Changing `task.toml` changes the task digest, so
+`scripts/compare` will refuse runs recorded before this against runs after it —
+correctly, because they were scored by different instruments. Every number in
+this case's RESULTS.md predating the change is restated rather than left
+standing.
+
+The standing lesson generalises past this case: **a ground-truth check must
+read the verdict, not the presentation.** An exit status, a status field, a
+line a tool emits for machines — those say what happened. A human-facing
+summary line says what happened *and* how the tool felt like phrasing it that
+day, and the phrasing changes with conditions the check never intended to
+measure.
 
 ## What this cost, and what it teaches
 
