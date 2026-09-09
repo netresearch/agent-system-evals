@@ -163,7 +163,51 @@ def resolved_skills(job: Path) -> dict[str, str] | None:
                            text))
 
 
-def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Path | None:
+def session_token() -> str | None:
+    """The token in the session's credentials file, or None if unusable.
+
+    None rather than whatever the file holds: a null, a number or an empty
+    string would reach `subprocess.run(env=...)`, which requires strings, and
+    the trial would raise before it ran -- a worse failure than the stale
+    credential this exists to avoid.
+    """
+    try:
+        stored = json.loads(
+            (Path.home() / ".claude" / ".credentials.json").read_text()
+        )["claudeAiOauth"]["accessToken"]
+    except (OSError, KeyError, ValueError):
+        return None
+    return stored if isinstance(stored, str) and stored else None
+
+
+def fresh_credential(env: dict, at_start: str | None) -> dict:
+    """The session token as it stands now, not as it stood when the run began.
+
+    A twelve-trial comparison outlives a session token. The environment is
+    built once, so the later trials inherited a credential that had aged out
+    and `run-evaluation` refused them -- correctly, but the run then stopped
+    four trials in with a fail-closed arm and nothing wrong with the arm. The
+    file is rewritten by the running session, so re-reading it before each
+    trial picks up the refresh.
+
+    `at_start` is what that file held when the run began, and it is how a
+    caller-supplied credential is told apart from a file-supplied one: an
+    environment whose token still equals it came from the file and is refreshed
+    with it, while anything else -- a token from `claude setup-token`, another
+    account, a deliberate override -- is left exactly as the operator passed
+    it. An ANTHROPIC_API_KEY is untouched either way; it does not expire.
+    """
+    current = env.get("CLAUDE_CODE_OAUTH_TOKEN")
+    if not current or at_start is None or current != at_start:
+        return env
+    stored = session_token()
+    if stored is None or stored == current:
+        return env
+    return {**env, "CLAUDE_CODE_OAUTH_TOKEN": stored}
+
+
+def run_one(case_id: str, fleet: str, env: dict, model: str | None = None,
+            at_start: str | None = None) -> Path | None:
     command = [
         str(ROOT / "scripts" / "run-evaluation"),
         case_id,
@@ -174,7 +218,8 @@ def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Pa
     ]
     if model:
         command += ["--model", model]
-    result = subprocess.run(command, env=env, capture_output=True, text=True)
+    result = subprocess.run(command, env=fresh_credential(env, at_start),
+                            capture_output=True, text=True)
     job = resolve_job(result.stdout)
     if result.returncode != 0 or job is None:
         print(result.stdout[-2000:], file=sys.stderr)
@@ -318,6 +363,9 @@ def main() -> int:
     seed = args.seed if args.seed is not None else random.randrange(1_000_000)
     rng = random.Random(seed)
     env = dict(os.environ)
+    # What the credentials file holds now, so a later refresh can tell a
+    # token that came from it apart from one the operator exported.
+    token_at_start = session_token()
     if not args.dry_run and not (
         env.get("CLAUDE_CODE_OAUTH_TOKEN") or env.get("ANTHROPIC_API_KEY")
     ):
@@ -424,7 +472,8 @@ def main() -> int:
             # asks for 4 CPUs and 8 GB.
             with cf.ThreadPoolExecutor(max_workers=len(order)) as pool:
                 started = {
-                    fleet: pool.submit(run_one, args.case_id, fleet, env, args.model)
+                    fleet: pool.submit(run_one, args.case_id, fleet, env, args.model,
+                                       token_at_start)
                     for fleet in order
                 }
                 # `result()` re-raises whatever the worker raised, which would

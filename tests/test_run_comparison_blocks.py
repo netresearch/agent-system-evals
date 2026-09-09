@@ -104,3 +104,98 @@ def test_a_moved_ref_is_caught_by_comparing_locks(tmp_path):
 
     source = (ROOT / "scripts" / "run-comparison").read_text()
     assert "resolved different skills than in its" in source
+
+
+def test_the_credential_is_re_read_before_each_trial(tmp_path, monkeypatch):
+    """A twelve-trial comparison outlives a session token.
+
+    The environment is built once, so later trials inherited a credential that
+    had aged out; run-evaluation refused them and the run stopped four trials
+    in with a fail-closed arm and nothing wrong with the arm.
+    """
+    module = load()
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    (home / ".claude" / ".credentials.json").write_text(
+        '{"claudeAiOauth": {"accessToken": "refreshed"}}'
+    )
+    monkeypatch.setattr(module.Path, "home", staticmethod(lambda: home))
+
+    # The environment's token is what the file held at startup, so it came
+    # from the file and travels with it.
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "refreshed"
+
+    # A token the operator exported does not match what the file held at
+    # startup, and is left exactly as passed — otherwise the run would switch
+    # accounts under them.
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "operator-supplied"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "operator-supplied"
+
+    # An API key does not expire, and an environment without a session token
+    # was not built from this file — neither is touched.
+    plain = {"ANTHROPIC_API_KEY": "sk-x"}
+    assert module.fresh_credential(plain, "stale") == plain
+
+    # An unreadable file leaves the run with what it had rather than emptying
+    # the credential, which would fail every remaining trial at once.
+    (home / ".claude" / ".credentials.json").write_text("not json")
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "stale"
+
+    # A token that is not a usable string never reaches subprocess.run, which
+    # requires strings and would raise before the trial ran.
+    for junk in ('{"claudeAiOauth": {"accessToken": null}}',
+                 '{"claudeAiOauth": {"accessToken": 42}}',
+                 '{"claudeAiOauth": {"accessToken": ""}}'):
+        (home / ".claude" / ".credentials.json").write_text(junk)
+        assert module.session_token() is None
+        assert module.fresh_credential(
+            {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+        )["CLAUDE_CODE_OAUTH_TOKEN"] == "stale"
+
+
+def test_run_one_hands_a_usable_environment_to_the_subprocess(tmp_path, monkeypatch):
+    """Testing the helper alone leaves the wiring uncovered.
+
+    `run_one` is where the refreshed environment actually reaches
+    `subprocess.run`, and a non-string credential there raises before the trial
+    runs — so the assertion belongs on what the subprocess is handed, not only
+    on what the helper returns.
+    """
+    module = load()
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    monkeypatch.setattr(module.Path, "home", staticmethod(lambda: home))
+
+    seen = {}
+
+    class Result:
+        stdout = ""
+        stderr = ""
+        returncode = 1
+
+    monkeypatch.setattr(module.subprocess, "run",
+                        lambda cmd, **kw: (seen.update(kw), Result())[1])
+
+    for stored in ("null", "42", '""'):
+        (home / ".claude" / ".credentials.json").write_text(
+            '{"claudeAiOauth": {"accessToken": %s}}' % stored
+        )
+        seen.clear()
+        module.run_one("CASE", "nr", {"CLAUDE_CODE_OAUTH_TOKEN": "stale"},
+                       at_start="stale")
+        passed = seen["env"]["CLAUDE_CODE_OAUTH_TOKEN"]
+        assert isinstance(passed, str) and passed == "stale", stored
+
+    # And the refresh does reach the subprocess when the file holds a usable one.
+    (home / ".claude" / ".credentials.json").write_text(
+        '{"claudeAiOauth": {"accessToken": "refreshed"}}'
+    )
+    seen.clear()
+    module.run_one("CASE", "nr", {"CLAUDE_CODE_OAUTH_TOKEN": "stale"},
+                   at_start="stale")
+    assert seen["env"]["CLAUDE_CODE_OAUTH_TOKEN"] == "refreshed"
