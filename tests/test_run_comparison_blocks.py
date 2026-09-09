@@ -104,3 +104,35 @@ def test_a_moved_ref_is_caught_by_comparing_locks(tmp_path):
 
     source = (ROOT / "scripts" / "run-comparison").read_text()
     assert "resolved different skills than in its" in source
+
+
+def test_the_credential_is_re_read_before_each_trial(tmp_path, monkeypatch):
+    """A twelve-trial comparison outlives a session token.
+
+    The environment is built once, so later trials inherited a credential that
+    had aged out; run-evaluation refused them and the run stopped four trials
+    in with a fail-closed arm and nothing wrong with the arm.
+    """
+    module = load()
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    (home / ".claude" / ".credentials.json").write_text(
+        '{"claudeAiOauth": {"accessToken": "refreshed"}}'
+    )
+    monkeypatch.setattr(module.Path, "home", staticmethod(lambda: home))
+
+    assert module.fresh_credential({"CLAUDE_CODE_OAUTH_TOKEN": "stale"})[
+        "CLAUDE_CODE_OAUTH_TOKEN"
+    ] == "refreshed"
+
+    # An API key does not expire, and an environment without a session token
+    # was not built from this file — neither is touched.
+    plain = {"ANTHROPIC_API_KEY": "sk-x"}
+    assert module.fresh_credential(plain) == plain
+
+    # An unreadable file leaves the run with what it had rather than emptying
+    # the credential, which would fail every remaining trial at once.
+    (home / ".claude" / ".credentials.json").write_text("not json")
+    assert module.fresh_credential({"CLAUDE_CODE_OAUTH_TOKEN": "stale"})[
+        "CLAUDE_CODE_OAUTH_TOKEN"
+    ] == "stale"

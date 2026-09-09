@@ -163,6 +163,32 @@ def resolved_skills(job: Path) -> dict[str, str] | None:
                            text))
 
 
+def fresh_credential(env: dict) -> dict:
+    """The session token as it stands now, not as it stood when the run began.
+
+    A twelve-trial comparison outlives a session token. The environment is
+    built once, so the later trials inherited a credential that had aged out
+    and `run-evaluation` refused them -- correctly, but the run then stopped
+    four trials in with a fail-closed arm and nothing wrong with the arm. The
+    file is rewritten by the running session, so re-reading it before each
+    trial picks up the refresh.
+
+    Only the session token is refreshed. An ANTHROPIC_API_KEY does not expire
+    and an explicitly exported token is left alone, since overriding what the
+    operator passed would be a surprise rather than a repair.
+    """
+    if not env.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        return env
+    path = Path.home() / ".claude" / ".credentials.json"
+    try:
+        stored = json.loads(path.read_text())["claudeAiOauth"]["accessToken"]
+    except (OSError, KeyError, ValueError):
+        return env
+    if stored == env["CLAUDE_CODE_OAUTH_TOKEN"]:
+        return env
+    return {**env, "CLAUDE_CODE_OAUTH_TOKEN": stored}
+
+
 def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Path | None:
     command = [
         str(ROOT / "scripts" / "run-evaluation"),
@@ -174,7 +200,8 @@ def run_one(case_id: str, fleet: str, env: dict, model: str | None = None) -> Pa
     ]
     if model:
         command += ["--model", model]
-    result = subprocess.run(command, env=env, capture_output=True, text=True)
+    result = subprocess.run(command, env=fresh_credential(env),
+                            capture_output=True, text=True)
     job = resolve_job(result.stdout)
     if result.returncode != 0 or job is None:
         print(result.stdout[-2000:], file=sys.stderr)
