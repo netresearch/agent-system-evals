@@ -51,6 +51,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
 import cases as case_lib  # noqa: E402
+import rungs as rung_lib  # noqa: E402
 import stats  # noqa: E402
 import validity  # noqa: E402
 from dimensions import met_threshold  # noqa: E402
@@ -209,6 +210,32 @@ class Arm:
                 hits += 1
         return f"{hits}/{len(self.valid)}"
 
+    def reached(self) -> str:
+        """What the completion count hides: how far the failing trials got.
+
+        The mechanical outcome is a switch, and this case spent fifteen rounds
+        reading 0 while its trials moved from never resolving the dependency,
+        to resolving it and failing to load the suite, to running the suite
+        with three errors. A page that reports only the switch reports none of
+        that.
+        """
+        check = case_lib.metadata(self.case_id).get("mechanical_outcome") or {}
+        if not check.get("artifacts") or not check.get("all_of"):
+            return "&mdash;"
+        seen: dict[str, int] = {}
+        for trial in self.valid:
+            where = rung_lib.rung(
+                trial / "artifacts" / "logs" / "artifacts", check
+            )
+            if where == rung_lib.RUNGS[3]:
+                continue
+            seen[where] = seen.get(where, 0) + 1
+        if not seen:
+            return "&mdash;"
+        return ", ".join(
+            html.escape(f"{r[2:]} {n}") for r, n in sorted(seen.items())
+        )
+
 
 def load_arms(manifest: dict) -> dict[str, dict[str, Arm]]:
     built: dict[str, dict[str, Arm]] = {}
@@ -330,6 +357,7 @@ def resolve(key: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
         "tools": target.tools,
         "valid": target.valid_count,
         "complete": target.complete,
+        "reached": target.reached,
         "model": target.model,
         "invoked": target.invoked,
     }[field]()
@@ -493,7 +521,8 @@ def totals(field: str, arms: dict[str, dict[str, Arm]], manifest: dict) -> str:
 
 
 KNOWN_FIELDS = {
-    "cost", "tokens", "tools", "valid", "complete", "met", "mean", "model",
+    "cost", "tokens", "tools", "valid", "complete", "reached", "met", "mean",
+    "model",
     "cost_delta", "cost_p", "tokens_delta", "tokens_p",
     "outcome_plain", "spend_plain", "tokens_plain", "invoked",
 }
