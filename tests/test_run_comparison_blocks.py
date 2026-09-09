@@ -121,18 +121,38 @@ def test_the_credential_is_re_read_before_each_trial(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(module.Path, "home", staticmethod(lambda: home))
 
-    assert module.fresh_credential({"CLAUDE_CODE_OAUTH_TOKEN": "stale"})[
-        "CLAUDE_CODE_OAUTH_TOKEN"
-    ] == "refreshed"
+    # The environment's token is what the file held at startup, so it came
+    # from the file and travels with it.
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "refreshed"
+
+    # A token the operator exported does not match what the file held at
+    # startup, and is left exactly as passed — otherwise the run would switch
+    # accounts under them.
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "operator-supplied"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "operator-supplied"
 
     # An API key does not expire, and an environment without a session token
     # was not built from this file — neither is touched.
     plain = {"ANTHROPIC_API_KEY": "sk-x"}
-    assert module.fresh_credential(plain) == plain
+    assert module.fresh_credential(plain, "stale") == plain
 
     # An unreadable file leaves the run with what it had rather than emptying
     # the credential, which would fail every remaining trial at once.
     (home / ".claude" / ".credentials.json").write_text("not json")
-    assert module.fresh_credential({"CLAUDE_CODE_OAUTH_TOKEN": "stale"})[
-        "CLAUDE_CODE_OAUTH_TOKEN"
-    ] == "stale"
+    assert module.fresh_credential(
+        {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+    )["CLAUDE_CODE_OAUTH_TOKEN"] == "stale"
+
+    # A token that is not a usable string never reaches subprocess.run, which
+    # requires strings and would raise before the trial ran.
+    for junk in ('{"claudeAiOauth": {"accessToken": null}}',
+                 '{"claudeAiOauth": {"accessToken": 42}}',
+                 '{"claudeAiOauth": {"accessToken": ""}}'):
+        (home / ".claude" / ".credentials.json").write_text(junk)
+        assert module.session_token() is None
+        assert module.fresh_credential(
+            {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
+        )["CLAUDE_CODE_OAUTH_TOKEN"] == "stale"
