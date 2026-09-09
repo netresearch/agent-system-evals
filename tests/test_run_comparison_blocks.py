@@ -156,3 +156,46 @@ def test_the_credential_is_re_read_before_each_trial(tmp_path, monkeypatch):
         assert module.fresh_credential(
             {"CLAUDE_CODE_OAUTH_TOKEN": "stale"}, "stale"
         )["CLAUDE_CODE_OAUTH_TOKEN"] == "stale"
+
+
+def test_run_one_hands_a_usable_environment_to_the_subprocess(tmp_path, monkeypatch):
+    """Testing the helper alone leaves the wiring uncovered.
+
+    `run_one` is where the refreshed environment actually reaches
+    `subprocess.run`, and a non-string credential there raises before the trial
+    runs — so the assertion belongs on what the subprocess is handed, not only
+    on what the helper returns.
+    """
+    module = load()
+    home = tmp_path / "home"
+    (home / ".claude").mkdir(parents=True)
+    monkeypatch.setattr(module.Path, "home", staticmethod(lambda: home))
+
+    seen = {}
+
+    class Result:
+        stdout = ""
+        stderr = ""
+        returncode = 1
+
+    monkeypatch.setattr(module.subprocess, "run",
+                        lambda cmd, **kw: (seen.update(kw), Result())[1])
+
+    for stored in ("null", "42", '""'):
+        (home / ".claude" / ".credentials.json").write_text(
+            '{"claudeAiOauth": {"accessToken": %s}}' % stored
+        )
+        seen.clear()
+        module.run_one("CASE", "nr", {"CLAUDE_CODE_OAUTH_TOKEN": "stale"},
+                       at_start="stale")
+        passed = seen["env"]["CLAUDE_CODE_OAUTH_TOKEN"]
+        assert isinstance(passed, str) and passed == "stale", stored
+
+    # And the refresh does reach the subprocess when the file holds a usable one.
+    (home / ".claude" / ".credentials.json").write_text(
+        '{"claudeAiOauth": {"accessToken": "refreshed"}}'
+    )
+    seen.clear()
+    module.run_one("CASE", "nr", {"CLAUDE_CODE_OAUTH_TOKEN": "stale"},
+                   at_start="stale")
+    assert seen["env"]["CLAUDE_CODE_OAUTH_TOKEN"] == "refreshed"
