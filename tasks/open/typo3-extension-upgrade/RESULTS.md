@@ -484,3 +484,37 @@ pass into a failure, but it removed the one step that would have let an agent
 see its own mistakes, and the stack's advice to take that step could not show
 up in the outcome.
 
+## Round eighteen: the first round an agent could test on v14
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260910-093835.json`, seed 2411, Haiku 4.5,
+benchmark 3.0.0 — the environment answers Composer from its cache, and the
+upgrade skill installs the target in two passes.
+
+| arm | passed both legs | Fisher exact, two-sided |
+|---|---|---|
+| `candidate` | 3/6 | 0.545 |
+| `nr` | 1/6 | |
+
+The first passes of this case under Haiku since 5 September, and three in one
+round. All three `candidate` passes kept `^12.4 || ^13.4 || ^14.3`; the `nr`
+pass wrote `^13.4 || ^14.3`, which is what the real migration did.
+
+Every `candidate` trial that passed had installed v14 and run the suite on it
+ten or eleven times. The three that failed did not end on a passing run there,
+and the reasons are the agent's, no longer the environment's:
+
+| trial | installed v14 | last run on v14 | reported |
+|---|---|---|---|
+| `wVwp469` | no | none — tested 13.4 only | "All tests pass" |
+| `en3Vf8a` | yes | suite did not load, three runs | "Done ✅" |
+| `PqPxpAA` | yes | none — reset the branch on counting the removed class's uses | asked whether to proceed |
+
+The next change makes the report carry its proof — the installed version and
+PHPUnit's summary line, copied from the last run — and says that replacing what
+the new version removed is the upgrade, not a question for the user
+([typo3-extension-upgrade-skill#77](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/77)).
+
+Exploratory and not declared: the equipped arm spent more — median $0.76
+against $0.35, 4.98M against 2.12M input tokens, 92 against 46 tool calls. The four passing trials took 95 to 108 tool calls;
+the four cheapest trials across both arms, at 25 to 36, all failed.
+
