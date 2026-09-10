@@ -764,6 +764,58 @@ summary line says what happened *and* how the tool felt like phrasing it that
 day, and the phrasing changes with conditions the check never intended to
 measure.
 
+## 31. The agent could not install the version it was asked to upgrade to
+
+The upgrade case lets the agent reach Packagist but not the forge Composer
+downloads archives from, and warms the Composer cache at build time so the
+archives are there anyway. `prepare-target.sh` described the design as
+"metadata from Packagist, archives from cache". That holds until the first
+release after the build. Composer then resolves against today's metadata,
+picks the new version, finds no archive for it in the cache, and cannot fetch
+one:
+
+```text
+Failed to download guzzlehttp/psr7 from dist: curl error 7 while downloading
+https://api.github.com/repos/guzzle/psr7/zipball/…: Operation not permitted
+```
+
+Exit 100, nothing installed. The image in use was built on 2 September;
+`typo3/cms-core` 14.3.7 came out on 8 September and `guzzlehttp/guzzle` 8.2.0
+on 6 September, and its cache holds neither. 51 of this case's 164 recorded trajectories contain that
+error, the first from 18 August, across every arm.
+
+The readiness check did not catch it because it asked a different question.
+`check-matrix` runs `composer update --dry-run`, which resolves and never
+downloads — it proved that the metadata admits both lines, not that the cache
+can serve them.
+
+What it did to the measurement is worse than a uniform handicap. The skill
+under test tells the agent to install the target version and run the suite
+against it before calling the work done, because a green suite on the old
+version proves nothing. That is exactly the step this environment made
+impossible. Round seventeen shows the consequence: an agent's install failed,
+it went on to run the suite on the version it already had, and reported "All
+719 unit tests pass" for a tree whose v14 leg fails at load time. The case
+could not distinguish an agent that verifies from one that does not, which is
+one of the differences the stack exists to make.
+
+**Fixed.** The image sets `COMPOSER_DISABLE_NETWORK=1` once the instance is
+built, so Composer takes metadata and archives from the same snapshot.
+Measured on the image, Packagist reachable and the GitHub hosts blocked: the
+agent's install exits 100 without the variable and installs TYPO3 14.3 with
+it. Both matrix legs resolve under it too, so they now install the versions the
+agent could have tested against, and a leg's result no longer depends on the
+day the trial ran. `check-matrix` runs under the same variable. Provisioning at
+container start clears it, because what an arm installs was never warmed.
+
+**What it cost.** The matrix legs used to install the newest release; now they
+install the build-time snapshot. Results before and after are scored against
+different package sets, and the task digest changes with it.
+
+The standing lesson: **a readiness check has to exercise the path the agent
+will take, not a cheaper path that shares its name.** A dry run and an install
+are both `composer update`, and only one of them needs the archive.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the

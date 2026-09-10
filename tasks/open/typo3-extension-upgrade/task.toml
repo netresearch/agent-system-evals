@@ -137,7 +137,9 @@ allowed_hosts = ["api.anthropic.com", "pypi.org", "files.pythonhosted.org"]
 # tree the agent left behind. These hooks run in the agent's environment after
 # it stops and before teardown, and they are the only chance to execute the
 # result. They run under the environment baseline rather than the agent's
-# allowlist, so Composer can reach package metadata.
+# allowlist, but Composer resolves from the warmed cache here just as it does
+# for the agent (COMPOSER_DISABLE_NETWORK in the Dockerfile), so a leg installs
+# the same versions the agent could have tested against.
 #
 # Every hook ends in `|| true`. A failing check is a finding for the rubric to
 # read out of its recorded output, never a reason to lose the whole trial.
