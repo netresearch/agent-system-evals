@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-UPGRADE-001-20260910-131116",
+  "case": "OFR-TYPO3-UPGRADE-001",
+  "arms": [
+    "nr",
+    "candidate"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "outcome_quality",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "benchmark_version": "3.0.0",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 2611,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the pass rates differ at all, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-09-10T13:11:16+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260910-131116",
+        "candidate": "jobs/OFR-TYPO3-UPGRADE-001-candidate-20260910-131116"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260910-132843",
+        "candidate": "jobs/OFR-TYPO3-UPGRADE-001-candidate-20260910-132843"
+      }
+    }
+  ],
+  "stop_reason": "arm candidate resolved different skills than in its first block: [('netresearch/typo3-conformance-skill', '5c2b48c7122781b569c80a1b6805870e349acbc7'), ('netresearch/typo3-conformance-skill', '757c01f0a6ccba6fa6603db490a716fa91ea30ad')]",
+  "trials_spent": 4,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260910-131116",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260910-132843"
+    ],
+    "candidate": [
+      "jobs/OFR-TYPO3-UPGRADE-001-candidate-20260910-131116",
+      "jobs/OFR-TYPO3-UPGRADE-001-candidate-20260910-132843"
+    ]
+  }
+}

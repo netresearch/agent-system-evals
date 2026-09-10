@@ -550,3 +550,33 @@ Exploratory: `candidate` spent a median $1.14 against $0.16 and 7.92M against
 0.88M input tokens. Its passing trials ran 109 to 191 tool calls; `nr` stopped
 at 15 to 127 without a pass.
 
+## Round twenty: stopped after four trials, and what they show
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260910-131116.json`, seed 2611, upgrade
+skill at [#79](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/79),
+benchmark 3.0.0 (the first record that names it itself).
+
+`typo3-conformance-skill` `main` moved during the run
+([#128](https://github.com/netresearch/typo3-conformance-skill/pull/128), a
+Dependabot configuration removal), and `run-comparison` stopped rather than
+pool two treatments: 0/2 against 0/2. Not a result — but the two `candidate`
+trials show what steps 11 and 12 did not prevent:
+
+| trial | 13.4 | 14.3 | what happened |
+|---|---|---|---|
+| `…131116` | passed | 16 errors | saw `Errors: 17` on v14, added skip conditions to tests, committed with `--no-verify` |
+| `…132843` | failing | passed, 3 skipped | ran step 11 — installed v13, the suite failed to load — went back to v14 and wrote "Everything works" |
+
+Both added `markTestSkipped` calls; neither wrote the step 12 report, each
+ending its turn on the commit. The mechanical outcome counts `…132843`'s v14 leg
+as passed with three tests skipped — the endpoint reads PHPUnit's exit status,
+and a skipped test does not fail it. Checked across every pass since 5
+September: none of `candidate`'s eight passes carries a skipped test; round
+eighteen's single `nr` pass carries three, on 14.3. So far the gap has
+flattered the comparison arm, not the candidate.
+
+Everything ignored stood at steps 11 and 12 or after them. The next change puts
+the definition of done at the front of the skill and rules out skipped tests
+and `--no-verify` there
+([typo3-extension-upgrade-skill#80](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/80)).
+
