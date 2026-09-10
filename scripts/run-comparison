@@ -401,6 +401,11 @@ def main() -> int:
         # requirement in its own comment and then does not meet it. The flag is
         # required now, so the value is always the model itself.
         "model": args.model,
+        # The same VERSION scripts/benchmark-version gates on. Runs of one case
+        # across a major bump were scored by different instruments, and without
+        # this field only the narrative in RESULTS.md says which side a record
+        # is on.
+        "benchmark_version": (ROOT / "VERSION").read_text().strip(),
         "randomization": "one trial per arm per block, order shuffled per block",
         "randomization_seed": seed,
         # Written from the branch that will actually run. The mechanical
