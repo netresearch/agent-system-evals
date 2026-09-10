@@ -110,6 +110,12 @@ vendor/bin/typo3 extension:setup
 # with the leak.
 PROVISION_LOG=/logs/artifacts/provisioning.txt
 mkdir -p /logs/artifacts
+
+# An image may make Composer answer from its warmed cache alone
+# (COMPOSER_DISABLE_NETWORK; the upgrade case does). What an arm provisions was
+# never warmed, so this script — and only this script, not the agent that
+# starts after it — installs with the network.
+unset COMPOSER_DISABLE_NETWORK
 {
     echo "companion_ref=${PROVISION_COMPANION_REF:-<none>}"
     echo "packages=${PROVISION_PACKAGES:-<none>}"

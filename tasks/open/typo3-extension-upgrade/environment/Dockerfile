@@ -50,8 +50,12 @@ RUN vendor/bin/phpstan --version \
 # If a leg cannot resolve here, the case cannot ask for it — that is a broken
 # environment, and it must fail loudly at build rather than be scored as the
 # agent's failure.
+# Asked with the network off, which is how the agent and the matrix legs meet
+# Composer (see the end of this file). With it on, the check resolves against
+# today's Packagist and proves nothing about what the cache can serve.
 COPY check-matrix.sh /usr/local/bin/check-matrix
-RUN chmod +x /usr/local/bin/check-matrix && check-matrix /tmp/target/target.lock
+RUN chmod +x /usr/local/bin/check-matrix \
+    && COMPOSER_DISABLE_NETWORK=1 check-matrix /tmp/target/target.lock
 
 # Used by the verifier's collect hooks after the agent stops, to run the tree
 # the agent left against each line of the matrix.
@@ -117,6 +121,23 @@ ENV DDEV_HOSTNAME=v13.contexts.ddev.site \
     DDEV_PRIMARY_URL=http://v13.contexts.ddev.site \
     IS_DDEV_PROJECT=true
 
+# Composer answers from the warmed cache alone, metadata included.
+#
+# The allowlist lets the agent reach Packagist but not the forge the archives
+# come from. With live metadata Composer picks whatever was released after this
+# image was built, finds no archive for it in the cache, and cannot download
+# one: `curl error 7 … Operation not permitted`, exit 100, nothing installed.
+# Every agent that followed the advice to install the target before testing it
+# hit that wall, and reported the suite green on the version it already had.
+# Measured on this image, Packagist reachable and GitHub blocked: without this
+# variable `composer install` exits 100; with it TYPO3 14.3 installs and the
+# suite runs.
+#
+# Set after the instance build, which needs the network. The matrix legs run in
+# this container too, so they resolve from the same snapshot as the agent — the
+# result no longer depends on the day the trial ran. Provisioning at container
+# start clears it: the products an arm installs are not in the cache.
+ENV COMPOSER_DISABLE_NETWORK=1
 
 RUN mkdir -p /logs/artifacts
 

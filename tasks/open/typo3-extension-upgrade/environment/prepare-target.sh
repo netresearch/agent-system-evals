@@ -10,9 +10,14 @@
 # impossible, because Composer fetches package archives from it.
 #
 # So the cache is warmed here instead. Both legs are resolved once at build
-# time, which leaves every archive the agent could need in the Composer cache;
-# at run time it reads metadata from Packagist (allowed) and takes the archives
-# from cache. The forge stays unreachable and the task stays solvable.
+# time, which leaves every archive the agent could need in the Composer cache,
+# and the metadata that selected them. At run time Composer reads both from the
+# cache and nothing else (COMPOSER_DISABLE_NETWORK in the Dockerfile). The
+# forge stays unreachable and the task stays solvable.
+#
+# Reading metadata live from Packagist instead, which this comment once
+# described as the design, does not survive the first release after the build:
+# Composer picks the new version and has no archive for it.
 set -euo pipefail
 
 LOCK="${1:?path to target.lock required}"
