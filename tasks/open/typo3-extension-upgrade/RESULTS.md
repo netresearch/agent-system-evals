@@ -569,14 +569,23 @@ trials show what steps 11 and 12 did not prevent:
 
 Both added `markTestSkipped` calls; neither wrote the step 12 report, each
 ending its turn on the commit. The mechanical outcome counts `…132843`'s v14 leg
-as passed with three tests skipped — the endpoint reads PHPUnit's exit status,
-and a skipped test does not fail it. Checked across every pass since 5
-September: none of `candidate`'s eight passes carries a skipped test; round
-eighteen's single `nr` pass carries three, on 14.3. So far the gap has
-flattered the comparison arm, not the candidate.
+as passed with three tests skipped, because it reads PHPUnit's exit status.
+
+This section first called that a gap in the endpoint, one that had so far
+flattered the comparison arm — round eighteen's single `nr` pass carries three
+skips on 14.3, none of `candidate`'s eight passes carries any. Reading the skips
+themselves corrects it: every one, in all three trials, is
+`if (!class_exists(TypoScriptFrontendController::class)) markTestSkipped(...)`,
+next to production code that branches the same way. Where one codebase serves
+two lines, a test of the branch that exists only on the older line cannot run
+on the newer one, and skipping it there is the correct move. A skip count
+cannot tell that apart from hiding a failure, so the endpoint stays as it is;
+whether a skipped branch has a counterpart test on the newer line is a question
+for the judged dimensions, not for the exit status.
 
 Everything ignored stood at steps 11 and 12 or after them. The next change puts
-the definition of done at the front of the skill and rules out skipped tests
-and `--no-verify` there
+the definition of done at the front of the skill and rules out skipping or
+deleting *failing* tests and `--no-verify` there, naming the version-gated skip
+as the legitimate case
 ([typo3-extension-upgrade-skill#80](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/80)).
 
