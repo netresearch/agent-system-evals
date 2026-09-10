@@ -518,3 +518,35 @@ Exploratory and not declared: the equipped arm spent more — median $0.76
 against $0.35, 4.98M against 2.12M input tokens, 92 against 46 tool calls. The four passing trials took 95 to 108 tool calls;
 the four cheapest trials across both arms, at 25 to 36, all failed.
 
+## Round nineteen: 4 of 6 against 0 of 6
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260910-111337.json`, seed 2511, Haiku 4.5,
+upgrade skill at [#77](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/77).
+
+| arm | passed both legs | Fisher exact |
+|---|---|---|
+| `candidate` | 4/6 | 0.061 two-sided, 0.030 one-sided |
+| `nr` | 0/6 | |
+
+The widest gap this case has shown, and on the small model. `nr` never reached a
+green v14 leg: two wrote `^14.4`, one never widened the constraint, two left a
+suite that fails on v14 without ever installing v14 themselves, and one left a
+manifest on which neither leg resolves.
+
+The proof paragraph #77 added did not take: none of the six `candidate`
+reports carried the `exit=` line; every one summarised instead. The two
+`candidate` failures:
+
+| trial | 13.4 | 14.3 | what happened |
+|---|---|---|---|
+| `H6Bmvfv` | failing | passed | got v14 green, never re-ran v13, reported "v12.4, v13.4, and v14.3 compatible" |
+| `5V6h2k6` | passed | 3 errors, 13 failures | saw that result on v14, then committed with `--no-verify` |
+
+The next change runs step 10 for every older line the constraint keeps and makes
+the report a numbered step that pastes the last run's output on each line
+([typo3-extension-upgrade-skill#79](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/79)).
+
+Exploratory: `candidate` spent a median $1.14 against $0.16 and 7.92M against
+0.88M input tokens. Its passing trials ran 109 to 191 tool calls; `nr` stopped
+at 15 to 127 without a pass.
+
