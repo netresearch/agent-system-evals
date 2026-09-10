@@ -19,6 +19,7 @@
   ],
   "primary_kind": "mechanical",
   "model": "claude-haiku-4-5-20251001",
+  "benchmark_version": "3.0.0",
   "randomization": "one trial per arm per block, order shuffled per block",
   "randomization_seed": 2411,
   "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the pass rates differ at all, and never exceed 12 trials in total",
