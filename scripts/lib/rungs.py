@@ -6,6 +6,11 @@ blind to movement. On the upgrade case the same arm went from never resolving
 the dependency, to resolving it and failing to load the suite, to running 719
 tests with three errors. All of that reads 0.
 
+So the rungs are recorded beside it, never instead of it. They are read off the
+same artefacts and they are exploratory by construction: no run is declared on
+them, and a run that improves a rung without reaching the top has still not
+passed.
+
 Shared rather than duplicated: `scripts/mechanical-ledger` reports the rungs on
 the command line and `scripts/build-site` puts them on the published page, and
 two readers of the same artefacts drift apart -- this repository has already
@@ -16,6 +21,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+
 
 def passed(artifacts: Path, check: dict) -> bool:
     """The same reading `scripts/analyze` uses, against one trial's artefacts.
@@ -31,19 +37,6 @@ def passed(artifacts: Path, check: dict) -> bool:
         all(token in leg.read_text(errors="ignore") for token in check["all_of"])
         for leg in legs
     )
-
-
-# How far a trial got, for a case whose ground truth is a matrix of legs. The
-# mechanical outcome is a switch: every leg green or nothing. That is the right
-# endpoint -- an upgrade that half works has not happened -- but it is blind to
-# movement, and on the upgrade case there has been plenty: the same arm went
-# from never resolving the dependency, to resolving it and failing to load the
-# suite, to running 719 tests with three errors. All of that reads 0.
-#
-# So the rungs are recorded beside it, never instead of it. They are read off
-# the same artefacts and they are exploratory by construction: no run is
-# declared on them, and a run that improves a rung without reaching the top has
-# still not passed.
 
 
 RUNGS = (
@@ -85,10 +78,11 @@ def leg_rung(text: str) -> str:
 def rung(artifacts: Path, check: dict) -> str:
     """How far a trial got, per leg rather than pooled.
 
-    The outcome is conjunctive -- every leg or nothing -- so the trial's rung
-    is the lowest any leg reached. Where the legs disagree and one of them is
-    green, that is said outright, because a trial which passed one version and
-    dropped the other is a different failure from one that never installed.
+    The target leg -- the highest version -- decides the rung, and every other
+    leg that is not green is appended to it. Where the legs disagree and one of
+    them is green, that is said outright, because a trial which passed one
+    version and dropped the other is a different failure from one that never
+    installed.
     """
     legs = sorted(artifacts.glob(check["artifacts"]))
     if not legs:
