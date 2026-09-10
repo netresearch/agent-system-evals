@@ -98,7 +98,12 @@ at:
   # measured a skill against silence, and none against a competitor.
   #
   # Resolved commit at the time of writing: b53d0a9.
-  netresearch/typo3-conformance-skill: experiment/hand-the-version-raise-to-the-upgrade-skill
+  # The experiment branch merged: the disclaimer it was measuring now sits in
+  # the released description, and the body carries the other half -- an agent
+  # that has already loaded conformance reads the body, where the delegation
+  # line said nothing about upgrades and six of eleven trials duly delivered a
+  # conformance audit instead of an upgrade.
+  netresearch/typo3-conformance-skill: main
 
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
