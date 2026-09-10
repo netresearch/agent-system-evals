@@ -418,3 +418,69 @@ this case:
 4. A reference that states the correct value without naming the attractive
    wrong one loses to the pattern.
 
+## Rounds eight to seventeen, Haiku 4.5
+
+From `scripts/mechanical-ledger`, validity-gated, by day. "How far the rest
+got" is the rung the 14.3 leg reached; the ledger's appended 13.4 detail is
+folded in here.
+
+| day | `candidate` | how far the rest got | `nr` | how far the rest got |
+|---|---|---|---|---|
+| 31 Aug | 0/20 | no install 11, suite will not load 9 | 0/20 | no install 9, suite will not load 10, suite runs 1 |
+| 2 Sep | 0/3 | suite will not load 3 | 0/3 | suite will not load 2, suite runs 1 |
+| 4 Sep | 0/6 | no install 2, suite will not load 3, suite runs 1 | 0/6 | no install 2, suite will not load 4 |
+| 5 Sep | 1/9 | no install 2, suite will not load 4, green on 14.3 only 2 | 0/9 | no install 5, suite will not load 4 |
+| 9 Sep | 0/5 | suite will not load 5 | 0/5 | no install 2, suite will not load 3 |
+| 10 Sep | 0/3 | suite will not load 1, suite runs on both legs 2 | 0/3 | no install 1, suite will not load 2 |
+
+The pass on 5 September is the first trial of this case to pass both legs under
+Haiku. Round sixteen (9 September) found agents that loaded only
+`typo3-conformance`, audited the extension in 10 to 26 tool calls and changed
+nothing; the conformance skill now tells a loaded instance to hand the version
+raise over
+([typo3-conformance-skill#127](https://github.com/netresearch/typo3-conformance-skill/pull/127)).
+
+## Round seventeen: the routing holds, and the agent could not install v14
+
+`candidate` resolves both skills at `main`. All three trials loaded
+`typo3-extension-upgrade`, none loaded conformance alone, and all three wrote
+`^12.4 || ^13.4 || ^14.3`. `nr` wrote `^14.3` alone, `^12.4 || ^13.4 || ^14.0`
+and `^12.4 || ^13.4 || ^14.4`.
+
+None passed, for three different defects in the code:
+
+| trial | 13.4 | 14.3 | what broke |
+|---|---|---|---|
+| `JW4NTqy` | passed | will not load | `TypoScriptFrontendController` still referenced in `Tests/Unit/Classes/Context/AbstractContextTest.php` |
+| `Ba6Wk49` | 3 errors | 3 errors | a test stub replaced by `stdClass` inside a namespace: `Class "Netresearch\Contexts\Tests\Unit\Service\stdClass" not found` |
+| `BqshzhQ` | 20 failures | 20 failures | host resolution in `DomainContext` changed, `DomainContextTest` fails |
+
+Each of those is visible the moment the suite runs on v14, and the skill's
+step 10 says to do exactly that before calling the work done. What the agents
+did with step 10:
+
+| trial | installed v14 | ran the suite | reported |
+|---|---|---|---|
+| `JW4NTqy` | no — `composer update` exit 100 | yes, on 13.4 | "All 719 unit tests pass" |
+| `Ba6Wk49` | no — exit 100 | no | done |
+| `BqshzhQ` | not attempted | yes, 20 failures seen | committed, then stopped |
+
+The exit 100 is not the agent's doing. The environment let the agent reach
+Packagist but not the forge the archives come from, and the cache warmed at
+build time held none of the versions released since — so installing the target
+was impossible, for every arm, and had been since at least 18 August: 51 of the
+case's 164 trajectories contain the error. Instrument failure 31 in
+[docs/instrument-failures.md](../../../docs/instrument-failures.md); fixed in
+[#41](https://github.com/netresearch/agent-system-evals/pull/41).
+
+The skill's command had a second wall behind the first: one `composer update`
+from v13 to v14 dies in the `typo3/class-alias-loader` plugin after writing the
+lock file. The skill now installs in two passes, and says that an upgrade whose
+target will not install is untested and must be reported as such
+([typo3-extension-upgrade-skill#76](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/76)).
+
+Every round in this file ran on the broken environment. That does not change a
+pass into a failure, but it removed the one step that would have let an agent
+see its own mistakes, and the stack's advice to take that step could not show
+up in the outcome.
+
