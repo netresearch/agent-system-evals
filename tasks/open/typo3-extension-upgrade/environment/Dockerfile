@@ -128,7 +128,8 @@ ENV DDEV_HOSTNAME=v13.contexts.ddev.site \
 # image was built, finds no archive for it in the cache, and cannot download
 # one: `curl error 7 … Operation not permitted`, exit 100, nothing installed.
 # Every agent that followed the advice to install the target before testing it
-# hit that wall, and reported the suite green on the version it already had.
+# hit that wall; one then reported the suite green on the version it already
+# had.
 # Measured on this image, Packagist reachable and GitHub blocked: without this
 # variable `composer install` exits 100; with it TYPO3 14.3 installs and the
 # suite runs.
