@@ -570,7 +570,10 @@ trials show what steps 11 and 12 did not prevent:
 Both added `markTestSkipped` calls; neither wrote the step 12 report, each
 ending its turn on the commit. The mechanical outcome counts `…132843`'s v14 leg
 as passed with three tests skipped — the endpoint reads PHPUnit's exit status,
-and a skipped test does not fail it.
+and a skipped test does not fail it. Checked across every pass since 5
+September: none of `candidate`'s eight passes carries a skipped test; round
+eighteen's single `nr` pass carries three, on 14.3. So far the gap has
+flattered the comparison arm, not the candidate.
 
 Everything ignored stood at steps 11 and 12 or after them. The next change puts
 the definition of done at the front of the skill and rules out skipped tests
