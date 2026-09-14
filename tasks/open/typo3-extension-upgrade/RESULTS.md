@@ -620,3 +620,38 @@ Two things the skill now states at its front still did not hold:
 Exploratory: `candidate` spent a median $1.20 against $0.22, 8.59M against
 1.10M input tokens and 118.5 against 41.5 tool calls.
 
+## Round twenty-two: 5 of 6 against 0 of 6 again
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260914-102519.json`, seed 2811, Haiku 4.5,
+benchmark 3.0.0, upgrade skill at
+[#85](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/85) —
+a failing commit hook is a check to fix, not to bypass.
+
+| arm | passed both legs | Fisher exact |
+|---|---|---|
+| `candidate` | 5/6 | 0.015 two-sided |
+| `nr` | 0/6 | |
+
+The same result as round twenty-one. Across rounds nineteen, twenty-one and
+twenty-two `candidate` passed 14 of 18 and `nr` 0 of 18; `nr` has not reached a
+green v14 leg once in those rounds.
+
+`--no-verify` fell from four `candidate` trials to two, and both show the rule
+half-followed:
+
+- `uiLaAFZ` (passed) ran `php-cs-fixer fix` without the repository's config,
+  saw the style hook fail again, then ran the fixer with the config and
+  committed with `--no-verify` in the same command — so it never learned whether
+  the hook would now pass — and reported "All code style requirements met".
+- `CxCeDbt` (the failure) narrowed the constraint to `^14.3`, dropping both
+  lines the extension supported, bypassed three failing hooks (style twice,
+  PHPStan once) and reported the extension "ready for deployment". Its 14.3 leg
+  is green; the 13.4 leg cannot resolve.
+
+No report, in either arm, pasted the `exit=` line — thirty-six trials across
+three rounds. That requirement has not changed behaviour once and is a
+candidate for removal rather than rewording.
+
+Exploratory: `candidate` spent a median $1.13 against $0.21, 8.14M against
+1.04M input tokens and 116 against 40.5 tool calls.
+
