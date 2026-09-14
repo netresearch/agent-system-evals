@@ -33,6 +33,12 @@ for task in "$ROOT"/tasks/*/*/task.toml; do
     cases=$((cases + 1))
 
     for file in "${FILES[@]}"; do
+        # Only what the case's image actually copies. Cases built on a bare
+        # language image (build-target.sh, no TYPO3 instance) do not use the
+        # instance scripts, and demanding them reported 22 files of "drift"
+        # that a sync would have planted where nothing reads them. The
+        # Dockerfile is the consumer, so it decides.
+        grep -q "COPY $file " "$env_dir/Dockerfile" 2>/dev/null || continue
         if [[ ! -f "$env_dir/$file" ]] || ! cmp -s "$COMMON/$file" "$env_dir/$file"; then
             drift=$((drift + 1))
             rel="${case_dir#"$ROOT"/}"
