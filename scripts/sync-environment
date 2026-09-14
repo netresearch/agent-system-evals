@@ -16,7 +16,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMMON="$ROOT/environment/common"
 CHECK=0
-[[ "${1:-}" == "--check" ]] && CHECK=1
+# Anything but no argument or --check is refused. The copy mode writes into
+# every case, so an argument it does not understand must not fall through to
+# it: `--help` once did exactly that and planted instance scripts in two
+# cases that have no instance.
+case "${1:-}" in
+    "") ;;
+    --check) CHECK=1 ;;
+    *)
+        echo "usage: scripts/sync-environment [--check]" >&2
+        exit 2
+        ;;
+esac
 
 FILES=(build-instance.sh install-instance.sh ddev-shim.sh install-toolchain.sh capability-probe.sh)
 
