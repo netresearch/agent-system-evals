@@ -599,8 +599,8 @@ benchmark 3.0.0, upgrade skill at #80.
 | `candidate` | 5/6 | 0.015 two-sided, 0.008 one-sided |
 | `nr` | 0/6 | |
 
-The first difference in this case below the conventional threshold, and on the
-small model. It is not evidence that #80 itself did it: round nineteen stood at
+This is the first difference in this case below the conventional threshold, and
+it came on the small model. It is not evidence that #80 itself did it: round nineteen stood at
 4/6 against 0/6, one trial away. Across rounds nineteen and twenty-one the arm
 passed 9 of 12, `nr` 0 of 12. `nr` again never reached a green v14 leg — three
 left the constraint unresolvable (`^14.4` twice, not widened once), three left
