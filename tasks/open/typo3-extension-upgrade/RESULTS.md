@@ -655,3 +655,45 @@ candidate for removal rather than rewording.
 Exploratory: `candidate` spent a median $1.13 against $0.21, 8.14M against
 1.04M input tokens and 116 against 40.5 tool calls.
 
+## Round twenty-three: the released stack, 4 of 6 against 0 of 6
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260914-135117.json`, seed 2911, Haiku 4.5,
+benchmark 3.1.0. The arms changed: rounds nineteen to twenty-two compared
+`candidate` against a `nr` pinned to upgrade v3.11.1, and every fix measured
+there is now released as
+[v3.12.5](https://github.com/netresearch/typo3-extension-upgrade-skill/releases/tag/v3.12.5)
+and pinned in `nr`. So this round asks the question the fleet is for: the
+released stack against no skills at all.
+
+| arm | passed both legs | Fisher exact |
+|---|---|---|
+| `nr` | 4/6 | 0.061 two-sided, 0.030 one-sided |
+| `control` | 0/6 | |
+
+`control` never installed the target once — six of six. The two `nr` failures
+both failed on the v13.4 leg, which is the leg the skill added in #79:
+
+- `3U8T7Rc` — 14.3 green (`RESOLVE=ok TESTS=passed`, 90 tests skipped, every
+  skip `class_exists`-gated and therefore within the rule), 13.4 red with five
+  errors.
+- `7DXQ3oP` — both legs red: 13.4 with one error and fourteen failures, 14.3
+  with a fatal that ends PHPUnit at exit 255. It committed with `--no-verify`
+  and its own message says "Test files require refactoring to support v14".
+
+`--no-verify` was executed in two `nr` trials and one `control` trial. One of
+the two, `wdjy7jm`, passed both legs and bypassed the hooks anyway; the other
+is the failure above. The rule from #85 is followed by four of six.
+
+The `exit=` paste requirement was removed in
+[#87](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/87)
+before this round, on the measurement recorded under round twenty-two.
+
+Exploratory: `skill_invoked` 6/6 against 0/6 (p 0.002), and `nr` spent a median
+$1.16 against $0.07, 8.42M against 239.6k input tokens and 118 against 10.5
+tool calls — the cost of the difference, on this case, is roughly sixteen times
+the unaided run.
+
+A note on reading `scripts/mechanical-ledger` for this day: it groups by fleet,
+model and **day**, so the `nr` row for 2026-09-14 reads 4/18 — rounds
+twenty-two and twenty-three together. The per-round numbers are the ones above.
+

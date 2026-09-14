@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-UPGRADE-001-20260914-135117",
+  "case": "OFR-TYPO3-UPGRADE-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "authority",
+    "capability_selection",
+    "context_discovery",
+    "evidence",
+    "outcome_quality",
+    "prioritization",
+    "unsupported_claims",
+    "verification"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "benchmark_version": "3.1.0",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 2911,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the pass rates differ at all, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-09-14T13:51:17+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-135118",
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-135118"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-140458",
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-140458"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-142120",
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-142120"
+      },
+      "primary_p": 1.0
+    },
+    {
+      "round": 2,
+      "block": 1,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-143719",
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-143719"
+      }
+    },
+    {
+      "round": 2,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-144947",
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-144947"
+      }
+    },
+    {
+      "round": 2,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-150300",
+        "nr": "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-150300"
+      }
+    }
+  ],
+  "stop_reason": "budget exhausted at 12 of 12 trials",
+  "trials_spent": 12,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-135118",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-140458",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-142120",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-143719",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-144947",
+      "jobs/OFR-TYPO3-UPGRADE-001-control-20260914-150300"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-135118",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-140458",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-142120",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-143719",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-144947",
+      "jobs/OFR-TYPO3-UPGRADE-001-nr-20260914-150300"
+    ]
+  },
+  "finished_at": "2026-09-14T15:15:10+00:00",
+  "valid_trials": {
+    "control": 6,
+    "nr": 6
+  }
+}
