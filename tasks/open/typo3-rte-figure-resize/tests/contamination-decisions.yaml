@@ -322,6 +322,93 @@
   marker: rte_ckeditor_image
   reason: The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering.
 
+# typo3-docs-skill at `main`, which the candidate arm moved to at 3.2.0 for
+# OFR-TYPO3-DOCS-001. Same four files as v2.16.0 and the same reasoning; the
+# file/marker pairs were re-read in the branch rather than copied across.
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/README.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/README.md
+  marker: t3x-rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/README.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/README.md
+  marker: rte-ckeditor-image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/README.md
+  marker: rte_ckeditor_image
+  reason: Names the target as a tooling example; nothing about the reported defect.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/extraction-patterns.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/extraction-patterns.md
+  marker: t3x-rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/extraction-patterns.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/extraction-patterns.md
+  marker: rte-ckeditor-image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/extraction-patterns.md
+  marker: rte_ckeditor_image
+  reason: Extension key and a configuration path in examples of extracting documentation. Nothing about the rendering path.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/typo3-directives.md
+  marker: t3x-rte_ckeditor_image
+  reason: Named as the source of an example RST directive. Documentation syntax, nothing about rendering.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/typo3-directives.md
+  marker: rte_ckeditor_image
+  reason: Named as the source of an example RST directive. Documentation syntax, nothing about rendering.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/intercept-deployment.md
+  marker: netresearch/rte-ckeditor-image
+  reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
+
+- skill: netresearch/typo3-docs-skill
+  ref: main
+  path: typo3-docs-skill-main/skills/typo3-docs/references/intercept-deployment.md
+  marker: rte-ckeditor-image
+  reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
+
 # The same four for v2.19.4, which `nr`, `nr-full` and `nr-companion` moved to
 # at benchmark 3.1.0. Both files carry the same examples as v2.19.1: the
 # runTests.sh comment at lines 155 and 156, the XLIFF `product-name` attribute.

@@ -18,13 +18,14 @@ name: candidate
 description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
 
 derives_from: nr
-# At 3.1.0 (14 September 2026) this arm carries no skill change over `nr`:
-# `nr` pins typo3-extension-upgrade v3.12.5, which was that repository's
-# `main` when it was tagged, and typo3-conformance v2.19.4, which differed
-# from its `main` only in pre-commit hook versions. The refs below still
-# resolve `main`, so the arm diverges again as soon as either branch moves;
-# read the resolved commits in the job lock before treating a comparison
-# against `nr` as a no-op or as a change.
+# At 3.1.0 (14 September 2026) this arm briefly carried no skill change over
+# `nr`: the upgrade and conformance experiments had both shipped, so both refs
+# resolved what `nr` already pinned. At 3.2.0 the arm moves to the next
+# question and carries exactly one variable again, the documentation skill.
+#
+# The two spent refs were removed rather than left pointing at `main`. A ref
+# that changes nothing today changes something the moment that branch moves,
+# and a comparison then measures two differences while reporting one.
 at:
   # An experiment branch, not a release, and the one variable under study.
   #
@@ -86,7 +87,8 @@ at:
   # second because a merge removed it. The header above says a branch ref is
   # acceptable for this arm and only this arm; it does not say a branch may be
   # touched while the arm is in use, and now it does.
-  netresearch/typo3-extension-upgrade-skill: main
+  #   (closed at 3.1.0; the fixes shipped as v3.12.5 and `nr` pins it — round
+  #   twenty-three measured the released stack at 4/6 against control's 0/6)
 
   # ROUND FIVE, open: can a description hand a request to a named sibling?
   #
@@ -110,7 +112,7 @@ at:
   # that has already loaded conformance reads the body, where the delegation
   # line said nothing about upgrades and six of eleven trials duly delivered a
   # conformance audit instead of an upgrade.
-  netresearch/typo3-conformance-skill: main
+  #   (closed; the description shipped and `nr` pins v2.19.4)
 
   # ROUND THREE, ANSWERED 31 August 2026: the released wording routes too.
   # Haiku 0/6 against 6/6, Fisher exact p 0.002, on the decontaminated commit
@@ -151,3 +153,23 @@ at:
   # checkpoints fix. Neither touches the description, which is the only text
   # routing reads, but both are in the arm and could move a graded dimension.
   #   (closed; the conformance description shipped and the arm was repointed)
+
+  # ROUND SIX, open: does the shape of guides.xml belong in the body?
+  #
+  # OFR-TYPO3-DOCS-001 is 0 of 19 under Haiku with this skill in the fleet, and
+  # 14 of those 19 failed on the root element of `Documentation/guides.xml`
+  # alone -- seven wrote a namespace nobody serves, five wrote `<project>` with
+  # the extension key as element text where the renderer reads attributes, two
+  # wrote XML that does not parse. The correct skeleton was in the fleet the
+  # whole time, in `assets/guides.xml.dist`: measured on tool calls, no trial
+  # opened it, and none opened `references/guides-xml.md`.
+  #
+  # netresearch/typo3-docs-skill#122 puts the two deciding lines into the body
+  # of SKILL.md, where the upgrade case showed a rule is read, and leaves the
+  # template as the source for everything else. Whether that moves a case a
+  # file reference did not is the question.
+  #
+  # Pointed at `main` and not at a tag: no release carries it yet. `nr` pins
+  # v2.16.0, so this arm also carries the checkpoints fix released in between --
+  # stated rather than removed, and it does not touch guides.xml.
+  netresearch/typo3-docs-skill: main
