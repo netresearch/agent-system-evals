@@ -606,17 +606,34 @@ only the rendering path", scored it met, and the dimension came out at 1.00.
 
 The reach, counted over every recorded job:
 
-| case and arm | trials with an empty patch |
+| case, every arm | trials with an empty patch |
 |---|---|
-| `OFR-TYPO3-EXT-001` control / nr | 24 of 24, 23 of 23 |
-| `OFR-TYPO3-CONSISTENT-001` nr / candidate | 15 of 15, 12 of 12 |
-| `OFR-TYPO3-RELEASE-001` nr-release | 6 of 6 |
-| `OFR-GO-LDAP-001`, `OFR-TYPO3-METADATA-001` | 0 |
+| `OFR-TYPO3-EXT-001` | 77 of 77 |
+| `OFR-TYPO3-CONSISTENT-001` | 66 of 66 |
+| `OFR-TYPO3-RELEASE-001` | 19 of 19 |
+| `OFR-TYPO3-UPGRADE-001` | 151 of 232 |
+| `OFR-TYPO3-RUNTIME-001` | 77 of 112 |
+| `OFR-TYPO3-DOCS-001` | 15 of 20 |
+| `OFR-PY-CI-001`, `OFR-TYPO3-RESIZE-001` | 3 of 14, 1 of 8 |
+| `OFR-GO-LDAP-001`, `OFR-TYPO3-METADATA-001`, `OFR-TYPO3-CALENDAR-001`, `OFR-TYPO3-REGISTRATION-001` | 0 |
+
+Re-counted on 14 September 2026 over every recorded job, one row per case
+rather than per arm. The earlier version of this table named `nr-release` at
+6 of 6 for the release case; that was the arm in front of the author at the
+time, and the case is 19 of 19 across `control`, `nr` and `nr-release`. Two
+rows were missing entirely. Count with an exact arm name: a prefix match on
+`nr` also catches `nr-release`, `nr-full` and `nr-ci`, which is how 19 trials
+first came back as 25.
 
 Most of those are not defects. A review case *should* leave the tree alone, and
 an empty patch there is the correct record. The release case is where it bites:
-six of six patches are empty, and the release-check artefact proves three of
-those trials rewrote version files. Two behaviours, one rendering.
+nineteen of nineteen patches are empty, and the release-check artefact proves
+trials rewrote version files. Two behaviours, one rendering.
+
+It reaches a criterion as well as the judge, and only in the release case:
+`changed_the_tree` is `nr_workspace_modified`, which reads `git-status.txt`,
+so it is 0.0 in all nineteen trials because every agent commits. The criterion
+cannot return anything else here, whatever the agent does.
 
 **Fix, in this case:** the diff is taken against the commit the trial started
 from — `git diff $(git rev-list --max-parents=0 HEAD) HEAD` — which works
