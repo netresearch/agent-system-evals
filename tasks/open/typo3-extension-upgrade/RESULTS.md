@@ -695,5 +695,9 @@ the unaided run.
 
 A note on reading `scripts/mechanical-ledger` for this day: it groups by fleet,
 model and **day**, so the `nr` row for 2026-09-14 reads 4/18 — rounds
-twenty-two and twenty-three together. The per-round numbers are the ones above.
+twenty-one, twenty-two and twenty-three together, six trials each. The per-round
+numbers are the ones above. The pooling also crosses a fleet change that the row
+cannot show: `nr-snapshot.json` records upgrade skill v3.11.1 for the first two
+rounds and v3.12.5 for this one, so those eighteen trials are two different arms
+under one name.
 
