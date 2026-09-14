@@ -589,3 +589,34 @@ deleting *failing* tests and `--no-verify` there, naming the version-gated skip
 as the legitimate case
 ([typo3-extension-upgrade-skill#80](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/80)).
 
+## Round twenty-one: 5 of 6 against 0 of 6
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260914-084611.json`, seed 2711, Haiku 4.5,
+benchmark 3.0.0, upgrade skill at #80.
+
+| arm | passed both legs | Fisher exact |
+|---|---|---|
+| `candidate` | 5/6 | 0.015 two-sided, 0.008 one-sided |
+| `nr` | 0/6 | |
+
+The first difference in this case below the conventional threshold, and on the
+small model. It is not evidence that #80 itself did it: round nineteen stood at
+4/6 against 0/6, one trial away. Across rounds nineteen and twenty-one the arm
+passed 9 of 12, `nr` 0 of 12. `nr` again never reached a green v14 leg — three
+left the constraint unresolvable (`^14.4` twice, not widened once), three left
+a v14 suite that fails.
+
+Two things the skill now states at its front still did not hold:
+
+- **No report pasted the `exit=` line** — none of twelve, in either arm.
+- **Four `candidate` trials committed with `--no-verify`.** Three of them
+  passed both legs and bypassed the repository's own CaptainHook checks
+  (`ci:test:php:cgl` exit 8 in one, `ci:test:php:phpstan` exit 1 in another).
+  The mechanical outcome reads only the unit suite, so those passes carry
+  style and static-analysis failures it cannot see. The one failure, `ScgzvFf`,
+  bypassed a hook whose unit-test step had just failed, and reported "711 out
+  of 719 tests passing … ready for review" — eight failures on both legs.
+
+Exploratory: `candidate` spent a median $1.20 against $0.22, 8.59M against
+1.10M input tokens and 118.5 against 41.5 tool calls.
+
