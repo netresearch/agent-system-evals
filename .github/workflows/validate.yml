@@ -26,6 +26,11 @@ jobs:
       - name: Verifier library is in sync across cases
         run: ./scripts/sync-verifier-lib --check
 
+      # The shared instance scripts are copied into every case that uses them.
+      # The check existed and ran nowhere, so a case could drift unnoticed.
+      - name: Shared environment is in sync across cases
+        run: ./scripts/sync-environment --check
+
       # README shipped a ./scripts/bootstrap that had never been written.
       # Nothing catches that except the reader, who then distrusts the page.
       - name: Documentation names only things that exist

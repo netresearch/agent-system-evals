@@ -16,7 +16,18 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 COMMON="$ROOT/environment/common"
 CHECK=0
-[[ "${1:-}" == "--check" ]] && CHECK=1
+# Anything but no argument or --check is refused. The copy mode writes into
+# every case, so an argument it does not understand must not fall through to
+# it: `--help` once did exactly that and planted instance scripts in two
+# cases that have no instance.
+case "${1:-}" in
+    "") ;;
+    --check) CHECK=1 ;;
+    *)
+        echo "usage: scripts/sync-environment [--check]" >&2
+        exit 2
+        ;;
+esac
 
 FILES=(build-instance.sh install-instance.sh ddev-shim.sh install-toolchain.sh capability-probe.sh)
 
@@ -33,6 +44,12 @@ for task in "$ROOT"/tasks/*/*/task.toml; do
     cases=$((cases + 1))
 
     for file in "${FILES[@]}"; do
+        # Only what the case's image actually copies. Cases built on a bare
+        # language image (build-target.sh, no TYPO3 instance) do not use the
+        # instance scripts, and demanding them reported 22 files of "drift"
+        # that a sync would have planted where nothing reads them. The
+        # Dockerfile is the consumer, so it decides.
+        grep -q "COPY $file " "$env_dir/Dockerfile" 2>/dev/null || continue
         if [[ ! -f "$env_dir/$file" ]] || ! cmp -s "$COMMON/$file" "$env_dir/$file"; then
             drift=$((drift + 1))
             rel="${case_dir#"$ROOT"/}"

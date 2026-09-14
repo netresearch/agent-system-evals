@@ -61,7 +61,6 @@ sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 import cases  # noqa: E402
 import stats  # noqa: E402
 import validity  # noqa: E402
-from dimensions import ids_for  # noqa: E402
 from schemas import EXPERIMENT_VERSION  # noqa: E402
 
 # Blocks per round. Three is enough to notice a difference and never enough to
