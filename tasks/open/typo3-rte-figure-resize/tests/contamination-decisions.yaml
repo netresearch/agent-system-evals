@@ -321,3 +321,30 @@
   path: typo3-conformance-skill-experiment-hand-the-version-raise-to-the-upgrade-skill/skills/typo3-conformance/references/crowdin-integration.md
   marker: rte_ckeditor_image
   reason: The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering.
+
+# The same four for v2.19.4, which `nr`, `nr-full` and `nr-companion` moved to
+# at benchmark 3.1.0. Both files carry the same examples as v2.19.1: the
+# runTests.sh comment at lines 155 and 156, the XLIFF `product-name` attribute.
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.4
+  path: typo3-conformance-skill-2.19.4/skills/typo3-conformance/references/runtests-validation.md
+  marker: netresearch/rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.4
+  path: typo3-conformance-skill-2.19.4/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte-ckeditor-image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.4
+  path: typo3-conformance-skill-2.19.4/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte_ckeditor_image
+  reason: Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering.
+
+- skill: netresearch/typo3-conformance-skill
+  ref: v2.19.4
+  path: typo3-conformance-skill-2.19.4/skills/typo3-conformance/references/crowdin-integration.md
+  marker: rte_ckeditor_image
+  reason: The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering.

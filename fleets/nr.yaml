@@ -45,13 +45,13 @@ skills:
 
   # TYPO3 domain
   - repo: netresearch/typo3-conformance-skill
-    ref: v2.19.1
+    ref: v2.19.4
   - repo: netresearch/typo3-testing-skill
     ref: v5.20.3
   - repo: netresearch/typo3-docs-skill
     ref: v2.16.0
   - repo: netresearch/typo3-extension-upgrade-skill
-    ref: v3.11.1
+    ref: v3.12.5
 
   # Cross-cutting
   - repo: netresearch/php-modernization-skill

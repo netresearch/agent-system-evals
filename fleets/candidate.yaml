@@ -18,6 +18,13 @@ name: candidate
 description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
 
 derives_from: nr
+# At 3.1.0 (14 September 2026) this arm carries no skill change over `nr`:
+# `nr` pins typo3-extension-upgrade v3.12.5, which was that repository's
+# `main` when it was tagged, and typo3-conformance v2.19.4, which differed
+# from its `main` only in pre-commit hook versions. The refs below still
+# resolve `main`, so the arm diverges again as soon as either branch moves;
+# read the resolved commits in the job lock before treating a comparison
+# against `nr` as a no-op or as a change.
 at:
   # An experiment branch, not a release, and the one variable under study.
   #
