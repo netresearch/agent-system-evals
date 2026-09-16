@@ -308,3 +308,37 @@ scripts/run-comparison OFR-TYPO3-RELEASE-001 --arms nr,nr-release \
     --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 211
 scripts/analyze experiments/OFR-TYPO3-RELEASE-001-20260828-152051.json
 ```
+
+## First round on the repaired instrument, 16 September 2026
+
+`experiments/OFR-TYPO3-RELEASE-001-20260916-134712.json`, seed 3611, Haiku 4.5,
+benchmark 5.0.0, `nr` against `nr-release`. The case had just been repaired in
+three places at once: the agent starts in `/app`, the patch is taken against a
+commit rather than `HEAD`, and `changed_the_tree` reads that patch.
+
+0/3 against 0/3 on `release: ok`, and the round stopped after the discovery
+block — but the artefacts show the repair working and one defect left in it.
+
+**The fourth place is being maintained.** `release-check.txt` from an
+`nr-release` trial:
+
+```
+requested: 2.4.2
+ext_emconf.php: 2.4.2
+Documentation/guides.xml: 2.4.2
+CHANGELOG.md mentions: 0
+Documentation/Changelog/Index.rst mentions: 2
+```
+
+Three of the four places carry the new version, including
+`Documentation/Changelog/Index.rst` — the one that was never opened in any of
+the nineteen trials recorded before the working directory was fixed. What is
+missing now is `CHANGELOG.md`, which is a different and much smaller gap.
+
+**The patch was still wrong, in the other direction.** 1.39 MB across 144
+files: the base was the extension's first commit ever, because the repaired
+collector was copied from a case whose history is one commit while this one
+carries the full history on purpose. Fixed by reading `TARGET_COMMIT` from the
+case's lock file; benchmark 6.0.0. The numbers above do not depend on the
+patch — `release-check.txt` reads the tree — but anything a judge said about
+this round's diff was said about the wrong thing.

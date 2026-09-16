@@ -136,14 +136,19 @@ command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 
 # The diff is taken against the commit the trial started from, not against
 # HEAD. Every agent on this case commits its release preparation, so `git diff
 # HEAD` came back empty in 19 of 19 recorded trials and the judge read "nothing
-# changed" over a rewritten set of version files. `build-target.sh` asserts the
-# history is exactly one commit, so anything after the root is the agent's.
-# `git status --porcelain` is appended because a diff between commits cannot
-# show a file that was never added (instrument failure 27).
+# changed" over a rewritten set of version files (instrument failure 27).
+#
+# The base is TARGET_COMMIT from the case's own lock file, not the root commit.
+# This case sets TARGET_HISTORY=full on purpose — "what changed since the last
+# version" is not answerable from one commit — so `rev-list --max-parents=0`
+# names the extension's first commit ever and the patch came out at 1.39 MB
+# across 144 files, the whole project history handed to a judge as the agent's
+# work. `git status --porcelain` is appended because a diff between commits
+# cannot show a file that was never added.
 [[verifier.collect]]
 command = '''
 {
-  base=$(git -C /app rev-list --max-parents=0 HEAD)
+  base=$(sed -n 's/^TARGET_COMMIT=//p' /opt/case/target.lock)
   git -C /app diff --no-renames "$base"
   git -C /app status --porcelain
 } > /logs/artifacts/git-diff.patch 2>&1 || true
