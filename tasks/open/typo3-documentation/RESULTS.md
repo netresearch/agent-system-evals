@@ -343,3 +343,35 @@ Both findings go into the skill: the description names the case's own occasion �
 an extension with no documentation yet — and step 0 becomes a command that
 writes the file, with a `grep` that prints whether the namespace is right,
 instead of a block to retype.
+
+## Round six, 16 September 2026: the description moved the directory
+
+`experiments/OFR-TYPO3-DOCS-001-20260916-120619.json`, seed 3311, Haiku 4.5,
+benchmark 4.1.0. `candidate` carries
+[netresearch/typo3-docs-skill#127](https://github.com/netresearch/typo3-docs-skill/pull/127):
+the description names the occasion — an extension with no documentation yet —
+and step 0 writes `guides.xml` with a command.
+
+| arm | `docs: ok` | what the check said | where the agent wrote |
+|---|---|---|---|
+| `nr` | 0/3 | "no Documentation/ directory", 3 of 3 | `/app/docs/`, 3 of 3 |
+| `candidate` | 0/3 | "no Documentation/guides.xml", 3 of 3 | `/app/Documentation/`, 3 of 3 |
+
+The endpoint is unchanged and the round stopped after the discovery block, but
+the arms now fail differently, three to nothing in both directions.
+docs.typo3.org renders `Documentation/`; `nr` put the whole set in `docs/`,
+which renders nowhere, and `candidate` put it in the right place every time.
+
+What `candidate` writes instead of `guides.xml` is `Settings.cfg` — the file
+guides.xml replaced, in all three trials. So the remaining failure is not a
+malformed `guides.xml` any more; it is the previous generation's file.
+
+`skill_invoked` reads 0/3 in both arms, and that number needs reading with care:
+it counts explicit `Skill` tool calls, and Claude Code also puts a skill's
+description in front of the agent without one. The directory difference is
+evidence that the description was read — it is the only text that changed
+between the arms.
+
+Next: the description carries `guides.xml` in a list of artefacts and says
+nothing about `Settings.cfg`. The agent knows the old convention from
+elsewhere, and nothing it reads contradicts it.
