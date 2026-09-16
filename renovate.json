@@ -2,5 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>netresearch/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "A case's environment is part of its definition, not maintenance. Raising a dependency there changes what the agent is measured on and demands a major benchmark bump (docs/governance.md); a bot cannot make that decision. Such updates wait on the dependency dashboard: nothing is hidden, no pull request opens until someone approves one there, and whoever does bumps VERSION in it.",
+      "matchFileNames": ["tasks/**/environment/**"],
+      "dependencyDashboardApproval": true
+    }
   ]
 }
