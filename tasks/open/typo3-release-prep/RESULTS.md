@@ -380,7 +380,7 @@ again saw no diff.
 
 ## Round three on the repaired instrument: the patch carries the work
 
-`experiments/OFR-TYPO3-RELEASE-001-20260916-1[5-9]*.json`, seed 3811, Haiku 4.5,
+`experiments/OFR-TYPO3-RELEASE-001-20260916-145510.json`, seed 3811, Haiku 4.5,
 benchmark 7.0.0, `nr` against `nr-release`. Stopped after the discovery block at
 1/3 against 1/3 — consistent with round two's 2/6 and 1/6.
 
@@ -388,8 +388,10 @@ The point of this round was the artefact, and it is finally right:
 
 | arm | trial | verdict | patch |
 |---|---|---|---|
+| `nr` | `FjJJCW` | incomplete | 1826 B, 3 files |
 | `nr` | `dZJXak` | incomplete | 2053 B, 4 files |
 | `nr` | `Z8VEJN` | **ok** | 2368 B, 4 files |
+| `nr-release` | `vYiCkm` | incomplete | 1887 B, 3 files |
 | `nr-release` | `bSNi76` | incomplete | 1896 B, 3 files |
 | `nr-release` | `Rtj4bf` | **ok** | 2752 B, 4 files |
 
