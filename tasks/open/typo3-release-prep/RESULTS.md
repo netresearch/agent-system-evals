@@ -431,3 +431,35 @@ recorded here after 7.0.0 are the comparable ones.
 It also narrows what the release skill can be blamed for. Under the repaired
 instrument the agent mostly does not consult it, and the case is passed by
 trials that never opened it.
+
+## The description closes the gap: 4 of 6 against 0 of 6
+
+`experiments/OFR-TYPO3-RELEASE-001-20260916-184714.json`, seed 3911, Haiku 4.5,
+benchmark 7.1.0. `nr-release` pins github-release v0.11.0; `candidate` carries
+the same skill at `experiment/version-lives-in-every-file`, which is
+[netresearch/github-release-skill#127](https://github.com/netresearch/github-release-skill/pull/127).
+The files are identical apart from the description.
+
+| arm | `release: ok` | Fisher exact |
+|---|---|---|
+| `candidate` | 4/6 | 0.061 two-sided, 0.030 one-sided |
+| `nr-release` | 0/6 | |
+
+**The mechanism is the one the change was aimed at.** `CHANGELOG.md` carries
+the new version in 5 of 6 `candidate` trials and 0 of 6 `nr-release` trials —
+the file eight of nine failures hung on in the round before. The fifth
+`candidate` trial that wrote it, `TAp4FL`, then missed
+`Documentation/Changelog/Index.rst` instead, which is the same class of miss
+moved one file over.
+
+**It works without the skill being opened.** `skill_invoked` is 0/6 in
+`candidate` and 1/6 in `nr-release`. Nothing read the body, the references or
+`ecosystem-detection.md`, which has listed every one of these files all along.
+The description is what reached the agent, and naming the files there is what
+moved the endpoint.
+
+That is the same finding the documentation case produced from the other side:
+there, a description moved *where* the agent wrote and could not move *which
+file*; here, naming the files moved exactly that. The difference is that this
+description names artefacts the agent must produce, not a convention it already
+believes.
