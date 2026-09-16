@@ -133,8 +133,21 @@ timeout_sec = 180.0
 [[verifier.collect]]
 command = "git -C /app status --porcelain > /logs/artifacts/git-status.txt 2>&1 || true"
 
+# The diff is taken against the commit the trial started from, not against
+# HEAD. Every agent on this case commits its release preparation, so `git diff
+# HEAD` came back empty in 19 of 19 recorded trials and the judge read "nothing
+# changed" over a rewritten set of version files. `build-target.sh` asserts the
+# history is exactly one commit, so anything after the root is the agent's.
+# `git status --porcelain` is appended because a diff between commits cannot
+# show a file that was never added (instrument failure 27).
 [[verifier.collect]]
-command = "git -C /app diff HEAD > /logs/artifacts/git-diff.patch 2>&1 || true"
+command = '''
+{
+  base=$(git -C /app rev-list --max-parents=0 HEAD)
+  git -C /app diff --no-renames "$base"
+  git -C /app status --porcelain
+} > /logs/artifacts/git-diff.patch 2>&1 || true
+'''
 
 
 
