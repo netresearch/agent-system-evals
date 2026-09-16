@@ -39,6 +39,24 @@ demands. It does not compute the next number: which digit that lands on depends
 on the paragraph above, and a script that guessed would be wrong on the day the
 leading zero goes.
 
+### Dependency updates are not maintenance here
+
+A bot raising a dependency inside `tasks/*/*/environment/` changes what the
+agent is measured on: the image is the case. `scripts/benchmark-version --check`
+names such a change as a major bump, and it is advisory on purpose — it reports
+rather than blocks, because a gate that fires on documentation edits gets
+disabled within a week.
+
+That combination is quiet. On 16 September 2026 three Renovate pull requests
+from late August sat open against case environments — a MariaDB tag and two
+TYPO3 v14 raises — all green, none of them naming a version bump, and only
+unmerged because this repository has no auto-merge workflow. Adding one without
+saying which paths it may touch would have moved three cases silently.
+
+So `renovate.json` marks `tasks/**/environment/**` as needing dashboard
+approval. The bot still reports what is stale; a person decides whether the case
+should move, and bumps `VERSION` in the same pull request.
+
 ## Cases
 
 **Admission** is the lifecycle in [case-lifecycle.md](case-lifecycle.md):
