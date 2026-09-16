@@ -652,6 +652,16 @@ criterion asked whether anything was uncommitted, every agent on that case
 commits, and it was therefore 0.0 in 19 of 19 recorded trials — a criterion
 that could not come out any other way.
 
+**The base is the trial's commit, not the root commit.** The form copied from
+the resize case reads `git rev-list --max-parents=0 HEAD`, which is correct
+only where `build-target.sh` asserts a one-commit history. `OFR-TYPO3-RELEASE-001`
+sets `TARGET_HISTORY=full` on purpose — "what changed since the last version" is
+not answerable from one commit — so that base named the extension's first commit
+ever and the first repaired run produced a 1.39 MB patch over 144 files: the
+whole project history, handed to a judge as the agent's work. It now reads
+`TARGET_COMMIT` from the case's lock file. Copying a collector between cases
+copies its assumptions with it.
+
 **Not fixed elsewhere, deliberately.** Changing a collector changes the task
 digest, and `scripts/compare` then refuses the older runs — correctly, because
 they were produced by a different instrument. Repairing the other cases
