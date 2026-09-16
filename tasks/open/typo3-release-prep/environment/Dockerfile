@@ -80,6 +80,14 @@ RUN chmod +x /usr/local/bin/install-instance /usr/local/bin/build-instance \
         /opt/probe/capability-probe \
     && build-instance /opt/case/target.lock
 
+# The commit the trial starts from, named in the repository itself. A collect
+# hook runs in a container that has /app but not necessarily /opt/case, and
+# reading TARGET_COMMIT from the lock file there produced "sed: can't read
+# /opt/case/target.lock" and an empty patch. A ref inside /app is visible
+# wherever /app is. Not the root commit: this case carries the full history on
+# purpose, so the root is the extension's first commit ever.
+RUN git -C /app tag trial-base HEAD
+
 # Environment readiness (ADR 0003): before the agent arrives, the instance must
 # be one command away from running. A failure here is a broken case.
 WORKDIR /instance
