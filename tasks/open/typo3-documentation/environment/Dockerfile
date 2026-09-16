@@ -102,4 +102,9 @@ RUN chmod +x /usr/local/bin/install-toolchain \
 
 RUN mkdir -p /logs/artifacts
 
-WORKDIR /instance
+# The agent starts where the case is graded. It used to start in /instance, and
+# every collector reads /app: the agent opened a TYPO3 distribution, could not
+# see an extension in it, and three of five trials in the first recorded round
+# stopped to ask which extension was meant — 4 tool calls and $0.02 each. The
+# instance stays reachable at /instance for anything that needs it running.
+WORKDIR /app

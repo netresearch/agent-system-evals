@@ -38,6 +38,13 @@ RULES: list[tuple[str, str, str]] = [
     ("dimensions.toml", "major", "the dimension registry changed"),
     ("tasks/*/*/task.toml", "major", "a case's definition changed"),
     ("tasks/*/*/instruction.md", "major", "a case's prompt changed"),
+    # The environment is part of the case's definition, and the rule was
+    # missing: OFR-TYPO3-DOCS-001 ran with WORKDIR /instance while every
+    # collector read /app, and `--check` called that tree "nothing that moves a
+    # score" while the agent could not see the artefact it was asked about
+    # (instrument failure 32). Image contents decide what the agent can reach,
+    # so they decide what a result means.
+    ("tasks/*/*/environment/", "major", "a case's environment changed"),
     # Before the rubric rule, because it lives under tests/ and is not one. A
     # recorded contamination decision changes what the contamination check
     # accepts and nothing a judge scores.
