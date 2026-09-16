@@ -32,7 +32,16 @@ criteria.nr_ran_command(r"git (log|show|diff)", name="read_the_history")
 
 # The tree changed. A release that reports what should happen has not prepared
 # one.
-criteria.nr_workspace_modified(name="changed_the_tree")
+#
+# Read from the collected patch, not from `git status`: nr_workspace_modified
+# asks whether anything is UNCOMMITTED, and every agent on this case commits,
+# so it was 0.0 in 19 of 19 recorded trials — a criterion that could not come
+# out any other way (instrument failure 27). The patch is taken against the
+# commit the trial started from and carries `git status` beneath it, so it
+# covers committed work and untracked files alike.
+criteria.nr_artifact_matches(
+    "git-diff.patch", r"diff --git", name="changed_the_tree"
+)
 
 # The version appears in the answer. A report on a release that never names the
 # version being released leaves the reader to check.

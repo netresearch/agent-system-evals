@@ -644,9 +644,17 @@ and `git log --oneline` is collected beside it. The judge's criterion now says
 in as many words that an empty diff means nothing was changed and is not a
 narrow change.
 
+**Repaired in `OFR-TYPO3-RELEASE-001` on 16 September 2026**, together with
+that case's working directory (entry 32), so its comparability is spent once
+rather than twice. Its patch is now taken against the commit the trial started
+from, and `changed_the_tree` reads that patch instead of `git status`: the
+criterion asked whether anything was uncommitted, every agent on that case
+commits, and it was therefore 0.0 in 19 of 19 recorded trials — a criterion
+that could not come out any other way.
+
 **Not fixed elsewhere, deliberately.** Changing a collector changes the task
 digest, and `scripts/compare` then refuses the older runs — correctly, because
-they were produced by a different instrument. Repairing the other nine cases
+they were produced by a different instrument. Repairing the other cases
 would cost the comparability of everything recorded before today. That is a
 trade to make on purpose, not in passing, and the affected results are marked
 here instead.
@@ -868,6 +876,10 @@ rather than twice.
 
 **Cost:** a major bump. Every result recorded for this case measured an
 environment in which the agent could not see the artefact it was asked about.
+
+**`OFR-TYPO3-RELEASE-001` repaired on 16 September 2026.** Same change,
+`WORKDIR /app`, made in one pass with that case's entry-27 repair so the
+comparability of its nineteen recorded trials is spent once. Benchmark 5.0.0.
 
 ## What this cost, and what it teaches
 

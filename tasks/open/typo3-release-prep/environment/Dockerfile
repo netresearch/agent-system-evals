@@ -102,4 +102,8 @@ RUN chmod +x /usr/local/bin/install-toolchain \
 
 RUN mkdir -p /logs/artifacts
 
-WORKDIR /instance
+# The agent starts where the case is graded. It used to start in /instance
+# while every collector reads /app, which is instrument failure 32 — measured
+# on the documentation case, where three of five trials stopped to ask which
+# extension was meant. The instance stays reachable at /instance.
+WORKDIR /app
