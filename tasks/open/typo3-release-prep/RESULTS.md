@@ -377,3 +377,31 @@ but not `/opt/case`. The base is now a `trial-base` tag the image writes into
 the repository itself, which is visible wherever `/app` is; benchmark 7.0.0.
 `release-check.txt` reads the tree, so the numbers above stand, but the judge
 again saw no diff.
+
+## Round three on the repaired instrument: the patch carries the work
+
+`experiments/OFR-TYPO3-RELEASE-001-20260916-145510.json`, seed 3811, Haiku 4.5,
+benchmark 7.0.0, `nr` against `nr-release`. Stopped after the discovery block at
+1/3 against 1/3 — consistent with round two's 2/6 and 1/6.
+
+The point of this round was the artefact, and it is finally right:
+
+| arm | trial | verdict | patch |
+|---|---|---|---|
+| `nr` | `FjJJCW` | incomplete | 1826 B, 3 files |
+| `nr` | `dZJXak` | incomplete | 2053 B, 4 files |
+| `nr` | `Z8VEJN` | **ok** | 2368 B, 4 files |
+| `nr-release` | `vYiCkm` | incomplete | 1887 B, 3 files |
+| `nr-release` | `bSNi76` | incomplete | 1896 B, 3 files |
+| `nr-release` | `Rtj4bf` | **ok** | 2752 B, 4 files |
+
+Three to four files of a few kilobytes: the version files and the changelog
+entries, which is what a release preparation is. Before the repairs the same
+collector produced 0 bytes (every agent commits), then 1.39 MB across 144 files
+(the base was the extension's first commit), then 0 bytes again (the lock file
+is not in the container the hook runs in). The judge now reads the agent's work
+rather than nothing or everything.
+
+With that, this case measures what it was written to measure. `release: ok`
+stands at 3 of 9 for `nr` and 2 of 9 for `nr-release` across the two rounds on
+a working instrument, and the release skill is still never opened.
