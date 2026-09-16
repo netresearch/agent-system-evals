@@ -1,0 +1,48 @@
+name: Auto-merge dependency PRs
+
+on:
+  # The reusable only calls `gh pr merge` with the base-repo token; it never
+  # checks out or runs PR head code, so pull_request_target is safe here.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+
+permissions: {}
+
+jobs:
+  # A dependency update inside a case's environment is a change to the case,
+  # not maintenance: it moves what the agent is measured on and demands a major
+  # VERSION bump (docs/governance.md). renovate.json already holds those on the
+  # dependency dashboard, but approving one there produces an ordinary pull
+  # request, and without this gate the job below would merge it unversioned.
+  # Reads the file list through the API — no checkout, no PR code.
+  touches-a-case:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      verdict: ${{ steps.check.outputs.verdict }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')
+          if grep -q '^tasks/' <<<"$files"; then
+            echo "verdict=yes" >> "$GITHUB_OUTPUT"
+            echo "This pull request changes files under tasks/ — a person decides it, with a VERSION bump:" >&2
+            grep '^tasks/' <<<"$files" >&2
+          else
+            echo "verdict=no" >> "$GITHUB_OUTPUT"
+          fi
+
+  auto-merge:
+    needs: touches-a-case
+    if: needs.touches-a-case.outputs.verdict == 'no'
+    # @main on purpose: this is an organisation-owned reusable, and pinning it
+    # to a hash would hold this repository on a fixed copy of a workflow whose
+    # fixes are meant to reach every consumer. Third-party actions are pinned.
+    uses: netresearch/.github/.github/workflows/auto-merge-deps.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
