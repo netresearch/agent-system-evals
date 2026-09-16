@@ -3,60 +3,29 @@ name: Auto-merge dependency PRs
 on:
   # The reusable only calls `gh pr merge` with the base-repo token; it never
   # checks out or runs PR head code, so pull_request_target is safe here.
+  #
+  # paths-ignore does the gating, at the trigger. A dependency update inside a
+  # case's environment is a change to the case, not maintenance: it moves what
+  # the agent is measured on and demands a major VERSION bump
+  # (docs/governance.md). renovate.json holds those on the dependency
+  # dashboard, but approving one there produces an ordinary pull request, and
+  # this keeps the workflow from merging it.
+  #
+  # A gate job was tried first and did not work: it read the file list, logged
+  # "verdict: no — auto-merge may proceed", and the `uses:` job guarded by
+  # `if: needs.<job>.outputs.verdict == 'no'` was skipped anyway, on pull
+  # requests touching nothing but .github/. The verdict never reached the
+  # condition. Rather than keep guessing at that, the filter moved to the
+  # trigger, where GitHub evaluates it: a pull request that touches tasks/
+  # starts no run at all.
   pull_request_target: # zizmor: ignore[dangerous-triggers]
+    paths-ignore:
+      - 'tasks/**'
 
 permissions: {}
 
 jobs:
-  # A dependency update inside a case's environment is a change to the case,
-  # not maintenance: it moves what the agent is measured on and demands a major
-  # VERSION bump (docs/governance.md). renovate.json already holds those on the
-  # dependency dashboard, but approving one there produces an ordinary pull
-  # request, and without this gate the job below would merge it unversioned.
-  # Reads the file list through the API — no checkout, no PR code.
-  touches-a-case:
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    outputs:
-      verdict: ${{ steps.check.outputs.verdict }}
-    steps:
-      - id: check
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          # Fail loudly rather than letting an empty list read as "no case
-          # files": a failed query is a statement about the request, not about
-          # the pull request, and a gate that treats it as a pass is worse than
-          # no gate.
-          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')
-          if [ -z "$files" ]; then
-            echo "could not read the file list for #$PR" >&2
-            exit 1
-          fi
-
-          echo "files in #$PR:"
-          echo "$files"
-
-          # grep -c, not grep -q: the count is the evidence, and it prints.
-          # A pattern test behind a pipe can report a found match as a failure
-          # under pipefail, so the list goes in as a herestring.
-          hits=$(grep -c '^tasks/' <<<"$files" || true)
-          if [ "${hits:-0}" -gt 0 ]; then
-            echo "verdict=yes" >> "$GITHUB_OUTPUT"
-            echo "verdict: yes — $hits file(s) under tasks/. A person decides this one, with a VERSION bump."
-            grep '^tasks/' <<<"$files"
-          else
-            echo "verdict=no" >> "$GITHUB_OUTPUT"
-            echo "verdict: no — nothing under tasks/, auto-merge may proceed."
-          fi
-
   auto-merge:
-    needs: touches-a-case
-    if: needs.touches-a-case.outputs.verdict == 'no'
     # @main on purpose: this is an organisation-owned reusable, and pinning it
     # to a hash would hold this repository on a fixed copy of a workflow whose
     # fixes are meant to reach every consumer. Third-party actions are pinned.
