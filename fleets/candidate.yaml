@@ -18,6 +18,17 @@ name: candidate
 description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
 
 derives_from: nr
+# At 7.1.0 (16 September 2026) the arm moves from the documentation question to
+# the release one. The documentation rounds are closed in that case's
+# RESULTS.md: three descriptions measured, the output directory moved and the
+# file choice did not, and the skill is never opened under this model.
+#
+# It now ADDS a skill instead of moving one — `nr` carries no release skill at
+# all, which is why OFR-TYPO3-RELEASE-001 has `nr-release` beside it. The
+# comparison this arm is for is against `nr-release`, which pins v0.11.0: same
+# skill, the description before and after
+# netresearch/github-release-skill#127.
+#
 # At 3.1.0 (14 September 2026) this arm briefly carried no skill change over
 # `nr`: the upgrade and conformance experiments had both shipped, so both refs
 # resolved what `nr` already pinned. At 3.2.0 the arm moves to the next
@@ -26,6 +37,22 @@ derives_from: nr
 # The two spent refs were removed rather than left pointing at `main`. A ref
 # that changes nothing today changes something the moment that branch moves,
 # and a comparison then measures two differences while reporting one.
+add:
+  # ROUND SEVEN, open: does naming the files a version lives in get the last
+  # one updated?
+  #
+  # On OFR-TYPO3-RELEASE-001 with a repaired instrument, agents prepare the
+  # release and stop one file short: eight of nine failures in one round were
+  # `CHANGELOG.md` alone, with ext_emconf.php, guides.xml and the changelog
+  # page all carrying 2.4.2. The skill already lists every file in
+  # references/ecosystem-detection.md, and `skill_invoked` was 1 of 12 — a
+  # reference nobody opens. The branch puts the list into the description.
+  #
+  # Compared against `nr-release`, which pins v0.11.0: the same skill with the
+  # description as it was.
+  - repo: netresearch/github-release-skill
+    ref: experiment/version-lives-in-every-file
+
 at:
   # An experiment branch, not a release, and the one variable under study.
   #
@@ -179,4 +206,6 @@ at:
   # `nr` pins v2.16.0, so this arm also carries what was released in between --
   # a checkpoints precondition and hook updates, stated rather than removed.
   # Neither touches guides.xml.
-  netresearch/typo3-docs-skill: experiment/guides-xml-in-the-body
+  #   (closed at 7.1.0; three descriptions measured, the output directory
+  #   moved from docs/ to Documentation/ and the file choice did not — the
+  #   skill is never opened under this model. See the case's RESULTS.md)
