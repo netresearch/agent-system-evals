@@ -453,10 +453,11 @@ the file eight of nine failures hung on in the round before. The fifth
 moved one file over.
 
 **It works without the skill being opened.** `skill_invoked` is 0/6 in
-`candidate` and 1/6 in `nr-release`. Nothing read the body, the references or
-`ecosystem-detection.md`, which has listed every one of these files all along.
-The description is what reached the agent, and naming the files there is what
-moved the endpoint.
+`candidate` and 1/6 in `nr-release`. No trial in the arm that passed opened the
+skill at all, so none of them read the body or `ecosystem-detection.md`, which
+has listed every one of these files all along — and the one trial that did open
+a skill is in the arm that scored zero. The description is what reached the
+agent, and naming the files there is what moved the endpoint.
 
 That is the same finding the documentation case produced from the other side:
 there, a description moved *where* the agent wrote and could not move *which
