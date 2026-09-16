@@ -48,14 +48,18 @@ rather than blocks, because a gate that fires on documentation edits gets
 disabled within a week.
 
 That combination is quiet. On 16 September 2026 three Renovate pull requests
-from late August sat open against case environments — a MariaDB tag and two
-TYPO3 v14 raises — all green, none of them naming a version bump, and only
-unmerged because this repository has no auto-merge workflow. Adding one without
-saying which paths it may touch would have moved three cases silently.
+from late August sat open against case environments — [#33](https://github.com/netresearch/agent-system-evals/pull/33)
+raising a MariaDB tag, [#31](https://github.com/netresearch/agent-system-evals/pull/31)
+and [#32](https://github.com/netresearch/agent-system-evals/pull/32) raising
+TYPO3 to v14 in a contract case's extension — all green, none of them naming a
+version bump, and only unmerged because this repository has no auto-merge
+workflow. Adding one without saying which paths it may touch would have moved
+three cases silently.
 
 So `renovate.json` marks `tasks/**/environment/**` as needing dashboard
-approval. The bot still reports what is stale; a person decides whether the case
-should move, and bumps `VERSION` in the same pull request.
+approval: such an update waits on the dependency dashboard and no pull request
+opens until someone approves it there. Nothing is hidden — the dashboard lists
+what is stale — and whoever approves one bumps `VERSION` in it.
 
 ## Cases
 
