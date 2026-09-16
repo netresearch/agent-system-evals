@@ -405,3 +405,35 @@ not invoke anything.
 Whether the same holds when the description carries the consequence rather than
 the occasion — docs.typo3.org renders `Documentation/guides.xml` and nothing
 else — is the next round's question.
+
+## Round eight, 16 September 2026: what a description can and cannot move
+
+`experiments/OFR-TYPO3-DOCS-001-20260916-131418.json`, seed 3511, Haiku 4.5,
+benchmark 4.1.0. `candidate` carries
+[netresearch/typo3-docs-skill#129](https://github.com/netresearch/typo3-docs-skill/pull/129):
+the description opens with what the site builds from rather than with the
+occasions the skill covers.
+
+0/3 against 0/3. `Settings.cfg` appears in two `candidate` and two `nr` trials;
+`guides.xml` in none.
+
+Three descriptions have now been measured against the same case, six trials
+each, with the skill never opened in any of them:
+
+| description leads with | effect |
+|---|---|
+| the occasions the skill covers (#127) | output directory moved `docs/` → `Documentation/`, 3 of 3 against 0 of 3 |
+| the file `guides.xml` replaced (#128) | none; `Settings.cfg` in 3 of 3 |
+| what docs.typo3.org builds from (#129) | none; `Settings.cfg` in 2 of 3 |
+
+So a description reaches an agent that invokes nothing, and it can move *where*
+the agent writes. It has not moved *which file* the agent writes, across two
+attempts aimed straight at that. `Settings.cfg` is what this model reaches for
+when it writes TYPO3 documentation, and three sentences in a description have
+not displaced it.
+
+That is the honest state of this case under Haiku 4.5: the skill's text cannot
+reach the agent, and the one channel that does reach it has a measured limit.
+Further wording attempts would be guesses. What would settle whether the skill
+itself is adequate is a run on a model that opens skills — the same case, the
+same fleet, one arm.
