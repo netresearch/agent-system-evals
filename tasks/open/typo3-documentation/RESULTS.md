@@ -301,3 +301,45 @@ above measured a different one.
 
 `netresearch/typo3-docs-skill#122` therefore remains unmeasured. It is not
 refuted by this round; it was never exercised.
+
+## Round five, 16 September 2026: the case measures something again
+
+`experiments/OFR-TYPO3-DOCS-001-20260916-110836.json`, seed 3211, Haiku 4.5,
+benchmark 4.1.0, `nr` (docs skill v2.16.0) against `candidate`
+(`experiment/guides-xml-in-the-body`, which carries the `guides.xml` skeleton in
+the body of SKILL.md). Primary endpoint `mechanical_outcome`.
+
+| arm | `docs: ok` | what the check said |
+|---|---|---|
+| `nr` | 0/3 | twice "no guides.xml" with a tree of 7 toctree entries, once nothing at all |
+| `candidate` | 0/3 | once a wrong namespace, once "no guides.xml" with 6 entries, once nothing at all |
+
+Still 0, and the round stopped after the discovery block — but this is the
+first round where the case measures the task rather than the environment.
+Four of six trials built a documentation tree; before the working-directory fix
+none of them built anything.
+
+**The binding constraint moved to routing.** `skill_invoked` came out 0/3 and
+1/3, and only one trial touched `Documentation/guides.xml` at all. Without the
+skill an agent writing TYPO3 documentation does not learn that docs.typo3.org
+needs a `guides.xml`, so it writes RST and stops. The two arms carry the same
+`description` — this is not something the candidate branch introduced.
+
+**Where the skill was loaded, half the fix held.** `XDzDtqj` wrote
+
+```xml
+<guides xmlns="https://guides.phpdoc.org">
+    <project title="Image Sitemap" version="14.0.0" release="14.0.0"/>
+</guides>
+```
+
+The `<project>` attributes are right, which is the failure mode that accounted
+for five of nineteen trials in the earlier series. The namespace is not:
+`guides.phpdoc.org` instead of `www.phpdoc.org/guides`, with the correct form
+sitting in the skill text the agent had loaded. A skeleton to copy from is read
+and then typed out from memory.
+
+Both findings go into the skill: the description names the case's own occasion —
+an extension with no documentation yet — and step 0 becomes a command that
+writes the file, with a `grep` that prints whether the namespace is right,
+instead of a block to retype.
