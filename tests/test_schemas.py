@@ -159,3 +159,25 @@ def test_documentation_moves_no_score():
 def test_expectations_are_a_patch_because_no_judge_reads_them():
     hits = version_script.demanded(["expectations/OFR-TYPO3-EXT-001.md.enc"])
     assert [part for _, part, _ in hits] == ["patch"]
+
+
+def test_a_case_environment_is_a_major_bump():
+    hits = version_script.demanded(
+        ["tasks/open/typo3-documentation/environment/Dockerfile"]
+    )
+    assert [part for _, part, _ in hits] == ["major"]
+
+
+def test_a_star_stands_for_one_segment_and_does_not_cross_a_separator():
+    # `fnmatch` over the whole string matched this, and the check then reported
+    # a major bump for a path that is not a case environment at all.
+    assert version_script.demanded(
+        ["tasks/open/a-case/extra/environment/file.txt"]
+    ) == []
+
+
+def test_a_directory_rule_still_reaches_any_depth_below_it():
+    hits = version_script.demanded(
+        ["tasks/open/typo3-documentation/tests/release/criteria.py"]
+    )
+    assert [part for _, part, _ in hits] == ["minor"]

@@ -78,19 +78,42 @@ def changed(against: str) -> list[str]:
     return [line for line in result.stdout.splitlines() if line.strip()]
 
 
-def demanded(paths: list[str]) -> list[tuple[str, str, str]]:
-    from fnmatch import fnmatch
+def matches(path: str, pattern: str) -> bool:
+    """Whether one changed path falls under one rule, segment by segment.
 
+    `*` stands for one path segment and never crosses a separator, which is
+    what the patterns read as: `tasks/*/*/environment/` means a case's own
+    environment directory, not any directory called `environment` at any depth.
+    `fnmatch` on the whole string does cross separators, so
+    `tasks/open/a-case/extra/environment/x` matched that rule and would have
+    been reported as a major bump.
+
+    A pattern ending in `/` is a directory and matches everything beneath it,
+    at any depth. Anything else must match the path exactly. The first version
+    of this function wrote `path.startswith(pattern)`, which compares a glob
+    literally — so `tasks/*/*/tests/` matched nothing at all and the check
+    reported "nothing changed that moves a score" for a rubric edit. It passed
+    its own counter-probe by doing nothing.
+    """
+    from fnmatch import fnmatchcase
+
+    directory = pattern.endswith("/")
+    wanted = [segment for segment in pattern.split("/") if segment]
+    have = path.split("/")
+    if directory:
+        if len(have) <= len(wanted):
+            return False
+    elif len(have) != len(wanted):
+        return False
+    return all(fnmatchcase(part, expected)
+               for part, expected in zip(have, wanted))
+
+
+def demanded(paths: list[str]) -> list[tuple[str, str, str]]:
     found: list[tuple[str, str, str]] = []
     for path in paths:
         for pattern, part, why in RULES:
-            # A directory rule matches everything beneath it. The first version
-            # wrote `path.startswith(pattern)`, which compares a glob
-            # literally — so `tasks/*/*/tests/` matched nothing at all and the
-            # check reported "nothing changed that moves a score" for a rubric
-            # edit. It passed its own counter-probe by doing nothing.
-            candidate = pattern + "*" if pattern.endswith("/") else pattern
-            if fnmatch(path, candidate):
+            if matches(path, pattern):
                 found.append((path, part, why))
                 break
     return found
