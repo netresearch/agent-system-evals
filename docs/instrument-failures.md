@@ -662,6 +662,14 @@ whole project history, handed to a judge as the agent's work. It now reads
 `TARGET_COMMIT` from the case's lock file. Copying a collector between cases
 copies its assumptions with it.
 
+**And the base has to be readable where the hook runs.** Reading `TARGET_COMMIT`
+from the case's lock file replaced one empty patch with another: the collect
+hook runs in a container that has `/app` but not `/opt/case`, so the patch
+contained `sed: can't read /opt/case/target.lock` and nothing else. The image
+now tags the starting commit `trial-base` inside the repository, which is
+visible wherever `/app` is. Three forms of the same collector, three empty
+patches, each for a different reason — check the artefact after repairing it.
+
 **Not fixed elsewhere, deliberately.** Changing a collector changes the task
 digest, and `scripts/compare` then refuses the older runs — correctly, because
 they were produced by a different instrument. Repairing the other cases

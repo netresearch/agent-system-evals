@@ -342,3 +342,38 @@ carries the full history on purpose. Fixed by reading `TARGET_COMMIT` from the
 case's lock file; benchmark 6.0.0. The numbers above do not depend on the
 patch — `release-check.txt` reads the tree — but anything a judge said about
 this round's diff was said about the wrong thing.
+
+## Round two on the repaired instrument: the case is passable
+
+`experiments/OFR-TYPO3-RELEASE-001-20260916-141331.json`, seed 3711, Haiku 4.5,
+benchmark 6.0.0, `nr` against `nr-release`. Twelve trials, the full budget —
+the runner did not stop after the discovery block, because the endpoint moved.
+
+| arm | `release: ok` |
+|---|---|
+| `nr` | 2/6 |
+| `nr-release` | 1/6 |
+
+Fisher exact 1.000 two-sided. After nineteen recorded trials at zero, three
+trials reached the endpoint. What changed is the instrument, not the model: the
+agent now starts in `/app`, where the four version files are.
+
+**The remaining gap is one file.** Eight of the nine failures are
+`CHANGELOG.md mentions: 0` with everything else at 2.4.2 — including
+`Documentation/Changelog/Index.rst`, which no trial opened at all before the
+working directory was fixed. The ninth is the mirror image: that file missed
+while `CHANGELOG.md` was written.
+
+**The release skill does not move it, and is not opened.** `skill_invoked` is
+0/6 in both arms; `nr-release` differs from `nr` by carrying
+`netresearch/github-release-skill` and scored 1/6 against 2/6. On this case,
+under this model, the skill is not read — the same finding the documentation
+case produced, and the reason a fleet difference cannot be read as skill
+quality here.
+
+**The patch was empty again, for a third reason.** `sed: can't read
+/opt/case/target.lock` — the collect hook runs in a container that has `/app`
+but not `/opt/case`. The base is now a `trial-base` tag the image writes into
+the repository itself, which is visible wherever `/app` is; benchmark 7.0.0.
+`release-check.txt` reads the tree, so the numbers above stand, but the judge
+again saw no diff.
