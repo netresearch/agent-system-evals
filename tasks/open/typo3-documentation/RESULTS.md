@@ -375,3 +375,33 @@ between the arms.
 Next: the description carries `guides.xml` in a list of artefacts and says
 nothing about `Settings.cfg`. The agent knows the old convention from
 elsewhere, and nothing it reads contradicts it.
+
+## Round seven, 16 September 2026: the skill is never opened
+
+`experiments/OFR-TYPO3-DOCS-001-20260916-123609.json`, seed 3411, Haiku 4.5,
+benchmark 4.1.0. `candidate` carries
+[netresearch/typo3-docs-skill#128](https://github.com/netresearch/typo3-docs-skill/pull/128),
+which says in the description and in step 0 that `guides.xml` replaced
+`Settings.cfg`.
+
+0/3 against 0/3 again, and `Settings.cfg` was written in three of three
+`candidate` trials, `guides.xml` in none. Across every round so far exactly one
+trial has written a `guides.xml` at all — round five's `XDzDtqj`, in a namespace
+the check rejects — so no trial has yet produced one this case accepts.
+
+The measurement that explains it is in the trajectories. The `Skill` tool is
+offered in this environment — `capability-inventory.json` lists `skills`, and a
+round of OFR-TYPO3-UPGRADE-001 on the same day records `Bash, Edit, Read,
+Skill` as the tools one trial used. The documentation trials record `Bash,
+Read, Write`. The agent never opens the skill; it writes documentation the way
+it already knows how.
+
+That bounds what a change to this skill can do under this model. Step 0 is text
+inside a file nobody reads, so a command there changes nothing — the round
+before showed that the *description* moved the output directory three to
+nothing, because a description is the one part that reaches an agent that does
+not invoke anything.
+
+Whether the same holds when the description carries the consequence rather than
+the occasion — docs.typo3.org renders `Documentation/guides.xml` and nothing
+else — is the next round's question.
