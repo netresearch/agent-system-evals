@@ -261,3 +261,43 @@ it: a comment in the new check named this case's id. A skill written from a
 measurement had carried the measurement's identifiers back into the arm under
 test. Fixed upstream in v2.19.1, which the candidate now pins; the checks are
 byte-identical apart from three comments.
+
+## Round four, 14 September 2026: stopped after the discovery round, and why
+
+`experiments/OFR-TYPO3-DOCS-001-20260914-174225.json`, seed 3011, Haiku 4.5,
+benchmark 3.2.0, `nr` against a `candidate` carrying
+[netresearch/typo3-docs-skill#122](https://github.com/netresearch/typo3-docs-skill/pull/122),
+which puts the `guides.xml` skeleton into the body of SKILL.md. Primary endpoint
+`mechanical_outcome` rather than the judge dimension earlier rounds declared,
+because that is the check the change aims at.
+
+| arm | `docs: ok` | valid trials |
+|---|---|---|
+| `nr` | 0/2 | one excluded, `ApiRateLimitError` |
+| `candidate` | 0/3 | |
+
+The runner stopped after the discovery round, correctly: nothing moved. But the
+round measured neither arm's skill. **All six trials produced no
+`Documentation/` directory at all**, and the `candidate` trials ran 4, 4 and 15
+tool calls at $0.02 to $0.07 — against 16 to 34 steps in every earlier round.
+
+The transcripts say what happened. The agent starts in `/instance`, sees a
+TYPO3 distribution, and asks which extension is meant:
+
+> I need to clarify which TYPO3 extension needs documentation. Based on the
+> current directory structure, this is a TYPO3 CMS base distribution, not an
+> extension itself.
+
+The environment set `WORKDIR /instance` while every collector reads
+`/app/Documentation`, and the prompt names no path — it says "this extension".
+So the agent was asked about an artefact it was not standing in and could not
+see. `skill_invoked` was 1 of 3 and 0 of 2: with nothing identified to document,
+the documentation skill was mostly never reached either.
+
+This is an instrument failure, recorded as number 32. The fix is in the
+environment — the agent now starts in `/app`, where the case is graded — and it
+is a major bump, because a changed environment is a changed case: every result
+above measured a different one.
+
+`netresearch/typo3-docs-skill#122` therefore remains unmeasured. It is not
+refuted by this round; it was never exercised.

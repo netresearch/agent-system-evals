@@ -833,6 +833,42 @@ The standing lesson: **a readiness check has to exercise the path the agent
 will take, not a cheaper path that shares its name.** A dry run and an install
 are both `composer update`, and only one of them needs the archive.
 
+## 32. The agent started in a directory the case does not grade
+
+`OFR-TYPO3-DOCS-001` set `WORKDIR /instance` in its environment while every
+collector reads `/app/Documentation`. The agent therefore opened a TYPO3
+distribution, found no extension in it, and the prompt — "this extension has no
+documentation on docs.typo3.org" — named no path.
+
+Measured on the round of 14 September 2026: six trials, **no
+`Documentation/` directory in any of them**, and three of them stopped to ask
+which extension was meant after 4 tool calls and $0.02. One transcript:
+
+> Based on the current directory structure, this is a TYPO3 CMS base
+> distribution, not an extension itself.
+
+`skill_invoked` came out 1 of 3 and 0 of 2, which is the second consequence:
+with nothing identified to document, the documentation skill is never reached,
+and a routing number computed over such trials measures the working directory
+rather than the descriptions.
+
+The split runs along one line. `OFR-TYPO3-UPGRADE-001` and
+`OFR-TYPO3-RESIZE-001` set `WORKDIR /app` and grade `/app`; they produce
+results. `OFR-TYPO3-RUNTIME-001` sets `WORKDIR /instance` and collects from
+`/instance`; it produces results too. The two cases that have never passed under
+Haiku — this one at 0 of 19 and `OFR-TYPO3-RELEASE-001` at 0 of 19 — are exactly
+the two that start in one tree and are graded in the other.
+
+**Fix:** the agent starts where the case is graded. `WORKDIR /app` for this
+case; the instance stays reachable at `/instance`. `OFR-TYPO3-RELEASE-001`
+carries the same mismatch and is repaired when it is next measured, together
+with the `changed_the_tree` criterion in entry 27 — both are changes to that
+case's definition, and doing them in one pass costs its comparability once
+rather than twice.
+
+**Cost:** a major bump. Every result recorded for this case measured an
+environment in which the agent could not see the artefact it was asked about.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the
