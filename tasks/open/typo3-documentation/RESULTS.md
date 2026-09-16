@@ -385,7 +385,9 @@ which says in the description and in step 0 that `guides.xml` replaced
 `Settings.cfg`.
 
 0/3 against 0/3 again, and `Settings.cfg` was written in three of three
-`candidate` trials. `guides.xml` in none — in either arm, in any round so far.
+`candidate` trials, `guides.xml` in none. Across every round so far exactly one
+trial has written a `guides.xml` at all — round five's `XDzDtqj`, in a namespace
+the check rejects — so no trial has yet produced one this case accepts.
 
 The measurement that explains it is in the trajectories. The `Skill` tool is
 offered in this environment — `capability-inventory.json` lists `skills`, and a
