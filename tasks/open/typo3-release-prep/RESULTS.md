@@ -405,3 +405,29 @@ rather than nothing or everything.
 With that, this case measures what it was written to measure. `release: ok`
 stands at 3 of 9 for `nr` and 2 of 9 for `nr-release` across the two rounds on
 a working instrument, and the release skill is still never opened.
+
+## An instrument change moved a routing number
+
+`skill_invoked` on this case, counted from the trajectories as the trials that
+made a `Skill` tool call:
+
+| when | working directory | trials that opened a skill |
+|---|---|---|
+| 28 August 2026 | `/instance` | 6 of 6 |
+| 16 September 2026 | `/app` | 1 of 12 |
+
+Same case, same prompt, same model, same `nr-release` fleet. The change in
+between is the one this repair made: the agent used to start in a TYPO3
+distribution it could not place the request in, and now starts in the extension
+the request is about.
+
+Stated as the observation rather than the cause — no other difference is known,
+and nothing here isolates the working directory from everything else the repair
+touched. What follows from it either way: **a routing rate is a property of the
+instrument as much as of the descriptions**, so `skill_invoked` figures from
+different benchmark versions of a case do not belong in one table. The rounds
+recorded here after 7.0.0 are the comparable ones.
+
+It also narrows what the release skill can be blamed for. Under the repaired
+instrument the agent mostly does not consult it, and the case is passed by
+trials that never opened it.
