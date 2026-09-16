@@ -169,7 +169,14 @@ at:
   # template as the source for everything else. Whether that moves a case a
   # file reference did not is the question.
   #
-  # Pointed at `main` and not at a tag: no release carries it yet. `nr` pins
-  # v2.16.0, so this arm also carries the checkpoints fix released in between --
-  # stated rather than removed, and it does not touch guides.xml.
-  netresearch/typo3-docs-skill: main
+  # Pointed at an experiment branch rather than at `main`, which is what the
+  # header above says a candidate may use. The first attempt used `main` and
+  # Renovate merged a pre-commit hook update into it between block one and
+  # block two; run-comparison resolved two different commits for one arm and
+  # stopped rather than pool two treatments. The branch sits at the same
+  # commit and no bot writes to it.
+  #
+  # `nr` pins v2.16.0, so this arm also carries what was released in between --
+  # a checkpoints precondition and hook updates, stated rather than removed.
+  # Neither touches guides.xml.
+  netresearch/typo3-docs-skill: experiment/guides-xml-in-the-body
