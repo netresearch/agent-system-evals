@@ -19,3 +19,11 @@ TARGET_ISSUE=https://github.com/derhansen/sf_event_mgt/issues/1364
 #
 # See docs/case-lifecycle.md, criterion 7 and the recovery route beneath it.
 TARGET_HISTORY=shallow
+
+# Only the root tree is pinned, and the reason is the target repository rather
+# than a decision here: its second composer tree under .Build/ sets
+# `"config": {"lock": false}`, so its maintainers keep no lock there and
+# composer writes none. `composer install` in that tree would ignore a lock
+# even if one were supplied, so the test stack stays loose and this case
+# remains partly exposed to registry drift. Stated rather than hidden.
+TARGET_COMPOSER_TREES="."

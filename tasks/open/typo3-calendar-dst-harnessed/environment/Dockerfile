@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY target.lock /tmp/target.lock
+COPY target.lock target-composer.lock target-composer-Build.lock /tmp/
 COPY build-target.sh /tmp/build-target.sh
 # The treatment: the agent-facing scaffolding this repository does not have.
 # Copied in before the build script runs, which asserts the tree is otherwise
