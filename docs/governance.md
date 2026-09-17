@@ -109,8 +109,14 @@ stays out of `tasks/`. It had also failed, twice, on human pull requests that
 edit a case — but that was the version of the job before the `user.type ==
 'Bot'` condition, and since that condition it skips those, which is what the
 condition is for. So the one combination that decides whether a bot can move a
-case had never been exercised. The three are closed with that reason, and their
-updates wait on the dashboard.
+case had never been exercised. The three are closed with that reason.
+
+Closing them does not return the updates to the approval queue, which is worth
+knowing before someone goes looking for them. Renovate's next run moved all
+three to a **PR Closed (Blocked)** section of the dashboard — "blocked by an
+existing closed PR", with a `recreate-branch` checkbox each. So the path back is
+to recreate the pull request, not to approve a pending update, and whoever ticks
+one still owns the `VERSION` bump that comes with it.
 
 ## Cases
 
