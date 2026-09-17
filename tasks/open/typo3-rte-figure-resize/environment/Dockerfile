@@ -40,14 +40,16 @@ RUN chmod +x /usr/local/bin/install-toolchain \
     && ! command -v rg > /dev/null \
     && rm -f /usr/local/bin/install-toolchain
 
-# The functional suite loads TYPO3's compiled TCA schema, which is a single
-# generated PHP file of tens of thousands of lines. At PHP's default 128M the
-# process dies while requiring it -- "Allowed memory size of 134217728 bytes
-# exhausted", three tests into thirteen, before PHPUnit prints a single
-# failure. The limit is raised here rather than on the collector's command
-# line, so that an agent reproducing the report hits the same ceiling the check
-# does; two of six trials in one round ran into the default wall while working.
-RUN printf 'memory_limit=1G\n' > /usr/local/etc/php/conf.d/memory.ini
+# Two ini settings the checks depend on, in one instruction because they are
+# one concern: how the PHP that runs the suite is configured. The memory
+# limit is the one that bites. The functional suite loads TYPO3's compiled
+# TCA schema, a single generated PHP file of tens of thousands of lines, and
+# at PHP's default 128M the process dies while requiring it -- "Allowed
+# memory size of 134217728 bytes exhausted", three tests into thirteen,
+# before PHPUnit prints a single failure. It is raised in the image rather
+# than on the collector's command line so that an agent reproducing the
+# report meets the same ceiling the check does; two of six trials in one
+# round ran into the default wall while working.
 
 # The timezone the case's checks run in, pinned rather than inherited.
 # This case's defect does not depend on it — a sibling candidate's did, and its
@@ -56,7 +58,8 @@ RUN printf 'memory_limit=1G\n' > /usr/local/etc/php/conf.d/memory.ini
 # grades every trial as a pass. See docs/case-lifecycle.md, criterion 8.
 ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo "$TZ" > /etc/timezone \
-    && printf 'date.timezone=%s\n' "$TZ" > /usr/local/etc/php/conf.d/timezone.ini
+    && printf 'date.timezone=%s\n' "$TZ" > /usr/local/etc/php/conf.d/timezone.ini \
+    && printf 'memory_limit=1G\n' > /usr/local/etc/php/conf.d/memory.ini
 
 WORKDIR /app
 RUN mkdir -p /logs/artifacts
