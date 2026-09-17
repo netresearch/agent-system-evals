@@ -34,6 +34,16 @@ change does not move the version at all — there is nowhere left for it to go.
 This is the ordinary `0.x` convention and is written down because the table
 above would otherwise read as an instruction to declare 1.0.
 
+**Recording a run does not move the version.** An experiment record carries
+the `benchmark_version` it was produced under, and that number is a fact about
+the measurement rather than about the tree the record lands in. Bumping
+`VERSION` in the same commit that files the record therefore leaves the two
+disagreeing — the record says 7.2.0 while the tree says 7.2.1 — and a reader
+who sees that is right to stop and ask which one measured what. A results file
+and its record are documentation of something that already happened; they
+change no score, and the patch row above permits a bump rather than requiring
+one.
+
 `scripts/benchmark-version` prints the version and names the part a change
 demands. It does not compute the next number: which digit that lands on depends
 on the paragraph above, and a script that guessed would be wrong on the day the
