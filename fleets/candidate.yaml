@@ -38,20 +38,34 @@ derives_from: nr
 # that changes nothing today changes something the moment that branch moves,
 # and a comparison then measures two differences while reporting one.
 add:
-  # ROUND SEVEN, open: does naming the files a version lives in get the last
-  # one updated?
+  # ROUND SEVEN, ANSWERED 16 September 2026: naming the files a version lives
+  # in gets the last one written. This arm read 4 of 6 against `nr-release`'s
+  # 0 of 6 on OFR-TYPO3-RELEASE-001 — Fisher exact 0.061 two-sided, 0.030
+  # one-sided — with the same skill files in both arms and nothing different
+  # but the description. `CHANGELOG.md` was written in 5 of 6 against 0 of 6,
+  # and `skill_invoked` was 0 of 6 in both arms: the body was never opened, so
+  # the description moved the artefacts on its own. Recorded in
+  # tasks/open/typo3-release-prep/RESULTS.md.
   #
-  # On OFR-TYPO3-RELEASE-001 with a repaired instrument, agents prepare the
-  # release and stop one file short: eight of nine failures in one round were
-  # `CHANGELOG.md` alone, with ext_emconf.php, guides.xml and the changelog
-  # page all carrying 2.4.2. The skill already lists every file in
-  # references/ecosystem-detection.md, and `skill_invoked` was 1 of 12 — a
-  # reference nobody opens. The branch puts the list into the description.
+  # ROUND EIGHT, open: does the RELEASED wording carry the same result?
   #
-  # Compared against `nr-release`, which pins v0.11.0: the same skill with the
-  # description as it was.
+  # What shipped is not what was measured. netresearch/github-release-skill#127
+  # merged into a description that opens with the trigger list -- "Use when
+  # creating releases, version bumps, tagging" -- and places the measured
+  # sentence second, where the experiment branch opened with it. Round two on
+  # the conformance skill showed the same words thirty-five words later behave
+  # differently, so a positive result on a branch does not transfer to the
+  # release by itself. v1.0.2 is therefore measured on its own, against the
+  # same `nr-release` pinning v0.11.0.
+  #
+  # v1.0.2 rather than v1.0.1, which carries the same description: v1.0.1's
+  # CHANGELOG recorded where the change had been measured by naming this
+  # benchmark's case identifier, and contamination-check raised it the first
+  # time the fleet resolved. The text was generalised at the source
+  # (netresearch/github-release-skill#132) and released, because a tag is
+  # immutable and a fleet resolves tags.
   - repo: netresearch/github-release-skill
-    ref: experiment/version-lives-in-every-file
+    ref: v1.0.2
 
 at:
   # An experiment branch, not a release, and the one variable under study.
