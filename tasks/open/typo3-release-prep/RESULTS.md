@@ -464,3 +464,52 @@ there, a description moved *where* the agent wrote and could not move *which
 file*; here, naming the files moved exactly that. The difference is that this
 description names artefacts the agent must produce, not a convention it already
 believes.
+
+## The released wording carries it too: 6 of 6 against 1 of 6
+
+`experiments/OFR-TYPO3-RELEASE-001-20260917-105758.json`, seed 4011, Haiku 4.5,
+benchmark 7.2.0. `nr-release` still pins github-release v0.11.0; `candidate`
+now carries **v1.0.2**, the released skill. The files are identical apart from
+the description, as before.
+
+| arm | `release: ok` | Fisher exact |
+|---|---|---|
+| `candidate` | 6/6 | 0.015 two-sided, 0.008 one-sided |
+| `nr-release` | 1/6 | |
+
+The round was worth running because what shipped is not what the round before
+measured. The experiment branch opened on the sentence naming the files; the
+released description opens with the trigger list — "Use when creating releases,
+version bumps, tagging" — and puts that sentence second, thirty-five words
+later in the same order of magnitude as the conformance skill's round two,
+where exactly that move took a case from never routing to always routing. A
+positive result on a branch does not transfer to a release by itself.
+
+It transferred, and did not weaken: 6 of 6 against the branch's 4 of 6. The two
+are not distinguishable at this size and nothing here says the release is
+*better* — what it says is that the effect survived the move.
+
+**One file decides the case, and it is visible in the artefacts.** Every one of
+the twelve trials produced the same four lines for the other three places:
+
+```
+requested: 2.4.2
+ext_emconf.php: 2.4.2
+Documentation/guides.xml: 2.4.2
+Documentation/Changelog/Index.rst mentions: 2
+```
+
+`CHANGELOG.md` is the whole difference. It carries the new version in 6 of 6
+`candidate` trials and in 1 of 6 `nr-release` trials — and that one is the
+single `nr-release` trial that passed. There is no second mechanism to look
+for.
+
+**Still without the skill being opened.** `skill_invoked` is 1/6 in `candidate`
+and 0/6 in `nr-release`, so five of the six passing trials never read the body
+or `references/ecosystem-detection.md`, which has listed every one of these
+files all along. The description is what reaches the agent, and naming the
+files there is what moves the endpoint — now demonstrated on the wording a
+consumer of the skill actually gets.
+
+Costs move with it and not much: median agent cost 0.12 → 0.16 USD, tool calls
+23 → 24.5, both well inside their intervals.
