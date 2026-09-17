@@ -157,3 +157,64 @@ Two readings of the August round need correcting in light of this one:
   did not run.
 
 The round will be repeated on the repaired environment.
+
+## Round 36, 17 September 2026 — the description opens on the request and still does not route
+
+`experiments/OFR-TYPO3-RESIZE-001-20260917-133849.json`, seed 4211, Haiku 4.5,
+benchmark 8.0.0, on the repaired environment. Six trials, **six valid** — the
+check ran to a verdict in every one of them, which round 35 could not say.
+
+| | `nr` | `candidate` |
+|---|---|---|
+| `figure resize: ok` | 0/3 | 0/3 |
+| `Skill(` calls | 0/3 | 0/3 |
+| trials that added a test file | 2/3 | 1/3 |
+| trials ending on the baseline `Failures: 4` | 3/3 | 2/3 |
+
+`candidate` carried typo3-testing v5.21.2, whose description opens on a
+reported defect and on proving a change to rendered output, and whose body
+carries two rules at the top: a report becomes a failing test before it becomes
+a fix, and a template change is proved by rendering it. Fisher exact p 1.000 on
+the primary endpoint and on routing.
+
+**The description did not route, and the rules were therefore never read.**
+This is the case's second measured zero on `skill_invoked` and the first one
+where a description was written for this exact request shape. Six trials is
+thin, but the direction is not ambiguous: 0 of 3 with the new opening clause,
+0 of 3 without it.
+
+**Nor did the behaviour differ.** Two trials added a test file — one in each
+arm, against the hypothesis rather than for it — and both added **unit** tests:
+`ImageAttributeParserTest`, `ImageRenderingDtoTest`. That is precisely the
+choice the unread rule forbids, on a case whose defect lives in a Fluid
+template that no unit suite renders. Every trial changed production code (two
+to seven files in the diff, and the repaired collector now records the hunks),
+and five of six ended on the pinned commit's own `Failures: 4`. One
+`candidate` trial ended on `Failures: 8`: it changed the rendering path and
+made it worse.
+
+## What the two cases say together
+
+RELEASE-001 and RESIZE-001 were both approached by naming things in a
+description, and only one moved.
+
+| | RELEASE-001 | RESIZE-001 |
+|---|---|---|
+| what the description named | four files a version lives in | the occasion, and that rendered output needs proving |
+| what it asked for | artefacts to produce | a procedure to follow |
+| `skill_invoked` | 1/6 and 0/6 | 0/3 and 0/3 |
+| endpoint | 6/6 against 1/6 | 0/3 against 0/3 |
+
+**A description moves which artefacts an agent produces. It does not move how
+the agent works.** Naming `CHANGELOG.md` got `CHANGELOG.md` written by agents
+that never opened the skill; naming a reported defect did not get a failing
+test written first, and did not even get the skill opened. The documentation
+case had already shown the negative half of this — a description moved the
+output directory and could not move a file convention the model already holds
+— and this is the same boundary from the other side: an artefact is a noun the
+description can hand over, a procedure is not.
+
+What follows for this case is that the next thing to try is not another
+description. Either the rules have to reach the agent some other way, or the
+case measures something a small model does not do regardless of what it is
+told.
