@@ -44,6 +44,13 @@ jobs:
   # red run left it UNSTABLE with its merge gate shut. Whether a human's change
   # to a case is safe, and which VERSION bump it needs, is what review and
   # docs/governance.md decide; this job has nothing to say about it.
+  #
+  # The condition reads `user.type`, which is `Bot` for every open Renovate
+  # pull request here — measured, not assumed — because Renovate runs as a
+  # GitHub App. Were it ever moved to a personal access token on an ordinary
+  # account, its pull requests would report `User` and this job would stop
+  # firing without failing: a gate that judges nobody looks exactly like a
+  # gate that finds nothing. Check that first if it ever falls silent.
   no-case-files:
     if: github.event.pull_request.user.type == 'Bot'
     runs-on: ubuntu-latest
