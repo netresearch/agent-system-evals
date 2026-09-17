@@ -13,6 +13,18 @@ rather than describing an intention.
 `VERSION` at the repository root. A result names it, and two results with
 different versions are not comparable without saying what moved between them.
 
+**A result names it since 10 September 2026, and not before.** 47 of the 70
+experiment records carry no `benchmark_version` field at all; for those the
+start date in the filename is the only handle. That is not a formality. On 30
+August the environment moved under thirteen cases in one commit (`d348d8f`)
+with `VERSION` standing at `2.0.0` on both sides of it — instrument failure 33
+— and seven cases hold recorded rounds on both sides of that day:
+CALENDAR, CONSISTENT, DOCS, METADATA, RELEASE, RESIZE and UPGRADE. Anyone
+reading two figures from one of those results files is comparing across an
+environment change, and neither the file nor the record says so. The rule above
+describes what a version is for; these 47 records predate anything enforcing
+it.
+
 The three parts mean different things:
 
 | Part | Bumped when | Effect on recorded results |
@@ -62,9 +74,9 @@ from late August sat open against case environments — [#33](https://github.com
 raising a MariaDB tag, [#31](https://github.com/netresearch/agent-system-evals/pull/31)
 and [#32](https://github.com/netresearch/agent-system-evals/pull/32) raising
 TYPO3 to v14 in a contract case's extension — all green, none of them naming a
-version bump, and only unmerged because this repository has no auto-merge
-workflow. Adding one without saying which paths it may touch would have moved
-three cases silently.
+version bump, and open only because nobody had merged them. An auto-merge
+workflow that did not say which paths it may touch would have moved three cases
+silently.
 
 So `renovate.json` marks `tasks/**/environment/**` as needing dashboard
 approval: such an update waits on the dependency dashboard and no pull request
@@ -74,13 +86,27 @@ what is stale — and whoever approves one bumps `VERSION` in it.
 A second brake already existed and was mistaken for a fault while this was
 being written. Renovate labels major updates `deps-no-automerge`, and the
 organisation's auto-merge workflow refuses to approve or merge a labelled pull
-request; all eight open ones carry that label, which is why they sit there. The
-backlog was the convention working, not a broken pipeline. The path gate in
+request; every one of the eight open at the time carried that label, which is
+why they sat there. The backlog was the convention working, not a broken
+pipeline. The path gate in
 `.github/workflows/auto-merge-deps.yml` is the independent one, and it is
 blunter than the label: it fails on any bot pull request whose diff contains a
 path under `tasks/`, whatever the update is and whether or not `VERSION` moves.
 The label would let a minor update through; this stops it. Everything under
 `tasks/` is case material, and a bot cannot judge which change to it is safe.
+
+**That gate had never seen the three pull requests it was written for.**
+`pull_request_target` fires on `opened` and `synchronize`; the three date from
+late August and the workflow from 17 September, so no `no-case-files` run ever
+attached to any of them. `pr-status.sh` reported
+[#33](https://github.com/netresearch/agent-system-evals/pull/33) as
+`mergeState=CLEAN` with ten checks passing and nothing naming the eight case
+files in its diff. Requesting a rebase from the dependency dashboard gave it a
+fresh head, and the gate ran there for the first time in the combination it
+exists for — a bot pull request carrying case files — and reported `failure`.
+Until then it had been seen green on bot pull requests and red on human ones,
+never both properties at once. The three are closed with that reason, and their
+updates wait on the dashboard.
 
 ## Cases
 
