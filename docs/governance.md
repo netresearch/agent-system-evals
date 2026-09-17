@@ -104,8 +104,12 @@ attached to any of them. `pr-status.sh` reported
 files in its diff. Requesting a rebase from the dependency dashboard gave it a
 fresh head, and the gate ran there for the first time in the combination it
 exists for — a bot pull request carrying case files — and reported `failure`.
-Until then it had been seen green on bot pull requests and red on human ones,
-never both properties at once. The three are closed with that reason, and their
+Until then it had only ever been seen green: on bot pull requests whose diff
+stays out of `tasks/`. It had also failed, twice, on human pull requests that
+edit a case — but that was the version of the job before the `user.type ==
+'Bot'` condition, and since that condition it skips those, which is what the
+condition is for. So the one combination that decides whether a bot can move a
+case had never been exercised. The three are closed with that reason, and their
 updates wait on the dashboard.
 
 ## Cases
