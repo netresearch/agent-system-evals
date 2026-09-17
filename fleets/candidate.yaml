@@ -37,7 +37,10 @@ derives_from: nr
 # The two spent refs were removed rather than left pointing at `main`. A ref
 # that changes nothing today changes something the moment that branch moves,
 # and a comparison then measures two differences while reporting one.
-add:
+#
+# CLOSED ROUNDS ON THE ADDED SKILL, kept because they say what this arm has
+# already answered and why nothing is added today:
+#
   # ROUND SEVEN, ANSWERED 16 September 2026: naming the files a version lives
   # in gets the last one written. This arm read 4 of 6 against `nr-release`'s
   # 0 of 6 on OFR-TYPO3-RELEASE-001 — Fisher exact 0.061 two-sided, 0.030
@@ -47,27 +50,55 @@ add:
   # the description moved the artefacts on its own. Recorded in
   # tasks/open/typo3-release-prep/RESULTS.md.
   #
-  # ROUND EIGHT, open: does the RELEASED wording carry the same result?
+  # ROUND EIGHT, ANSWERED 17 September 2026: the released wording carries it.
+  # `candidate` at v1.0.2 read 6 of 6 against `nr-release`'s 1 of 6, Fisher
+  # exact 0.015 two-sided and 0.008 one-sided, although the shipped description
+  # opens with the trigger list and puts the measured sentence second. One file
+  # decides the case: all twelve trials produced identical lines for
+  # ext_emconf.php, guides.xml and the changelog page, and `CHANGELOG.md`
+  # carries the new version in 6 of 6 against 1 of 6 — that one being the
+  # single `nr-release` trial that passed. `skill_invoked` 1 of 6 and 0 of 6.
+  # Recorded in tasks/open/typo3-release-prep/RESULTS.md.
   #
-  # What shipped is not what was measured. netresearch/github-release-skill#127
-  # merged into a description that opens with the trigger list -- "Use when
-  # creating releases, version bumps, tagging" -- and places the measured
-  # sentence second, where the experiment branch opened with it. Round two on
-  # the conformance skill showed the same words thirty-five words later behave
-  # differently, so a positive result on a branch does not transfer to the
-  # release by itself. v1.0.2 is therefore measured on its own, against the
-  # same `nr-release` pinning v0.11.0.
-  #
-  # v1.0.2 rather than v1.0.1, which carries the same description: v1.0.1's
-  # CHANGELOG recorded where the change had been measured by naming this
-  # benchmark's case identifier, and contamination-check raised it the first
-  # time the fleet resolved. The text was generalised at the source
-  # (netresearch/github-release-skill#132) and released, because a tag is
-  # immutable and a fleet resolves tags.
-  - repo: netresearch/github-release-skill
-    ref: v1.0.2
+  # The arm is repointed; this question is closed. github-release stays out of
+  # `candidate` rather than being pinned to what it already resolves elsewhere:
+  # a ref that changes nothing today changes something the moment it moves.
+
 
 at:
+  # ROUND NINE, open: can a skill be reached by a bug report at all?
+  #
+  # On OFR-TYPO3-RESIZE-001 the eight skills in `nr` were installed and none
+  # was opened: `Skill(` 0 of 3 in the equipped arm, which therefore measured
+  # the base model twice. The request is a user's report — wrong output, "have
+  # a look and sort it out" — and no description in the fleet opens on that
+  # shape.
+  #
+  # All six trials of that round found the right method in the right class,
+  # wrote the value into the Fluid template as a nested inline ViewHelper call
+  # that Fluid cannot parse, ran the extension's unit suite, saw it green and
+  # reported the defect fixed. The rendered markup carried the expression as
+  # text in all six. A unit suite loads PHP classes and never renders a
+  # template, so nothing in the run could have contradicted them.
+  #
+  # v5.21.1 answers both halves: the description now opens on a reported defect
+  # and on proving a change to rendered output, and two rules sit at the top of
+  # the body — a report becomes a failing test before it becomes a fix, and a
+  # template change is proved by rendering it, reading the rendered string
+  # rather than the exit code. Recorded in
+  # tasks/open/typo3-rte-figure-resize/RESULTS.md.
+  #
+  # Confound, stated rather than removed: `nr` pins v5.20.3, so this arm also
+  # carries v5.20.4 through v5.20.8 — pre-commit hook updates — and v5.21.1's
+  # reference generalisation. None of them touches testing guidance, and the
+  # generalisation removed a passage naming this case's target repository
+  # (netresearch/typo3-testing-skill#173), which is why the release is v5.21.1
+  # and not v5.21.0. v5.21.2 rather than v5.21.1, because v5.21.1 still carried
+  # two eval prompts ending on this benchmark's verbatim closing line
+  # (netresearch/typo3-testing-skill#175); contamination-check raised eight hits
+  # for it across four cases the first time the fleet resolved.
+  netresearch/typo3-testing-skill: v5.21.2
+
   # An experiment branch, not a release, and the one variable under study.
   #
   # Three cases ask what an extension declares about the TYPO3 versions it
