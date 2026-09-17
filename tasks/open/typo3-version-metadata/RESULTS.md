@@ -84,3 +84,39 @@ scripts/run-comparison OFR-TYPO3-METADATA-001 --arms control,nr \
     --primary consistency --model claude-haiku-4-5-20251001 --seed 11
 scripts/analyze experiments/OFR-TYPO3-METADATA-001-20260820-204603.json
 ```
+
+## Round 38, 17 September 2026 — the routing fix transfers, and changes nothing here
+
+`experiments/OFR-TYPO3-METADATA-001-20260917-150915.json`, seed 4411, Haiku
+4.5, benchmark 8.0.1, `control` against `nr`. Six trials, six valid.
+`consistency` was declared as the primary endpoint before the first trial.
+
+| | `control` | `nr` |
+|---|---|---|
+| `consistency` | 3/3 | 3/3 |
+| `skill_invoked` | 0/3 | **3/3** |
+
+The round was run on a prediction rather than a hunch. `scripts/routing-overlap`
+shows this case sharing almost the same words with `typo3-conformance` as
+OFR-TYPO3-CONSISTENT-001 does — and on that case, moving those words into the
+description's opening clause took routing from 0 of 27 to 11 of 12. Every
+recorded `nr` trial here predates that change: the last one resolved
+`typo3-conformance-skill@v2.19.1`, and `nr` has pinned v2.19.4 since
+16 September. The prediction was that the same description would route here.
+
+**It does.** 3 of 3 against 0 of 3, Fisher exact 0.100 two-sided and 0.050
+one-sided, on a case that had recorded 0 of 7 with the old wording. A
+description written for one case moved a second one that nobody had touched —
+which is worth more than the number, because it is the first evidence that
+these description repairs generalise rather than fitting the case they were
+measured on.
+
+**And it changes nothing about the outcome.** `consistency` is 3 of 3 in both
+arms. The case is passed by the base model, the skills are now reached, and
+being reached makes no difference to a result that was already at the ceiling.
+Cost and tool calls move by less than their intervals.
+
+That is not a disappointment, it is the shape of the finding: routing is
+necessary for a skill to matter and is not sufficient for it to. The two halves
+have to be measured separately, and a case at the ceiling can only show the
+first one.
