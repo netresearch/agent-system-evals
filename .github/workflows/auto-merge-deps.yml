@@ -3,29 +3,65 @@ name: Auto-merge dependency PRs
 on:
   # The reusable only calls `gh pr merge` with the base-repo token; it never
   # checks out or runs PR head code, so pull_request_target is safe here.
-  #
-  # paths-ignore does the gating, at the trigger. A dependency update inside a
-  # case's environment is a change to the case, not maintenance: it moves what
-  # the agent is measured on and demands a major VERSION bump
-  # (docs/governance.md). renovate.json holds those on the dependency
-  # dashboard, but approving one there produces an ordinary pull request, and
-  # this keeps the workflow from merging it.
-  #
-  # A gate job was tried first and did not work: it read the file list, logged
-  # "verdict: no — auto-merge may proceed", and the `uses:` job guarded by
-  # `if: needs.<job>.outputs.verdict == 'no'` was skipped anyway, on pull
-  # requests touching nothing but .github/. The verdict never reached the
-  # condition. Rather than keep guessing at that, the filter moved to the
-  # trigger, where GitHub evaluates it: a pull request that touches tasks/
-  # starts no run at all.
   pull_request_target: # zizmor: ignore[dangerous-triggers]
-    paths-ignore:
-      - 'tasks/**'
 
 permissions: {}
 
 jobs:
+  # A dependency update inside a case's environment is a change to the case,
+  # not maintenance: it moves what the agent is measured on and demands a major
+  # VERSION bump (docs/governance.md). renovate.json holds those on the
+  # dependency dashboard, but approving one there produces an ordinary pull
+  # request, and the reusable below checks bot authorship and labels rather
+  # than paths — it would merge it.
+  #
+  # This job FAILS when a case file is in the diff, and `needs` then keeps the
+  # merge from running. Failing rather than reporting a verdict is deliberate:
+  # the first version passed `verdict: no` to `if: needs.<job>.outputs.verdict
+  # == 'no'` and the merge job was skipped anyway, on pull requests touching
+  # nothing but .github/. A red run is also the louder signal — a case update
+  # needs a person, and an unexplained skip does not say so.
+  #
+  # `paths-ignore` on the trigger cannot do this either: it skips a run only
+  # when EVERY changed path matches, so a pull request touching tasks/ and
+  # .github/ together would sail through.
+  #
+  # Reads the file list through the API — no checkout, no PR head code.
+  no-case-files:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # An empty list is a statement about the request, not about the pull
+          # request; treating it as "no case files" would wave through exactly
+          # what this job exists to stop.
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')
+          if [ -z "$files" ]; then
+            echo "could not read the file list for #$PR" >&2
+            exit 1
+          fi
+
+          echo "files in #$PR:"
+          echo "$files"
+
+          # grep -c, not grep -q: the count prints, and a pattern test behind a
+          # pipe can report a found match as a failure under pipefail.
+          hits=$(grep -c '^tasks/' <<<"$files" || true)
+          if [ "${hits:-0}" -gt 0 ]; then
+            echo "::error::$hits file(s) under tasks/ — this changes a case. A person merges it, with a major VERSION bump (docs/governance.md)."
+            grep '^tasks/' <<<"$files" >&2
+            exit 1
+          fi
+          echo "nothing under tasks/ — auto-merge may proceed."
+
   auto-merge:
+    needs: no-case-files
     # @main on purpose: this is an organisation-owned reusable, and pinning it
     # to a hash would hold this repository on a fixed copy of a workflow whose
     # fixes are meant to reach every consumer. Third-party actions are pinned.
