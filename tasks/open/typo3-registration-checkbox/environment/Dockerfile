@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-COPY target.lock /tmp/target.lock
+COPY target.lock target-composer.lock /tmp/
 COPY build-target.sh /tmp/build-target.sh
 RUN chmod +x /tmp/build-target.sh && /tmp/build-target.sh && rm -f /tmp/build-target.sh
 

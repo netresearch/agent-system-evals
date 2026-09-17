@@ -26,3 +26,9 @@ TARGET_ISSUE=https://github.com/derhansen/sf_event_mgt/issues/1219
 # the defect to occur on. The environment pins the timezone for that reason and
 # docs/case-lifecycle.md criterion 8 records why.
 TARGET_HISTORY=shallow
+
+# The extension keeps its test stack in a second composer tree under .Build/,
+# installed separately by its own CI and by build-target.sh. Both are pinned;
+# pinning only the root would leave the stack that runs the tests resolving
+# fresh on every build.
+TARGET_COMPOSER_TREES=". .Build"

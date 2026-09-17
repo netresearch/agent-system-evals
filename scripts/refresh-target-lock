@@ -23,11 +23,27 @@ CASE_DIR="${1:?usage: refresh-target-lock <task-dir>}"
 CASE_DIR="$(cd "$CASE_DIR" && pwd)"
 ENV_DIR="$CASE_DIR/environment"
 LOCK_FILE="$ENV_DIR/target.lock"
-OUT="$ENV_DIR/target-composer.lock"
+
+# A target can carry more than one composer tree. Three TYPO3 extensions here
+# keep their test stack in a second one under `.Build/`, installed separately
+# by their own CI and by this case's build script — pinning only the root
+# leaves the stack that actually runs the tests resolving fresh on every build,
+# which is the drift this file exists to stop. The case names its trees in
+# target.lock; the default is the root alone.
+#   TARGET_COMPOSER_TREES=". .Build"
+# The lock for the root tree keeps the name it always had, so a case that adds
+# a second tree does not rename the file its build script already reads.
+lock_name() {
+    case "$1" in
+        .|"") printf 'target-composer.lock' ;;
+        *)    printf 'target-composer-%s.lock' "$(printf '%s' "$1" | sed 's|^\./||; s|^\.||' | tr '/' '-')" ;;
+    esac
+}
 
 test -f "$LOCK_FILE" || { echo "no target.lock in $ENV_DIR" >&2; exit 1; }
 # shellcheck source=/dev/null
 . "$LOCK_FILE"
+TREES="${TARGET_COMPOSER_TREES:-.}"
 
 # Resolve on the image the case installs on. Composer writes platform
 # requirements into the lock, so a set resolved on one PHP and installed on
@@ -38,6 +54,11 @@ BASE="$(sed -n 's/^FROM \([^ ]*\).*/\1/p' "$ENV_DIR/Dockerfile" | head -1)"
 test -n "$BASE" || { echo "no FROM line in $ENV_DIR/Dockerfile" >&2; exit 1; }
 
 echo "resolving dependencies for $TARGET_PACKAGE @ ${TARGET_COMMIT:0:12} on $BASE"
+echo "composer tree(s): $TREES"
+
+for TREE in $TREES; do
+OUT="$ENV_DIR/$(lock_name "$TREE")"
+echo "--- tree $TREE"
 
 docker run --rm \
     -v "$ENV_DIR:/out" \
@@ -59,13 +80,29 @@ docker run --rm \
         # Advisories published after the target commit must not decide whether
         # a historical state can be built. The review of that state is the
         # case; blocking the build would simply delete the case.
+        cd '/src/$TREE'
+
         composer config policy.advisories.block false
+        # The TYPO3 installer plugins, allowed for the same reason the build
+        # scripts allow them: a repository that declares no allow-plugins is
+        # refused outside its usual environment, with a message that reads like
+        # a dependency conflict.
+        composer config --no-plugins allow-plugins.typo3/cms-composer-installers true >/dev/null 2>&1 || true
+        composer config --no-plugins allow-plugins.typo3/class-alias-loader true >/dev/null 2>&1 || true
         composer update --no-interaction --no-progress --no-ansi --no-audit
 
-        cp composer.lock /out/target-composer.lock
+        # A tree whose composer.json sets config.lock=false produces none, by
+        # its maintainers deliberate choice, and composer install would ignore
+        # one anyway. Said plainly here rather than dying on a cp: the tree
+        # cannot be pinned, and the case has to state that it stays loose.
+        if [ ! -f composer.lock ]; then
+            echo \"tree '$TREE' writes no composer.lock (config.lock=false in its composer.json) — it cannot be pinned\" >&2
+            exit 3
+        fi
+        cp composer.lock '/out/$(lock_name "$TREE")'
     "
 
-test -s "$OUT" || { echo "no lock produced" >&2; exit 1; }
+test -s "$OUT" || { echo "no lock produced for tree $TREE" >&2; exit 1; }
 echo "wrote $OUT"
 python3 - "$OUT" <<'PY'
 import json, sys
@@ -76,3 +113,4 @@ for p in pkgs:
     if p["name"].startswith("typo3/cms-core"):
         print(f"  typo3/cms-core {p['version']}")
 PY
+done

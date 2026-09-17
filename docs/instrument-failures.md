@@ -970,6 +970,30 @@ Giving a case its lock changes what it installs and therefore costs a major
 bump per case, which is why this entry records the finding rather than
 smuggling fourteen environment changes in behind a memory limit.
 
+**Carried forward on 17 September 2026**, to the three cases that build their
+target the same way this one does: `OFR-TYPO3-CALENDAR-001`, its harnessed
+twin, and `OFR-TYPO3-REGISTRATION-001`. Two things came out of doing it that
+reading could not have produced.
+
+Each of those targets keeps its test stack in a **second** composer tree under
+`.Build/`, installed separately, so pinning the root alone would have left the
+stack that actually runs the tests resolving fresh — a repair that looks
+complete and fixes half the problem. `scripts/refresh-target-lock` now takes
+the trees from the case (`TARGET_COMPOSER_TREES`) and writes one lock each.
+
+And one of those trees cannot be pinned at all: `sf_event_mgt` sets
+`"config": {"lock": false}` in its `.Build/composer.json`, so its maintainers
+keep no lock there, composer writes none, and `composer install` would ignore
+one. That case is pinned at the root and stated as partly exposed in its
+`target.lock` rather than reported as done. The tool now says so plainly
+instead of dying on a `cp`.
+
+What remains unpinned after this: the six cases that install a TYPO3 *instance*
+through `install-instance.sh` rather than building a target, and
+`OFR-TYPO3-UPGRADE-001`, which must never be pinned — its endpoint is whether
+the agent can resolve a newer TYPO3, and a lock would answer that question for
+it.
+
 **And the gate could not see it.** A check that crashes was graded rather than
 discarded: the validity gate reads artefacts for existence only — deliberately,
 because an empty `git-diff.patch` is a legitimate result — so it could not tell
