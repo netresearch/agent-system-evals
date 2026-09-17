@@ -15,9 +15,13 @@ jobs:
   # request, and the reusable below checks bot authorship and labels rather
   # than paths — it would merge it.
   #
-  # This job FAILS when a case file is in the diff, and `needs` then keeps the
-  # merge from running. A red run is the louder signal: a case update needs a
-  # person, and a silent skip does not say so.
+  # This job FAILS when ANY path under tasks/ is in the diff — not only an
+  # environment file, not only a minor update, and regardless of whether the
+  # pull request bumps VERSION. The check is deliberately blunt: everything
+  # under tasks/ is case material, and a bot has no way to judge which change
+  # to it is safe. `needs` then keeps the merge from running. A red run is the
+  # louder signal: a case update needs a person, and a silent skip does not say
+  # so.
   #
   # `paths-ignore` on the trigger cannot do this: it skips a run only when
   # EVERY changed path matches, so a pull request touching tasks/ and .github/

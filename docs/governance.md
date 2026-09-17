@@ -66,8 +66,11 @@ being written. Renovate labels major updates `deps-no-automerge`, and the
 organisation's auto-merge workflow refuses to approve or merge a labelled pull
 request; all eight open ones carry that label, which is why they sit there. The
 backlog was the convention working, not a broken pipeline. The path gate in
-`.github/workflows/auto-merge-deps.yml` is the independent one: it stops a
-*minor* dependency update that happens to touch a case.
+`.github/workflows/auto-merge-deps.yml` is the independent one, and it is
+blunter than the label: it fails on any bot pull request whose diff contains a
+path under `tasks/`, whatever the update is and whether or not `VERSION` moves.
+The label would let a minor update through; this stops it. Everything under
+`tasks/` is case material, and a bot cannot judge which change to it is safe.
 
 ## Cases
 
