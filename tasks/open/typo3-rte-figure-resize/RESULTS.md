@@ -223,8 +223,12 @@ point. In August every trial wrote it straight into the `style` attribute.
 Here every trial wraps it in an `f:variable` first:
 
 ```html
-<f:variable name="figureStyleAttr" value="{f:if(condition: image.figureStyle, then: image.figureStyle, else: f:if(condition: image.width, then: 'max-width: {image.width}px'))}
+<f:variable name="figureStyle" value="{f:if(condition: image.figureStyle, then: image.figureStyle, else: f:if(condition: image.width, then: 'max-width: {image.width}px'))}
 ```
+
+The `value` expression is byte-identical in all six; four trials name the
+variable `figureStyle` and two `figureStyleAttr`, which is the whole of the
+variation between them.
 
 Same nesting, new packaging, and Fluid parses it no better: the rendered
 `<figure>` carries the expression verbatim in `style`, which is what the
