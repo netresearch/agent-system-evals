@@ -62,6 +62,18 @@ dimensions = ["outcome_quality"]
 artifacts = "figure-resize-check.txt"
 all_of = ["figure resize: ok"]
 
+# What proves the check produced a verdict at all. The collector redirects into
+# its file before running anything, so the artefact exists whether the suite
+# finished or died in its first seconds -- and a suite that dies grades every
+# arm at zero, which reads as a clean null result. On 17 September 2026 it did:
+# the functional run was killed by PHP's memory limit three tests into
+# thirteen, before PHPUnit printed one failure, and the comparison stopped
+# after the discovery round at p 1.000 (docs/instrument-failures.md 33).
+#
+# PHPUnit prints this line once it has a result, whatever that result is, so
+# its absence is the instrument and not the agent.
+ran_if = ["Tests: "]
+
 [agent]
 # The task needs no network. The agent still needs its own model endpoint.
 network_mode = "allowlist"

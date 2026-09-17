@@ -117,6 +117,9 @@ class Arm:
                 required_artifacts=(
                     cases.required_artifacts(self.case_id) if self.case_id else None
                 ),
+                check_ran=(
+                    cases.check_ran_markers(self.case_id) if self.case_id else None
+                ),
             )
             self.trials.extend(valid)
             self.excluded.extend(

@@ -952,11 +952,25 @@ rather than changing it, but because the environment these trials will run in
 is not the one the recorded ones ran in, and this is the first time that is
 being said out loud.
 
-**Still open:** a check that crashes is graded, not discarded. The validity
-gate reads artefacts for existence only — deliberately, because an empty
-`git-diff.patch` is a legitimate result — so it cannot tell a crashed check
-from a failing one. A case knows what its own evidence of having run looks
-like, and nothing lets it say so.
+**And the gate could not see it.** A check that crashes was graded rather than
+discarded: the validity gate reads artefacts for existence only — deliberately,
+because an empty `git-diff.patch` is a legitimate result — so it could not tell
+a crashed check from a failing one. Existence proves the collector started,
+which is a different question from whether the check it runs reached a verdict.
+
+A case is the only thing that can answer the second one, so it now says it:
+`[metadata.mechanical_outcome] ran_if` lists what the artefact carries once the
+check has a result, whatever that result is. For this case that is PHPUnit's
+`Tests:` line. Absent it, the trial is `INVALID_COLLECTOR` and names the reason
+rather than scoring zero. Where a case declares no `ran_if`, nothing is
+checked and the verdict says so under `unchecked` — silence about it is not the
+same as having looked.
+
+Measured in both directions before it was believed: the six crashed trials of
+17 September go from `3 valid of 3` per arm to `0 valid of 3`, each named, and
+`scripts/analyze` answers "an arm has no valid trial; there is nothing to
+compare"; the August trials, whose check ran and reported four failures, stay
+`VALID`.
 
 ## What this cost, and what it teaches
 

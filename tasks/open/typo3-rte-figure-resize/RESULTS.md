@@ -130,6 +130,14 @@ six agents hit the same wall while working.
 The job directories stay on disk under their names so the discard can be
 checked. They are excluded from every figure here.
 
+The experiment record still reads `valid_trials: {nr: 3, candidate: 3}`. That
+is what the gate said while the round ran, and it is left standing rather than
+edited: it is the evidence that the gate could not tell a crashed check from a
+failing one. `scripts/analyze` on the same record now answers differently —
+`0 valid of 3` in both arms, each trial named with its reason, and "an arm has
+no valid trial; there is nothing to compare" — because the case now declares
+what proves its check produced a verdict at all (`ran_if` in `task.toml`).
+
 **One number survives, and it is the one the mechanical check could not have
 produced anyway.** `Skill(` was called in 0 of 3 `candidate` trials. That arm
 carried a description opening on a reported defect and on proving a change to

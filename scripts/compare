@@ -79,6 +79,7 @@ def load_trials(job_dir: Path) -> tuple[list[dict[str, float]], list[str]]:
         job_dir,
         expected_dimensions=cases.graded_dimensions(case_id) if case_id else None,
         required_artifacts=cases.required_artifacts(case_id) if case_id else None,
+        check_ran=cases.check_ran_markers(case_id) if case_id else None,
     )
     excluded = [
         f"{trial.name}: {verdict}"

@@ -53,3 +53,23 @@ def graded_dimensions(case_id: str) -> set[str]:
 
 def required_artifacts(case_id: str) -> list[str]:
     return list(metadata(case_id).get("required_artifacts") or [])
+
+
+def check_ran_markers(case_id: str) -> tuple[str, list[str]]:
+    """The artefact a case is graded from, and what proves the check ran.
+
+    A collector redirects into its file before doing anything, so the file
+    exists whether the check completed or died in its first second. Those two
+    look identical to a gate that tests existence, and the second one grades
+    every arm at zero — a crashed check reads as a clean null result, which is
+    how a round on OFR-TYPO3-RESIZE-001 came to report 0 of 3 against 0 of 3
+    after the functional suite ran out of memory three tests in
+    (docs/instrument-failures.md 33).
+
+    The case says what its own evidence of having run looks like, under
+    `[metadata.mechanical_outcome] ran_if`. Absent, nothing is checked: this is
+    a statement only the case can make, and a generic content rule over
+    artefacts would fail the cases whose correct result is an empty file.
+    """
+    outcome = metadata(case_id).get("mechanical_outcome") or {}
+    return str(outcome.get("artifacts") or ""), list(outcome.get("ran_if") or [])

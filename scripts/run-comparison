@@ -233,6 +233,7 @@ def gated(jobs: list[Path], case_id: str):
             job,
             expected_dimensions=cases.graded_dimensions(case_id),
             required_artifacts=cases.required_artifacts(case_id),
+            check_ran=cases.check_ran_markers(case_id),
         )
         yield from valid
 

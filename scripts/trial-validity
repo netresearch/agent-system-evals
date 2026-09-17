@@ -34,6 +34,7 @@ def report(job: Path, quiet: bool) -> tuple[int, int]:
         job,
         expected_dimensions=cases.graded_dimensions(case_id) if case_id else None,
         required_artifacts=cases.required_artifacts(case_id) if case_id else None,
+        check_ran=cases.check_ran_markers(case_id) if case_id else None,
     )
     if not verdicts:
         return 0, 0

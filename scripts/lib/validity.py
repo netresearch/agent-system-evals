@@ -138,6 +138,7 @@ def classify(
     expected_dimensions: set[str] | None = None,
     snapshot: dict | None = None,
     required_artifacts: list[str] | None = None,
+    check_ran: tuple[str, list[str]] | None = None,
 ) -> Verdict:
     snapshot = snapshot or {}
     unchecked: list[str] = []
@@ -200,6 +201,23 @@ def classify(
     else:
         unchecked.append("collectors (the case declares no required_artifacts)")
 
+    # Existence says the collector started. Whether the check it runs ever
+    # produced a verdict is a different question, and the case is the only
+    # thing that can answer it — see cases.check_ran_markers.
+    artifact, markers = check_ran or ("", [])
+    if artifact and markers:
+        path = trial / "artifacts" / "logs" / "artifacts" / artifact
+        text = path.read_text(errors="replace") if path.is_file() else ""
+        if not any(marker in text for marker in markers):
+            return Verdict(
+                INVALID_COLLECTOR,
+                f"{artifact} carries none of {markers}: the check did not run "
+                f"to a verdict, and a trial graded from it scores zero for "
+                f"the instrument rather than for the agent",
+            )
+    elif not markers:
+        unchecked.append("whether the check ran (the case declares no ran_if)")
+
     errored = judge_errors(trial)
     if errored:
         return Verdict(
@@ -258,11 +276,14 @@ def gate(
     job_dir: Path,
     expected_dimensions: set[str] | None = None,
     required_artifacts: list[str] | None = None,
+    check_ran: tuple[str, list[str]] | None = None,
 ) -> tuple[list[Path], dict[Path, Verdict]]:
     """Every trial of a job, split into the valid ones and the rest."""
     snapshot = read_snapshot(job_dir)
     verdicts = {
-        trial: classify(trial, expected_dimensions, snapshot, required_artifacts)
+        trial: classify(
+            trial, expected_dimensions, snapshot, required_artifacts, check_ran
+        )
         for trial in trial_dirs(job_dir)
     }
     return [t for t, v in verdicts.items() if v.valid], verdicts

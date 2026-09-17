@@ -95,6 +95,7 @@ class Arm:
                 job,
                 expected_dimensions=case_lib.graded_dimensions(case_id),
                 required_artifacts=case_lib.required_artifacts(case_id),
+                check_ran=case_lib.check_ran_markers(case_id),
             )
             self.valid.extend(valid)
             self.verdicts.extend(verdicts)
