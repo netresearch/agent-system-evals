@@ -95,18 +95,20 @@ patches is in no commit.
 What the repository does record is that the collector was rewritten twice
 within three hours of this round (`4f414b8`, 11:26) and again later, and that
 its present form diffs against the root commit and covers the working tree
-rather than `HEAD`. Whatever the cause here, the empty patch belongs to the
-instrument and not to the trials, and this round's patches are not evidence
-about what the agents changed. The `git status` lines and the rendered output
-are.
+rather than `HEAD`. What follows for this round is only that the patch contents
+are unavailable: they cannot say what the trials changed, in either direction.
+The `git status` lines and the rendered output can, and everything above rests
+on those.
 
 Two further jobs sit in `jobs/` for this case and are not in the table above,
 both from before the experiment record opened: `control-20260829-090402`, whose
 check died on `cp: cannot stat '/tests/...'` because the case's tests directory
 is not mounted in the environment container, and `control-20260829-091348`,
-which reached the same `Tests: 13 … Failures: 4`. The functional test is
-embedded in the collector since, which is what the long comment in `task.toml`
-records.
+which reached the same `Tests: 13 … Failures: 4`. The functional test is no
+longer copied from a mount: `tests/FigureResizeWidthRenderingTest.php` is the
+source a reader should read, `task.toml` carries the same PHP verbatim inside
+the collector so that it exists in no image the agent can reach, and
+`tests/test_case_check_matches_its_source.py` fails if the two drift apart.
 
 ## What this round asks next
 
