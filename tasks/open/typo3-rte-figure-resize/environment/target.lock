@@ -19,9 +19,16 @@
 #   TARGET_FIX_COMMIT  Tests: 13, Assertions: 15, Failures: 0
 #
 # The case is therefore valid under the current stack, and the drift cost only
-# the memory limit the check needs (docs/instrument-failures.md 33). Record the
-# toolchain with any future re-verification: the job lock carries no image
-# digest, so nothing else in a recorded run would show that it moved.
+# the memory limit the check needs (docs/instrument-failures.md 33).
+#
+# PINNED SINCE, so that this cannot recur silently: `target-composer.lock`
+# beside this file holds the 200 packages that resolution produced, generated
+# by scripts/refresh-target-lock on the same base image the case installs on,
+# and build-target.sh installs from it rather than from the registry. Both
+# halves were measured again under the lock and read the same figures. The
+# lock is valid at both commits because composer.json is byte-identical
+# between them; a case whose manifest moves between target and fix cannot
+# verify its second half this way and has to say so.
 TARGET_REPOSITORY=https://github.com/netresearch/t3x-rte_ckeditor_image.git
 TARGET_COMMIT=31ea08989b3daf9f44dae17e95ac92646633d5b5
 TARGET_PACKAGE=netresearch/rte-ckeditor-image

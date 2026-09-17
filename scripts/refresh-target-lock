@@ -29,13 +29,21 @@ test -f "$LOCK_FILE" || { echo "no target.lock in $ENV_DIR" >&2; exit 1; }
 # shellcheck source=/dev/null
 . "$LOCK_FILE"
 
-echo "resolving dependencies for $TARGET_PACKAGE @ ${TARGET_COMMIT:0:12}"
+# Resolve on the image the case installs on. Composer writes platform
+# requirements into the lock, so a set resolved on one PHP and installed on
+# another is a different set -- and this script resolved on php:8.3-cli while
+# every TYPO3 case has been built `FROM php:8.5-cli` since 30 August. Read from
+# the case rather than repeated here, so the two cannot drift apart again.
+BASE="$(sed -n 's/^FROM \([^ ]*\).*/\1/p' "$ENV_DIR/Dockerfile" | head -1)"
+test -n "$BASE" || { echo "no FROM line in $ENV_DIR/Dockerfile" >&2; exit 1; }
+
+echo "resolving dependencies for $TARGET_PACKAGE @ ${TARGET_COMMIT:0:12} on $BASE"
 
 docker run --rm \
     -v "$ENV_DIR:/out" \
     -e COMPOSER_ALLOW_SUPERUSER=1 \
     -e COMPOSER_NO_INTERACTION=1 \
-    php:8.3-cli bash -euo pipefail -c "
+    "$BASE" bash -euo pipefail -c "
         apt-get update -qq && apt-get install -y -qq --no-install-recommends \
             git unzip libzip-dev libicu-dev >/dev/null
         docker-php-ext-install -j\"\$(nproc)\" ftp zip intl >/dev/null
