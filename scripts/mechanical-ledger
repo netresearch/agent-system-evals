@@ -94,6 +94,7 @@ def ledger(jobs_dir: Path | None = None) -> dict:
             job,
             expected_dimensions=cases.graded_dimensions(case),
             required_artifacts=cases.required_artifacts(case),
+            check_ran=cases.check_ran_markers(case),
         )
         for trial in valid:
             artifacts = trial / "artifacts" / "logs" / "artifacts"

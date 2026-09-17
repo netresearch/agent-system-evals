@@ -31,6 +31,7 @@ def build_trial(
     rewards: dict | None = None,
     judge_error: bool = False,
     artifacts: list[str] = (),
+    artifact_body: str = "",
     mcp_prefix: str | None = None,
 ) -> Path:
     trial = job / name
@@ -69,7 +70,7 @@ def build_trial(
     collected = trial / "artifacts" / "logs" / "artifacts"
     collected.mkdir(parents=True, exist_ok=True)
     for artifact in artifacts:
-        (collected / artifact).write_text("")
+        (collected / artifact).write_text(artifact_body)
     return trial
 
 
@@ -161,6 +162,53 @@ def test_an_empty_artifact_is_not_a_failure(tmp_path):
         validity.classify(trial, required_artifacts=["git-diff.patch"]).state
         == validity.VALID
     )
+
+
+def test_a_check_that_crashed_is_not_a_zero(tmp_path):
+    """A suite killed before it printed a result grades every arm the same.
+
+    The artefact exists, because the collector redirects into it before running
+    anything, so existence cannot tell this from a check that ran and failed.
+    Read as a score it is a clean null result, which is how a round came to
+    report 0 of 3 against 0 of 3 after the functional suite ran out of memory
+    three tests in (docs/instrument-failures.md 33).
+    """
+    trial = build_trial(
+        tmp_path,
+        artifacts=["check.txt"],
+        artifact_body="F..\nFatal error: Allowed memory size exhausted\n",
+    )
+    verdict = validity.classify(
+        trial,
+        required_artifacts=["check.txt"],
+        check_ran=("check.txt", ["Tests: "]),
+    )
+    assert verdict.state == validity.INVALID_COLLECTOR
+    assert "check.txt" in verdict.reason
+
+
+def test_a_check_that_ran_and_failed_is_a_result(tmp_path):
+    """The other direction, which is the one the gate must not break."""
+    trial = build_trial(
+        tmp_path,
+        artifacts=["check.txt"],
+        artifact_body="F..FFF.......\nTests: 13, Assertions: 14, Failures: 4\n",
+    )
+    assert (
+        validity.classify(
+            trial,
+            required_artifacts=["check.txt"],
+            check_ran=("check.txt", ["Tests: "]),
+        ).state
+        == validity.VALID
+    )
+
+
+def test_a_case_that_declares_no_ran_if_is_reported_as_unchecked(tmp_path):
+    """Silence about it is not the same as having checked."""
+    verdict = validity.classify(build_trial(tmp_path, artifacts=["check.txt"]))
+    assert verdict.valid
+    assert any("check ran" in note for note in verdict.unchecked)
 
 
 def test_an_unchecked_collector_is_reported(tmp_path):

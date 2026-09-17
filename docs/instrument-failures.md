@@ -899,6 +899,79 @@ environment in which the agent could not see the artefact it was asked about.
 `WORKDIR /app`, made in one pass with that case's entry-27 repair so the
 comparability of its nineteen recorded trials is spent once. Benchmark 5.0.0.
 
+## 33. A dependency bot moved the case, and the check hit a memory wall
+
+`OFR-TYPO3-RESIZE-001` ran on 17 September 2026 and read 0 of 3 against 0 of 3.
+It measured nothing. The functional check died three tests into thirteen:
+
+```
+F..
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to
+allocate 4096 bytes) in .../typo3temp/var/cache/code/core/TcaSchema_*.php
+```
+
+TYPO3 compiles its TCA schema into a single generated PHP file, and requiring
+it at PHP's default 128M no longer fits. The process died before PHPUnit
+printed one failure, so the artefact carried no `Tests:` line at all — and the
+comparison read that as every arm scoring zero, stopped after the discovery
+round at p 1.000, and produced a record that looks like a clean null result.
+Two of the six agents hit the same wall while working, so the round was void on
+both sides of the instrument.
+
+**Why it appeared now.** The case was verified in August against PHP 8.3.33
+with PHPUnit 12.5.34. On 30 August a Renovate pull request raised
+`FROM php:8.3-cli` to `php:8.5-cli` across twelve case environments in one
+commit, with no `VERSION` bump — the environment is the case, and that is a
+major change by this repository's own rule. The extension has no
+`composer.lock`, so the same build also resolves `typo3/cms-core` fresh against
+`^13.4.21 || ^14.3`: the August image carried TYPO3 13.4, today's carries
+14.3.7 with PHPUnit 13.3.4. Nothing was wrong with any of those versions. The
+case simply had not been run since, and no result had been produced under them.
+
+The governance rule that would have caught it was written on 16 September, from
+three open Renovate pull requests against case environments and the reasoning
+that merging one "would have moved three cases silently". That reasoning was
+correct and three weeks late: one had already merged.
+
+**What the job lock does not say.** `docs/reproducibility.md` lists
+"Environment — built image digest" among the pinned layers. No recorded lock
+carries one: it records a `task.digest` over the case directory's *text*, which
+is exactly the same for two builds of one Dockerfile that resolve different
+images. The drift was recorded as identical.
+
+**Fix:** `memory_limit=1G` as a `conf.d` file in the image, so the agent
+reproducing the report meets the same ceiling as the check rather than a lower
+one. Both halves of the case were then re-verified under the current toolchain
+— PHP 8.5.10, TYPO3 14.3.7, PHPUnit 13.3.4 — and reproduce the numbers the case
+was built on: **13 tests with 4 failures at the pinned commit, 13 tests with 0
+failures at the fix commit**. Those figures and the toolchain are now in
+`environment/target.lock`, where the next divergence is visible.
+
+**Cost:** a major bump. Not for the memory limit, which repairs the check
+rather than changing it, but because the environment these trials will run in
+is not the one the recorded ones ran in, and this is the first time that is
+being said out loud.
+
+**And the gate could not see it.** A check that crashes was graded rather than
+discarded: the validity gate reads artefacts for existence only — deliberately,
+because an empty `git-diff.patch` is a legitimate result — so it could not tell
+a crashed check from a failing one. Existence proves the collector started,
+which is a different question from whether the check it runs reached a verdict.
+
+A case is the only thing that can answer the second one, so it now says it:
+`[metadata.mechanical_outcome] ran_if` lists what the artefact carries once the
+check has a result, whatever that result is. For this case that is PHPUnit's
+`Tests:` line. Absent it, the trial is `INVALID_COLLECTOR` and names the reason
+rather than scoring zero. Where a case declares no `ran_if`, nothing is
+checked and the verdict says so under `unchecked` — silence about it is not the
+same as having looked.
+
+Measured in both directions before it was believed: the six crashed trials of
+17 September go from `3 valid of 3` per arm to `0 valid of 3`, each named, and
+`scripts/analyze` answers "an arm has no valid trial; there is nothing to
+compare"; the August trials, whose check ran and reported four failures, stay
+`VALID`.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the
