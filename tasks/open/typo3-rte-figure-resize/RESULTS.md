@@ -193,6 +193,86 @@ and five of six ended on the pinned commit's own `Failures: 4`. One
 `candidate` trial ended on `Failures: 8`: it changed the rendering path and
 made it worse.
 
+## Round 39, 17 September 2026 — the instrument answers, and the answer is the same one
+
+`scripts/run-comparison OFR-TYPO3-RESIZE-001 --arms control,nr --primary
+mechanical_outcome --model claude-haiku-4-5-20251001 --seed 4311`, benchmark
+version 10.0.0. Experiment record:
+`experiments/OFR-TYPO3-RESIZE-001-20260917-211545.json`.
+
+**Six of six valid.** That is the whole reason this round exists. Rounds 35
+and 36 read `0 valid of 3` on both sides because the functional check died
+of a memory wall before PHPUnit printed a line (instrument failure 33), and
+a run that produces no verdict cannot be distinguished from a run whose
+agents all failed. With `memory_limit=1G` in the image and the target
+installed from a committed lock, every trial's artefact now carries `Tests:
+13, Assertions: 14, Failures: 4` — the same figures the pinned commit
+produces before anything is changed.
+
+**And the result is August's, digit for digit.**
+
+| | control | nr |
+|---|---|---|
+| `figure resize: ok` | 0/3 | 0/3 |
+| `Skill(` calls | 0/3 | 0/3 |
+| `Tests: 13 … Failures: 4` | 3/3 | 3/3 |
+| the nested `f:if` in the added lines | 3/3 | 3/3 |
+
+The construction is the one round one named, and finding it again is the
+point. In August every trial wrote it straight into the `style` attribute.
+Here every trial wraps it in an `f:variable` first:
+
+```html
+<f:variable name="figureStyle" value="{f:if(condition: image.figureStyle, then: image.figureStyle, else: f:if(condition: image.width, then: 'max-width: {image.width}px'))}
+```
+
+The `value` expression is byte-identical in all six; four trials name the
+variable `figureStyle` and two `figureStyleAttr`, which is the whole of the
+variation between them.
+
+Same nesting, new packaging, and Fluid parses it no better: the rendered
+`<figure>` carries the expression verbatim in `style`, which is what the
+four assertions compare against a width. Between the two rounds the image
+moved from PHP 8.3 to 8.5 and the target from TYPO3 13.4 to 14.3.7, and the
+model still reaches for this construction six times out of six. It is a
+property of the model, not of a toolchain.
+
+**One thing the August round could not report, this one can.**
+`git-diff.patch` was 230 to 281 bytes then — the `git status` lines and no
+hunks — and the section above says the reason cannot be established. Here
+the patches are 8.6 to 17.7 kB and carry every hunk, which is how the
+`f:variable` line above is quoted rather than inferred. The collector was
+rewritten twice after that round; this round is the first to show it working
+on this case.
+
+**A separation nobody declared, and it is not the endpoint.** `nr` ran the
+case at roughly half the cost of `control` on all three measures, with no
+overlap between the arms:
+
+| | control | nr |
+|---|---|---|
+| tool calls | 75, 83, 90 | 43, 44, 49 |
+| input tokens | 4.21M, 5.84M, 7.51M | 2.06M, 2.87M, 3.44M |
+| agent cost (USD) | 0.63, 0.94, 1.05 | 0.36, 0.48, 0.57 |
+
+Cliff's delta is −1.00 on each, and at three trials per arm the smallest
+attainable permutation p is 0.100, so complete separation is the strongest
+signal this size can produce and it is not a finding. What makes it worth
+recording is that it happens with `Skill(` at 0/3: no skill was loaded in
+either arm, so whatever produced the difference is not a skill being read.
+The two arms end alike — both name the right classes, both declare the fix
+done, both fail the same four tests, and the judge scores 6 met / 0 partial
+/ 6 not met on either side — so this is not an arm that gives up sooner. The
+cause is not established here, and the next round is on a different
+question.
+
+**What `nr` is on this case.** It pins `typo3-testing-skill` v5.20.3 and
+loads nothing, so this column measures the base model a second time, exactly
+as the August round says. The comparison that asks whether the skill helps
+is `nr` against `candidate`, which carries v5.21.2 and the two rules this
+case is about; rounds 35 and 36 were that comparison and the instrument took
+both.
+
 ## What the two cases say together
 
 RELEASE-001 and RESIZE-001 were both approached by naming things in a

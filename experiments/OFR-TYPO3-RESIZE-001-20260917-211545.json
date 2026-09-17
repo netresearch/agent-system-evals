@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-RESIZE-001-20260917-211545",
+  "case": "OFR-TYPO3-RESIZE-001",
+  "arms": [
+    "control",
+    "nr"
+  ],
+  "primary_endpoint": "mechanical_outcome",
+  "secondary_endpoints": [
+    "outcome_quality"
+  ],
+  "primary_kind": "mechanical",
+  "model": "claude-haiku-4-5-20251001",
+  "benchmark_version": "10.0.0",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 4311,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the pass rates differ at all, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-09-17T21:15:45+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-RESIZE-001-control-20260917-211546",
+        "nr": "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-211546"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "control"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-212553",
+        "control": "jobs/OFR-TYPO3-RESIZE-001-control-20260917-212553"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "control",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "control": "jobs/OFR-TYPO3-RESIZE-001-control-20260917-213252",
+        "nr": "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-213252"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "mechanical_outcome did not move after the discovery round (0/3 against 0/3, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "control": [
+      "jobs/OFR-TYPO3-RESIZE-001-control-20260917-211546",
+      "jobs/OFR-TYPO3-RESIZE-001-control-20260917-212553",
+      "jobs/OFR-TYPO3-RESIZE-001-control-20260917-213252"
+    ],
+    "nr": [
+      "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-211546",
+      "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-212553",
+      "jobs/OFR-TYPO3-RESIZE-001-nr-20260917-213252"
+    ]
+  },
+  "finished_at": "2026-09-17T21:42:13+00:00",
+  "valid_trials": {
+    "control": 3,
+    "nr": 3
+  }
+}
