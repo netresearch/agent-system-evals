@@ -10,28 +10,37 @@ permissions: {}
 jobs:
   # A dependency update inside a case's environment is a change to the case,
   # not maintenance: it moves what the agent is measured on and demands a major
-  # VERSION bump (docs/governance.md). renovate.json already holds those on the
+  # VERSION bump (docs/governance.md). renovate.json holds those on the
   # dependency dashboard, but approving one there produces an ordinary pull
-  # request, and without this gate the job below would merge it unversioned.
-  # Reads the file list through the API — no checkout, no PR code.
-  touches-a-case:
+  # request, and the reusable below checks bot authorship and labels rather
+  # than paths — it would merge it.
+  #
+  # This job FAILS when a case file is in the diff, and `needs` then keeps the
+  # merge from running. Failing rather than reporting a verdict is deliberate:
+  # the first version passed `verdict: no` to `if: needs.<job>.outputs.verdict
+  # == 'no'` and the merge job was skipped anyway, on pull requests touching
+  # nothing but .github/. A red run is also the louder signal — a case update
+  # needs a person, and an unexplained skip does not say so.
+  #
+  # `paths-ignore` on the trigger cannot do this either: it skips a run only
+  # when EVERY changed path matches, so a pull request touching tasks/ and
+  # .github/ together would sail through.
+  #
+  # Reads the file list through the API — no checkout, no PR head code.
+  no-case-files:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
-    outputs:
-      verdict: ${{ steps.check.outputs.verdict }}
     steps:
-      - id: check
-        env:
+      - env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Fail loudly rather than letting an empty list read as "no case
-          # files": a failed query is a statement about the request, not about
-          # the pull request, and a gate that treats it as a pass is worse than
-          # no gate.
+          # An empty list is a statement about the request, not about the pull
+          # request; treating it as "no case files" would wave through exactly
+          # what this job exists to stop.
           files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename')
           if [ -z "$files" ]; then
             echo "could not read the file list for #$PR" >&2
@@ -41,22 +50,18 @@ jobs:
           echo "files in #$PR:"
           echo "$files"
 
-          # grep -c, not grep -q: the count is the evidence, and it prints.
-          # A pattern test behind a pipe can report a found match as a failure
-          # under pipefail, so the list goes in as a herestring.
+          # grep -c, not grep -q: the count prints, and a pattern test behind a
+          # pipe can report a found match as a failure under pipefail.
           hits=$(grep -c '^tasks/' <<<"$files" || true)
           if [ "${hits:-0}" -gt 0 ]; then
-            echo "verdict=yes" >> "$GITHUB_OUTPUT"
-            echo "verdict: yes — $hits file(s) under tasks/. A person decides this one, with a VERSION bump."
-            grep '^tasks/' <<<"$files"
-          else
-            echo "verdict=no" >> "$GITHUB_OUTPUT"
-            echo "verdict: no — nothing under tasks/, auto-merge may proceed."
+            echo "::error::$hits file(s) under tasks/ — this changes a case. A person merges it, with a major VERSION bump (docs/governance.md)."
+            grep '^tasks/' <<<"$files" >&2
+            exit 1
           fi
+          echo "nothing under tasks/ — auto-merge may proceed."
 
   auto-merge:
-    needs: touches-a-case
-    if: needs.touches-a-case.outputs.verdict == 'no'
+    needs: no-case-files
     # @main on purpose: this is an organisation-owned reusable, and pinning it
     # to a hash would hold this repository on a fixed copy of a workflow whose
     # fixes are meant to reach every consumer. Third-party actions are pinned.
