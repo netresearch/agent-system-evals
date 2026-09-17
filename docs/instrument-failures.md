@@ -919,14 +919,17 @@ Two of the six agents hit the same wall while working, so the round was void on
 both sides of the instrument.
 
 **Why it appeared now.** The case was verified in August against PHP 8.3.33
-with PHPUnit 12.5.34. On 30 August a Renovate pull request raised
-`FROM php:8.3-cli` to `php:8.5-cli` across twelve case environments in one
-commit, with no `VERSION` bump — the environment is the case, and that is a
-major change by this repository's own rule. The extension has no
-`composer.lock`, so the same build also resolves `typo3/cms-core` fresh against
-`^13.4.21 || ^14.3`: the August image carried TYPO3 13.4, today's carries
-14.3.7 with PHPUnit 13.3.4. Nothing was wrong with any of those versions. The
-case simply had not been run since, and no result had been produced under them.
+with PHPUnit 12.5.34. On 30 August a Renovate pull request raised PHP to 8.5
+across thirteen case environments in one commit, with no `VERSION` bump — the
+environment is the case, and that is a major change by this repository's own
+rule. Thirteen, and not from one image: eight were `php:8.3-apache`, two
+`php:8.3-cli`, three `php:8.2-cli`. This entry first said twelve, off
+`php:8.3-cli`, which counted the open cases and left out the contract one.
+The extension has no `composer.lock`, so the same build also resolves
+`typo3/cms-core` fresh against `^13.4.21 || ^14.3`: the August image carried
+TYPO3 13.4, today's carries 14.3.7 with PHPUnit 13.3.4. Nothing was wrong with
+any of those versions. The case simply had not been run since, and no result
+had been produced under them.
 
 The governance rule that would have caught it was written on 16 September, from
 three open Renovate pull requests against case environments and the reasoning
