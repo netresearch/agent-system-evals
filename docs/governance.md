@@ -61,6 +61,14 @@ approval: such an update waits on the dependency dashboard and no pull request
 opens until someone approves it there. Nothing is hidden — the dashboard lists
 what is stale — and whoever approves one bumps `VERSION` in it.
 
+A second brake already existed and was mistaken for a fault while this was
+being written. Renovate labels major updates `deps-no-automerge`, and the
+organisation's auto-merge workflow refuses to approve or merge a labelled pull
+request; all eight open ones carry that label, which is why they sit there. The
+backlog was the convention working, not a broken pipeline. The path gate in
+`.github/workflows/auto-merge-deps.yml` is the independent one: it stops a
+*minor* dependency update that happens to touch a case.
+
 ## Cases
 
 **Admission** is the lifecycle in [case-lifecycle.md](case-lifecycle.md):
