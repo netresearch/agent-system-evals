@@ -117,3 +117,35 @@ the right class. The gap is that no trial ever rendered the thing it changed,
 and no skill claimed the request. Both halves are addressable: a description
 that opens on a reported defect would route, and a skill that is read would
 say that a template change is proved by rendering it.
+
+## Round 35, 17 September 2026 — discarded by construction
+
+`experiments/OFR-TYPO3-RESIZE-001-20260917-123224.json`, seed 4111, Haiku 4.5,
+benchmark 7.3.0, `nr` against `candidate` carrying typo3-testing v5.21.2. It
+read 0 of 3 against 0 of 3, p 1.000, and it measured nothing: the functional
+check died three tests into thirteen on PHP's default memory limit, before
+PHPUnit printed a single failure (`docs/instrument-failures.md` 33). Two of the
+six agents hit the same wall while working.
+
+The job directories stay on disk under their names so the discard can be
+checked. They are excluded from every figure here.
+
+**One number survives, and it is the one the mechanical check could not have
+produced anyway.** `Skill(` was called in 0 of 3 `candidate` trials. That arm
+carried a description opening on a reported defect and on proving a change to
+rendered output — the change made precisely so a request of this shape reaches
+the skill. At three trials this is weak evidence and not a refutation, but it
+is evidence, and it points the same way the August round did: a request that
+reports wrong output and asks for it to be sorted out did not reach a skill,
+with or without the new opening clause.
+
+Two readings of the August round need correcting in light of this one:
+
+- **The absence of unparsed Fluid here is the crash, not a change in
+  behaviour.** The `{f:if` text counted in August comes from PHPUnit's failure
+  messages, which this run never reached.
+- **Nothing here says the new rules do not work.** They were never read: the
+  skill was not opened, and the check that would have shown a rendered result
+  did not run.
+
+The round will be repeated on the repaired environment.

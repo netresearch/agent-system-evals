@@ -40,6 +40,15 @@ RUN chmod +x /usr/local/bin/install-toolchain \
     && ! command -v rg > /dev/null \
     && rm -f /usr/local/bin/install-toolchain
 
+# The functional suite loads TYPO3's compiled TCA schema, which is a single
+# generated PHP file of tens of thousands of lines. At PHP's default 128M the
+# process dies while requiring it -- "Allowed memory size of 134217728 bytes
+# exhausted", three tests into thirteen, before PHPUnit prints a single
+# failure. The limit is raised here rather than on the collector's command
+# line, so that an agent reproducing the report hits the same ceiling the check
+# does; two of six trials in one round ran into the default wall while working.
+RUN printf 'memory_limit=1G\n' > /usr/local/etc/php/conf.d/memory.ini
+
 # The timezone the case's checks run in, pinned rather than inherited.
 # This case's defect does not depend on it — a sibling candidate's did, and its
 # test passed at the pinned commit under UTC because UTC has no

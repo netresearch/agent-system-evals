@@ -7,6 +7,21 @@
 # before the case was built — the fix's functional test fails 4 of 13 at
 # TARGET_COMMIT and passes 13 of 13 at TARGET_FIX_COMMIT, same file, same
 # command, same environment.
+#
+# RE-VERIFIED 17 September 2026, because that environment no longer exists. The
+# August verification ran on PHP 8.3.33 with PHPUnit 12.5.34 and TYPO3 13.4; a
+# dependency bot raised the base image to php:8.5-cli on 30 August, and the
+# extension ships no composer.lock, so the same build now resolves TYPO3 14.3.7
+# and PHPUnit 13.3.4. Both halves were measured again under that toolchain and
+# reproduce the figures above:
+#
+#   TARGET_COMMIT      Tests: 13, Assertions: 14, Failures: 4
+#   TARGET_FIX_COMMIT  Tests: 13, Assertions: 15, Failures: 0
+#
+# The case is therefore valid under the current stack, and the drift cost only
+# the memory limit the check needs (docs/instrument-failures.md 33). Record the
+# toolchain with any future re-verification: the job lock carries no image
+# digest, so nothing else in a recorded run would show that it moved.
 TARGET_REPOSITORY=https://github.com/netresearch/t3x-rte_ckeditor_image.git
 TARGET_COMMIT=31ea08989b3daf9f44dae17e95ac92646633d5b5
 TARGET_PACKAGE=netresearch/rte-ckeditor-image
