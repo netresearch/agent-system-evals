@@ -994,6 +994,23 @@ through `install-instance.sh` rather than building a target, and
 the agent can resolve a newer TYPO3, and a lock would answer that question for
 it.
 
+**Why the instance cases are not simply next.** They do not install a target;
+`build-instance.sh` runs `composer create-project typo3/cms-base-distribution`
+followed by `composer require` of the extension from a local path repository.
+A lock exists after that — but it belongs to a `composer.json` that
+`create-project` wrote moments earlier, and a lock only installs against the
+manifest it was resolved from. Freezing the lock therefore means freezing that
+manifest too, and at that point the case no longer builds an instance the way a
+user builds one: it unpacks a copy of the one that was built in September.
+
+That is a decision about what these cases represent, not a repair to a script.
+[ADR 0006](adr/0006-runtime-fidelity.md) is the document it belongs in, and
+`build-instance.sh` cites it for exactly this reason. Until it is taken, six
+cases resolve a TYPO3 distribution fresh on every build, and two of them —
+`OFR-TYPO3-DOCS-001` and `OFR-TYPO3-RELEASE-001` — are among the ones measured
+most often here. Recorded so the next series knows what its environment rests
+on.
+
 **And the gate could not see it.** A check that crashes was graded rather than
 discarded: the validity gate reads artefacts for existence only — deliberately,
 because an empty `git-diff.patch` is a legitimate result — so it could not tell
