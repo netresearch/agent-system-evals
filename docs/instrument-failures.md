@@ -952,6 +952,24 @@ rather than changing it, but because the environment these trials will run in
 is not the one the recorded ones ran in, and this is the first time that is
 being said out loud.
 
+**The repair for the drift itself already exists and is used by one case of
+fifteen.** `scripts/refresh-target-lock` resolves a target's dependencies once,
+writes `environment/target-composer.lock`, and its header describes this exact
+failure: "a plain `composer install` resolves fresh on every build. That makes
+the environment drift with the registry: the same case, built a month apart, is
+not the same case." `OFR-TYPO3-EXT-001` was built that way on 15 August — its
+`prepare-target.sh` copies the lock into the working tree for the install and
+removes it again, so the agent still sees the target as its authors left it —
+and no case written since has done so. The other fourteen call a
+`build-target.sh` that runs `composer install` against whatever the registry
+offers that day.
+
+So the drift is not an oversight in one case's Dockerfile; it is a pattern that
+was established, documented in `AGENTS.md`, and then not carried forward.
+Giving a case its lock changes what it installs and therefore costs a major
+bump per case, which is why this entry records the finding rather than
+smuggling fourteen environment changes in behind a memory limit.
+
 **And the gate could not see it.** A check that crashes was graded rather than
 discarded: the validity gate reads artefacts for existence only — deliberately,
 because an empty `git-diff.patch` is a legitimate result — so it could not tell
