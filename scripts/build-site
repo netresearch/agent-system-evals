@@ -228,7 +228,9 @@ class Arm:
             where = rung_lib.rung(
                 trial / "artifacts" / "logs" / "artifacts", check
             )
-            if where == rung_lib.RUNGS[3]:
+            # None where the ladder does not apply to this case at all; the
+            # top rung is what `passed` already reports.
+            if where is None or where == rung_lib.RUNGS[3]:
                 continue
             seen[where] = seen.get(where, 0) + 1
         if not seen:

@@ -127,6 +127,38 @@ def test_the_rungs_separate_the_three_ways_a_trial_falls_short(tmp_path):
     ) == "4 green"
 
 
+def test_the_ladder_says_nothing_about_a_case_it_was_not_built_for(tmp_path):
+    """One case writes `resolve:` and `LEG=`; the rungs are read off those.
+
+    Applied to a case whose check names a single file, every failing trial came
+    out on the bottom rung and the ledger printed "no install" — about
+    artefacts that never claimed to install anything. RESIZE trials that
+    changed four files and ran a suite were tabulated that way, and the same
+    line stood under DOCS, RELEASE, REGISTRATION, CALENDAR, PY-CI and GO-LDAP.
+    """
+    ledger = load()
+    single = {"artifacts": "calendar-check.txt", "all_of": ["calendar: ok"]}
+
+    d = tmp_path / "one-file"
+    d.mkdir()
+    (d / "calendar-check.txt").write_text("calendar: incomplete\n")
+    assert ledger.rung(d, single) is None
+
+    # And the trial that passes is still read by `passed`, which is what the
+    # endpoint column uses — the ladder is beside it, never instead of it.
+    (d / "calendar-check.txt").write_text("calendar: ok\n")
+    assert ledger.passed(d, single) is True
+    assert ledger.rung(d, single) is None
+
+    # The multi-leg case is untouched, including its own reading of an empty
+    # file as an install that was never demonstrated.
+    multi = {"artifacts": "matrix-*.txt", "all_of": ["resolve: ok"]}
+    m = tmp_path / "legs"
+    m.mkdir()
+    (m / "matrix-14.3.txt").write_text("")
+    assert ledger.rung(m, multi) == "1 no install"
+
+
 def test_a_green_trial_is_on_the_top_rung_and_counted_once(tmp_path):
     """The rungs must agree with `passed`, not offer a second opinion."""
     ledger = load()

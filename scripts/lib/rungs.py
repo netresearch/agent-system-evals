@@ -75,8 +75,9 @@ def leg_rung(text: str) -> str:
     return RUNGS[1]
 
 
-def rung(artifacts: Path, check: dict) -> str:
-    """How far a trial got, per leg rather than pooled.
+def rung(artifacts: Path, check: dict) -> str | None:
+    """How far a trial got, per leg rather than pooled, or None where the
+    ladder does not apply to this case.
 
     The target leg -- the highest version -- decides the rung, and every other
     leg that is not green is appended to it. Where the legs disagree and one of
@@ -84,6 +85,17 @@ def rung(artifacts: Path, check: dict) -> str:
     version and dropped the other is a different failure from one that never
     installed.
     """
+    # A case whose check names one file has no legs, and this ladder is read
+    # off the markers a multi-leg upgrade writes -- `resolve:`, `LEG=`. Applied
+    # to such a case every failing trial came out on the bottom rung, so the
+    # ledger printed "no install" about artefacts that never claimed to install
+    # anything: RESIZE trials that changed four files and ran a suite were
+    # tabulated as "no install 3", and the same line stood under DOCS, RELEASE,
+    # REGISTRATION, CALENDAR, PY-CI and GO-LDAP. None of those artefacts
+    # carries a single marker this function reads. A ladder built for one case
+    # says nothing about the others, and saying nothing is the honest answer.
+    if "*" not in check["artifacts"]:
+        return None
     legs = sorted(artifacts.glob(check["artifacts"]))
     if not legs:
         return RUNGS[0]
