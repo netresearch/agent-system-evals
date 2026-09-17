@@ -100,7 +100,12 @@ def ledger(jobs_dir: Path | None = None) -> dict:
             artifacts = trial / "artifacts" / "logs" / "artifacts"
             rows[case][key][0] += passed(artifacts, check)
             rows[case][key][1] += 1
-            rows[case][key][2][rung(artifacts, check)] += 1
+            where = rung(artifacts, check)
+            # None where this case writes none of the markers the ladder reads.
+            # Counting that as the bottom rung printed "no install" for trials
+            # that installed nothing of the sort and never claimed to.
+            if where is not None:
+                rows[case][key][2][where] += 1
     return {case: dict(sorted(by_key.items())) for case, by_key in sorted(rows.items())}
 
 
