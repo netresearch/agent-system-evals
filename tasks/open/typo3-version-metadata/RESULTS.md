@@ -99,10 +99,16 @@ scripts/analyze experiments/OFR-TYPO3-METADATA-001-20260820-204603.json
 The round was run on a prediction rather than a hunch. `scripts/routing-overlap`
 shows this case sharing almost the same words with `typo3-conformance` as
 OFR-TYPO3-CONSISTENT-001 does — and on that case, moving those words into the
-description's opening clause took routing from 0 of 27 to 11 of 12. Every
-recorded `nr` trial here predates that change: the last one resolved
+description's opening clause took routing from 0 of 27 to 11 of 12.
+
+The 0 of 7 this case had on record was measured *before* that description
+existed: its most recent `nr` trial, on 20 August, resolved
 `typo3-conformance-skill@v2.19.1`, and `nr` has pinned v2.19.4 since
-16 September. The prediction was that the same description would route here.
+16 September. The six trials below are the first on this case to carry the new
+wording — their job snapshots record
+`netresearch/typo3-conformance-skill@v2.19.4` — so this round compares today's
+`nr` with today's `control`, and the 0 of 7 is the historical figure the
+prediction was made against rather than an arm of it.
 
 **It does.** 3 of 3 against 0 of 3, Fisher exact 0.100 two-sided and 0.050
 one-sided, on a case that had recorded 0 of 7 with the old wording. A
