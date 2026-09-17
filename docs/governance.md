@@ -88,8 +88,8 @@ being written. Renovate labels major updates `deps-no-automerge`, and the
 organisation's auto-merge workflow refuses to approve or merge a labelled pull
 request; every one of the eight open at the time carried that label, which is
 why they sat there. The backlog was the convention working, not a broken
-pipeline. The path gate in
-`.github/workflows/auto-merge-deps.yml` is the independent one, and it is
+pipeline. The path gate in `.github/workflows/auto-merge-deps.yml` is the
+independent one, and it is
 blunter than the label: it fails on any bot pull request whose diff contains a
 path under `tasks/`, whatever the update is and whether or not `VERSION` moves.
 The label would let a minor update through; this stops it. Everything under
@@ -105,10 +105,10 @@ files in its diff. Requesting a rebase from the dependency dashboard gave it a
 fresh head, and the gate ran there for the first time in the combination it
 exists for — a bot pull request carrying case files — and reported `failure`.
 Until then it had only ever been seen green: on bot pull requests whose diff
-stays out of `tasks/`. It had also failed, twice, on human pull requests that
-edit a case — but that was the version of the job before the `user.type ==
-'Bot'` condition, and since that condition it skips those, which is what the
-condition is for. So the one combination that decides whether a bot can move a
+stays out of `tasks/`. It had also failed twice, both times on one human pull
+request editing a case — but that was the version of the job before the
+`user.type == 'Bot'` condition, and since that condition a human pull request
+skips it, which is what the condition is for. So the one combination that decides whether a bot can move a
 case had never been exercised. The three are closed with that reason.
 
 Closing them does not return the updates to the approval queue, which is worth
