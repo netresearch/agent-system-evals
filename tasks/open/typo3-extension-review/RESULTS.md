@@ -499,8 +499,9 @@ has nothing to stand on today.
 **So on this case, at this model and this environment, the stack has no
 measurable effect on cost or outcome.** Location flat three times, spread
 flat once, outcome at the ceiling on both arms in every round since 22
-August. In the governance table this is the row nobody wants: reaches what
-bare reaches, at what bare costs. The seventeen bare trials on record at the
+August. In the governance table this is the cost-with-no-return column with
+the cost at zero: reaches what bare reaches, neither cheaper nor dearer. The
+seventeen bare trials on record at the
 current cost class read $0.08 to $0.20 in thirteen and above $0.35 in four,
 all four from before the environment moved; the forty-one equipped ones read
 $0.08 to $0.20 without exception. The number that once separated this case —

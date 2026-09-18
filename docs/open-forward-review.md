@@ -294,7 +294,10 @@ rounds, equipped ones from $0.08 to $0.20 across thirty-five, and the medians
 six cents apart. A location endpoint reads that as flat, and a discovery round
 of three per arm cannot contain the tail that is the finding, so a spread
 endpoint never stops after the discovery round — the schedule runs to the
-budget, and the budget is chosen for the tail rather than for the middle.
+budget, and the budget is chosen for the tail rather than for the middle. The
+first round declared on it, six per arm on that case at the current
+environment, found no spread on either arm (p 0.554); the four tail trials
+that motivated the endpoint all ran before the case environment moved.
 
 **One endpoint, declared before the run.** `--primary` is required and is
 written into `experiments/<case>-<stamp>.json` before the first trial starts.
