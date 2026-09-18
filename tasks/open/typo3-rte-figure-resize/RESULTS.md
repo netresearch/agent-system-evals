@@ -273,6 +273,58 @@ is `nr` against `candidate`, which carries v5.21.2 and the two rules this
 case is about; rounds 35 and 36 were that comparison and the instrument took
 both.
 
+## Round 40, 17 September 2026 — the pair instrument failure 33 destroyed twice
+
+`scripts/run-comparison OFR-TYPO3-RESIZE-001 --arms nr,candidate --primary
+mechanical_outcome --model claude-haiku-4-5-20251001 --seed 4411`, benchmark
+version 10.0.0. Experiment record:
+`experiments/OFR-TYPO3-RESIZE-001-20260917-215131.json`. Six of six valid.
+
+This is the pair rounds 35 and 36 were run on and lost. `candidate` differs
+from `nr` in exactly one ref — `typo3-testing-skill` v5.21.2 against
+v5.20.3, confirmed in each job's `fleet_declares` — and v5.21.2 is the
+release carrying the two rules this case is about: a report becomes a
+failing test before it becomes a fix, and a template change is proved by
+rendering it, both in the description's opening clause and at the top of the
+body.
+
+**`Skill(` was called in 0 of 3 trials on either side.** The description
+names this request almost literally — "Use when a reported defect has to be
+reproduced as a failing test before it is fixed, when a change to a template
+or to any rendered output has to be proved" — and the case's prompt is a
+user reporting that a resize is lost in the frontend. It is installed and
+reachable: the agent's `slash_commands` list carries `typo3-testing` and its
+tool list carries `Skill`. Nothing loads it. Measured now on a valid
+instrument, where rounds 35 and 36 could only assert it.
+
+`mechanical_outcome` is `0/3` against `0/3`, and all six artefacts carry
+`Tests: 13 … Failures: 4`.
+
+**What the round does say, against round 39.** Round 39 separated `control`
+from `nr` completely on cost. Here, with both arms equipped, the separation
+is gone: agent cost `0.52, 0.57, 0.87` against `0.37, 0.47, 0.78`, Cliff's
+delta −0.56 at p 0.400, and tool calls overlap outright (−0.11, p 1.000).
+Two rounds is not a proof, but it points the round-39 difference at
+equipped-versus-bare rather than at one skill version against another — and
+it stays unexplained either way, because no skill was loaded in any of the
+twelve trials.
+
+**And a warning about the judged dimensions, from the same twelve.** Across
+both rounds `outcome_quality` runs the full scale — 0.25, 0.5, 0.75, 1.0 —
+while every trial fails identically. That is not judge noise: the four
+criteria move sharply and for stated reasons, and `the_change_is_narrow` is
+1.0 in all twelve. What moves is whether the agent established the defect
+before changing it (2 of 6 in round 39, 5 of 6 in round 40) and whether the
+check it ran could have failed (1 of 6, then 5 of 6).
+
+The useful part is the arm that appears in both rounds. `nr` scored
+`the_check_it_ran_could_have_failed` 0 of 3 in round 39 and 2 of 3 in round
+40 — same fleet, same case, same model, two hours apart. Any arm difference
+on these dimensions has to clear that swing before it means anything, and at
+three trials per arm none of them does. `candidate` reading 3 of 3 on
+exactly the criterion its added rule is about is the kind of thing worth
+another round, and it is not evidence of one.
+
 ## What the two cases say together
 
 RELEASE-001 and RESIZE-001 were both approached by naming things in a
