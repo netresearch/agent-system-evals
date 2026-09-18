@@ -83,6 +83,35 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
+  # ROUND FOURTEEN, open: is the numbered list of checks where the review
+  # case's saving lives?
+  #
+  # Round thirteen removed the grep block alone and cost did not move; the
+  # arm without it typed equivalent greps by hand from the tokens the
+  # eleven numbered checks name in prose. What is left in the body that the
+  # 28 August bare arm did not have: Steps 1–11, a plan of what to look at
+  # and in what order. On that round the six bare trials made 248 Read and
+  # 13 Agent calls; the six equipped trials made 52 Read and none.
+  #
+  # candidate = nr with typo3-conformance at an experiment branch cut from
+  # v2.19.4 — the ref nr pins — whose one commit deletes the "Steps 1-11:
+  # Checks" heading and its eleven lines and nothing else. Step 0, Step 12,
+  # the delegation paragraph, the grep block with its inline comments and
+  # the scoring table stay as released; a reader must not take this arm as
+  # "no workflow". Declared on cost, as round thirteen was. Pre-registered
+  # per-trial observables, read from trajectory.json steps[]: Read and Agent
+  # call counts. If the plan is the saving, the arm without it drifts toward
+  # the bare shape — Read counts per trial toward the 28 August bare mean of
+  # 41 rather than the equipped 9, Agent calls above zero — and cost
+  # follows. If the counts stay at the equipped shape, the body's prose is
+  # not what shortens the path either, and the description or the fleet's
+  # other skills are the next place to look.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/without-the-numbered-checks while a comparison names it.
+  # Resolved commit at the time of writing: 8a87c50.
+  netresearch/typo3-conformance-skill: experiment/without-the-numbered-checks
+
   # ROUND THIRTEEN, ANSWERED 18 September 2026: no. Six of six valid, declared
   # on cost, and cost overlapped — $0.13/0.17/0.11 with the block against
   # $0.09/0.10/0.12 without, p 0.200 — with outcome_quality 3/3 on both arms.
