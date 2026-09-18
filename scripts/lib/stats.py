@@ -217,6 +217,22 @@ def holm(pvalues: dict[str, float]) -> dict[str, float]:
     return adjusted
 
 
+def deviations_from_median(values: list[float]) -> list[float]:
+    """Each value's distance from its own sample's median.
+
+    The Brown-Forsythe transform: a question about spread becomes a question
+    about location, asked of the deviations, and the rank tests above apply to
+    them unchanged. Median rather than mean because the samples this is for are
+    the ones with a tail — on the review case one bare trial in six cost
+    fourteen times the cheapest, and a mean would let that trial set the
+    centre it is then measured against.
+    """
+    if not values:
+        return []
+    centre = median(values)
+    return [abs(v - centre) for v in values]
+
+
 def separated(a: list[float], b: list[float]) -> bool:
     """Do the two samples not overlap at all?
 
