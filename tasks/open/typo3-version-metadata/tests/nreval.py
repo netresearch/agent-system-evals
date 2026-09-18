@@ -533,7 +533,18 @@ def transcript(traj: dict[str, Any] | None = None, budget: int = 120_000) -> str
 
         message = _message_text(step.get("message")).strip()
         if message:
-            if not emit(f"\n[{step_id}] {source}:\n{message[:4000]}"):
+            # The transcript is a view for a person skimming a run, so a long
+            # message is cut -- a 13,000-character skill body in it serves
+            # nobody. But a cut without a marker reads as the whole message,
+            # and one of those cost half an hour of reading a false zero
+            # (instrument failure 34). trajectory.json is the artefact.
+            shown = message[:4000]
+            if len(message) > 4000:
+                shown += (
+                    f"\n[... cut at 4000 of {len(message)} characters;"
+                    " trajectory.json has the rest]"
+                )
+            if not emit(f"\n[{step_id}] {source}:\n{shown}"):
                 break
 
         for call in step.get("tool_calls") or []:
