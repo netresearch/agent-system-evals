@@ -1083,8 +1083,8 @@ machine returns nothing for the trial names.
 the stop reason and the counts of valid trials. Every per-trial number —
 cost, tokens, steps, judge scores, the snapshot that `scripts/analyze` reads
 to prove the two arms differed in one thing — lives in `jobs/`. On this record
-`scripts/analyze` now exits with "same provision digest": both snapshots read
-as empty, and empty equals empty. The results section written for the round
+`scripts/analyze` exited with "same provision digest": both snapshots read
+as empty, and empty equals empty. It now names the missing directory instead. The results section written for the round
 carries the numbers, read from the directories while they existed, and a
 later reader cannot re-derive one of them.
 

@@ -399,14 +399,59 @@ left the block, and the agent worked the list's topics from the block's
 comments and commands. Neither is the saving on its own because each is a
 copy of the other, and the single-removal design cannot see a mechanism that
 is present twice. The 28 August contrast — nine reads against forty-one, no
-delegation against most — stands as the signature of *something* in this body;
-which sentence it is has not been found by taking sentences out one at a time.
+delegation against most — was taken here as the signature of *something* in
+this body; the section after this one measures it across the other bare
+rounds, and it does not hold there.
 
-**The next question, not this round's finding.** Take both out — `candidate`
-= `nr` with the body reduced to Step 0, Step 12, delegation, scoring and the
-references list — and read the same two counts. If reads and `Agent` calls
-come back, the checklist in either form is the mechanism and the body's job is
-to name what to look at, in whatever shape. If they still do not, the
-shortening happens before the body is read: in the description that routes
-the skill (`skill_invoked` 3/3 on both arms of every equipped round here) or
-in the fleet's other skills, and the conformance body is along for the ride.
+**The design this suggested, and why it was not run.** Take both out —
+`candidate` = `nr` with the body reduced to Step 0, Step 12, delegation,
+scoring and the references list — and read the same two counts. Before cutting
+that branch the reference those counts would be read against was measured
+across every bare round, and the next section is what came back.
+
+## The plan signature was one round's tail
+
+The subtraction chain above — block out, list out, both out next — rests on
+one contrast: the 28 August bare arm at forty-one `Read` calls a trial with
+sub-agents in most, against the equipped arm at nine with none. Before the
+third round ran, that contrast was read off every bare round on this case at
+the current cost class, from the same `steps[]` counts (the 19 August rounds
+sit on an earlier benchmark version and a different cost class and are left
+out):
+
+| bare round | trials | `Read` per trial | `Agent` per trial | cost |
+|---|---|---|---|---|
+| 21 August | 2 | 14, 18 | 0, 0 | $0.14, $0.17 |
+| 22 August | 3 | 13, 39, 17 | 0, 1, 0 | $0.16, $0.36, $0.19 |
+| 28 August | 6 | 143, 19, 26, 21, 12, 27 | 7, 1, 4, 0, 0, 1 | $1.79, $0.38, $0.44, $0.13, $0.08, $0.26 |
+
+Against that, every equipped trial recorded on this case since 21 August —
+`nr`, both ablation arms, `nr-minus-conformance`, `nr-minus-assessment`,
+thirty-five trials — reads between 0 and 14 files, delegates in none, and
+costs between $0.08 and $0.20.
+
+**So the stable difference is small, and the large one is a tail.** Read
+median 19 bare against about 9 equipped; cost median $0.19 against $0.13. The
+forty-one and the thirteen sub-agent calls are one round, and inside it two
+trials. Four of eleven bare trials cost more than $0.35; none of thirty-five
+equipped ones cost more than $0.20. That is the shape "What
+survived, and what it is" already described on 28 August — an effect on
+dispersion, not on location — and the sentence there, *the next run on this
+case declares dispersion or it declares nothing*, was not followed: rounds
+thirteen and fourteen declared cost between two equipped arms, whose costs
+never varied to begin with, and came back flat for that reason.
+
+**The both-out design is retired unrun.** Its pre-registered reference was
+one round's tail, and a cost-declared discovery round of three per arm cannot
+see either the difference at the middle (about $0.06 at the median, inside
+the equipped arm's own range) or a tail that shows in four of eleven. It would have stopped after discovery
+whatever the body contained, and a third flat round would have been read as a
+third fact about the body rather than as the same fact about the design.
+
+**What this case asks for is an endpoint the runner does not have.** Bare
+against equipped, declared on the spread of cost rather than its middle, with
+a block count fixed in advance because a tail does not show in three. The
+runner's endpoints are a dimension, the mechanical outcome, an invocation rate,
+and a resource's location; none of them can be declared for the thing this
+case's data have shown three times. That is the harness change this section
+hands on, and the next round on this case waits for it.
