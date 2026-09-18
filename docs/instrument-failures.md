@@ -1068,6 +1068,36 @@ Claims already recorded that grep a transcript for skill-body text: round
 twenty-four's (above the cut, stands). RESIZE's "`typo3-testing` mentioned 0
 times" counted the agent's own words, not the body, and stands.
 
+## 35. The record names its jobs, and a removed worktree took them
+
+`jobs/` is ignored by git, and `git worktree remove` deletes ignored files
+without asking. Round fourteen on OFR-TYPO3-EXT-001 (18 September, record
+`experiments/OFR-TYPO3-EXT-001-20260918-200017.json`) ran from a worktree made
+for its branch; the record was committed, the branch merged, the worktree
+removed as cleanup — and the six trial directories went with it: trajectories,
+installed skills, artefacts, `nr-snapshot.json`. No copy exists: Harbor's cache
+holds images and skill checkouts, the containers are gone, and `find` over the
+machine returns nothing for the trial names.
+
+**What the record is without them.** A list of job paths, the arms, the seed,
+the stop reason and the counts of valid trials. Every per-trial number —
+cost, tokens, steps, judge scores, the snapshot that `scripts/analyze` reads
+to prove the two arms differed in one thing — lives in `jobs/`. On this record
+`scripts/analyze` now exits with "same provision digest": both snapshots read
+as empty, and empty equals empty. The results section written for the round
+carries the numbers, read from the directories while they existed, and a
+later reader cannot re-derive one of them.
+
+**Rule.** A comparison runs from the `main` worktree, whose `jobs/` is the
+only one anyone keeps; a branch for the record is cut afterwards, or the
+record is committed from a branch checked out in that same worktree. Where a
+round has already run elsewhere, `jobs/OFR-*-<stamp>` is moved under the main
+worktree's `jobs/` before `git worktree remove`, and `ls jobs/` in the doomed
+worktree is the check. The lasting repair is a record that carries its
+per-trial metrics and snapshot digest inline, so that the file git keeps is
+the one the analysis needs; until that exists, `jobs/` is part of the record
+and is treated as such.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the

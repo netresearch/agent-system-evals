@@ -354,6 +354,12 @@ the grep block and the scoring table stayed; the installed `SKILL.md` in each
 trial directory carries the block six times and the heading three, on the
 `nr` side only.
 
+The six trial directories of this round are lost — removed with the worktree
+the round ran in, after the record was committed (instrument failure 35).
+Every number below was read from them while they existed; the record keeps
+the job names, the seed and the stop reason, and `scripts/analyze` cannot be
+re-run on it.
+
 The hypothesis, from the section above: the body supplies a plan, and the
 28 August counts — bare trials at forty-one `Read` calls a trial with
 sub-agents in most, equipped at nine with none — are the plan's signature. The
