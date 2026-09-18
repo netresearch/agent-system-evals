@@ -747,3 +747,80 @@ targets is a mechanical one — an unqualified `::class` to a type that no longe
 exists, findable by a grep before any test runs — and none of the skill's 45
 mechanical checkpoints looks for it. A sentence did not do it; a check has not
 been tried.
+
+## Round twenty-five: the trigger was in context, and nobody pulled it
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260918-092803.json`, seed 3111, Haiku 4.5,
+benchmark 10.1.0. Six trials, six valid. The first round on this case declared
+on `cost` — the endpoint the benchmark now says is the point — and the runner
+stopped after the discovery round: the arms overlapped, p 0.400.
+
+`nr` pins upgrade v3.12.5. `candidate` points at the skill's `main`, which
+after
+[#95](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/95)
+carries `TU-58` — a mechanical check for the deleted-import edit of round
+twenty-four — and a step-9 line saying to run the skill's own checks through
+the sibling runner. Each candidate job's installed `SKILL.md` has that line and
+its `checkpoints.yaml` has `TU-58`.
+
+| arm | passed both legs | agent cost, three trials | tool calls |
+|---|---|---|---|
+| `nr` | 2/3 | $1.22 median | 122 median |
+| `candidate` | 2/3 | $0.94 median | 99 median |
+
+Cliff's delta −0.56 on cost, −0.78 on tool calls, p 0.400 and 0.200 — the
+same size of gap round twenty-four read in the other direction, and no claim
+either way.
+
+**The direct test.** The trigger was in every candidate trial's context — the
+`Skill` observation in `trajectory.json` carries it, three of three — and not
+one trial attempted the runner: zero Bash calls mentioning `run-checkpoints` or
+`checkpoints.yaml`, across these three and the six candidate trials of round
+twenty-four with the same runner installed. `TU-58` would have had nothing to
+catch this round — zero namespace-import errors in six trials — which is
+unrelated: the check was not run, so it could not have.
+
+**Why it was not pulled, from the twelve trials of both rounds.** No trial in
+either round binds a variable of any kind. The agents use the absolute skill
+path the loader prints — five Bash calls, all `ls`, `grep` or `find` against
+`references/` — verbatim, never as `$SKILL_DIR`. The trigger asked for three
+hops: notice the printed path, bind it, run. Per-step counts across the six
+trials of this round say which steps get followed:
+
+| step | what it asks | trials that ran it |
+|---|---|---|
+| 1 | read `references/pre-upgrade.md` | 1/6 |
+| 5 | `rector process --dry-run` | 5/6 |
+| 6 | `fractor process --dry-run` | 4/6 |
+| 8 | `phpstan analyse` | 6/6 |
+| 9 | the removed-types `grep` | 2/6 |
+| 9 | the checkpoint runner | 0/6 |
+| 10 | `composer update … --with typo3/cms-core:^14.3` (fenced block) | 5/6 |
+
+Not position — step 10 sits below step 9 and gets 5/6. What is followed is a
+command the agent already knows or a fenced block that runs as pasted. What is
+not is a file to open or a path to construct. Step 10 is a literal block with
+one hop and gets 5/6; the trigger was a block with an unresolved variable and
+got 0/6.
+
+**So the check is now the block.** The `TU-58` loop sits inlined at step 9 —
+run from the extension root, no path to find, no variable to bind — extracted
+from the `SKILL.md` as written and run against the pinned upstream test file:
+silent as committed, one line naming the file and the type with the import
+deleted. Whether a block that runs as pasted is run at step 10's rate is the
+next round's question, and it is the one the restated purpose asks: a check
+that runs replaces the tool calls that find the same thing by hand.
+
+**The arm present in every round.** `nr` alone, same fleet, same version:
+4/6 in round twenty-three, 6/6 in round twenty-four, 2/3 here. That range is
+wider than any arm difference this case has recorded, and until it is
+understood or a schedule runs to twenty-four, six per arm cannot separate the
+arms on the outcome. The cost axis shows the same swing: the arm that was
+dearer in round twenty-four is cheaper here.
+
+**One correction to how this was read, recorded as instrument failure 34.**
+`transcript.txt` cuts each message at 4000 characters, and the trigger sat past
+that in a 13,000-character skill body; a grep over transcripts returned zero
+for all three trials and was read for half an hour as "the body was not
+loaded". The trajectory is the artefact; the transcript now prints where it
+cuts.

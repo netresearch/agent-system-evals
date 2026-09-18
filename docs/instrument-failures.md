@@ -1034,6 +1034,40 @@ Measured in both directions before it was believed: the six crashed trials of
 compare"; the August trials, whose check ran and reported four failures, stay
 `VALID`.
 
+
+## 34. The transcript is a view, and it cuts each message at 4000 characters
+
+`verifier/common/nreval.py` renders `transcript.txt` from `trajectory.json`
+with `message[:4000]` per step. A skill body injected by the `Skill` tool is
+one step, and the upgrade skill's body is 13,123 characters, so the rendered
+transcript shows its first 4000 and stops — mid-step 9 — with no marker that
+anything was cut.
+
+**How it misled.** Round twenty-four's results section says of one trial that
+"its transcript carries the sentence" #94 moved into the body. True, and only
+because that sentence sat inside the first 4000 characters. Round twenty-five
+asked the same question of the trigger #95 added four hundred characters
+later, and `grep` over the transcripts returned zero for all three candidate
+trials — read for half an hour as "the body was not loaded" before the
+installed `SKILL.md` was checked and found to carry the line. The trajectory's
+`Skill` observation carries it too, in all three. The transcript was the only
+one of the three artefacts that did not, and it was the one being read.
+
+**Rule.** `trajectory.json` is the artefact; `transcript.txt` is a rendering
+for a human skimming a run, and a claim of the form "X was in the agent's
+context" cites the trajectory. The `[:4000]` stays — the transcript is for
+reading, and a 13,000-character block in it serves nobody — and a marker at
+the cut is the repair, so the next reader knows where the view ends and the
+artefact continues. It travels separately: `nreval.py` is copied into every
+case's `tests/` by design, and sixteen identical hunks read as 100% new-code
+duplication to SonarCloud, whose exclusions live in the project settings and
+not in this repository. That setting is the blocker, and it is named in the
+pull request carrying the marker.
+
+Claims already recorded that grep a transcript for skill-body text: round
+twenty-four's (above the cut, stands). RESIZE's "`typo3-testing` mentioned 0
+times" counted the agent's own words, not the body, and stands.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the
