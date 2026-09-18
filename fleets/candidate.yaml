@@ -83,8 +83,22 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND THIRTEEN, open: is the grep block where the review case's saving
-  # lives?
+  # ROUND THIRTEEN, ANSWERED 18 September 2026: no. Six of six valid, declared
+  # on cost, and cost overlapped — $0.13/0.17/0.11 with the block against
+  # $0.09/0.10/0.12 without, p 0.200 — with outcome_quality 3/3 on both arms.
+  # The arm without the block ran equivalent greps by hand, two to three a
+  # trial, from the tokens Steps 1–11 name in prose. Tokens separated the
+  # other way (−1.00 at the minimum p, exploratory), tracking agent steps
+  # 13/13/15 against 17/23/18; cause not established. The plan "more checks
+  # as blocks" is retired for this case. The ref is removed: candidate equals
+  # nr again. Next hypothesis, from the 28 August counts — bare trials read
+  # 248 files and made 13 Agent calls in six trials, equipped read 52 and
+  # made none: the skill supplies a plan, not a grep. Testable as candidate =
+  # nr with the Steps list removed and the block kept. Recorded in
+  # tasks/open/typo3-extension-review/RESULTS.md, "The grep block is not the
+  # saving".
+  #
+  # It asked: is the grep block where the review case's saving lives?
   #
   # OFR-TYPO3-EXT-001, cost-declared round of 28 August: the conformance
   # body's "Quick Grep Recipes" block ran in six of six nr trials and its
@@ -109,7 +123,8 @@ at:
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/without-the-grep-block while a comparison names it.
   # Resolved commit at the time of writing: bca2c33.
-  netresearch/typo3-conformance-skill: experiment/without-the-grep-block
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND TWELVE, ANSWERED 18 September 2026: yes — three of three. Six of
   # six valid, declared on cost, arms overlapping at p 1.000. The TU-58 loop

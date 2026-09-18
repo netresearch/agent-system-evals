@@ -281,3 +281,63 @@ Six control trials cost $3.08 against $0.76 — a factor of four on the total.
 That number is real and it is not a per-trial claim: it is dominated by one
 trial at $1.79, and the median difference is a third of it. Quoting the total
 as "the stack is four times cheaper" would be reading one outlier as a rate.
+
+## The grep block is not the saving
+
+`experiments/OFR-TYPO3-EXT-001-20260918-170620.json`, seed 5011, Haiku 4.5,
+benchmark 10.2.0. Six trials, six valid, declared on `cost`. `nr` pins
+`typo3-conformance` v2.19.4; `candidate` is `nr` with that skill at an
+experiment branch cut from v2.19.4 whose one commit deletes the fifteen-line
+"Quick Grep Recipes" block from `SKILL.md` and nothing else, resolved `bca2c33`
+in every lock.
+
+The hypothesis, from the cost-declared round of 28 August: the block ran in six
+of six equipped trials and its equivalent in none of six bare ones, at $0.13
+against $0.32 with the same task outcome, so removing the block alone should
+send cost back toward the bare arm's.
+
+| arm | `outcome_quality` | agent cost, three trials | input tokens | agent steps |
+|---|---|---|---|---|
+| `nr` (block) | 3/3 | $0.13, $0.17, $0.11 | 521k, 799k, 565k | 17, 23, 18 |
+| `candidate` (no block) | 3/3 | $0.09, $0.10, $0.12 | 368k, 384k, 468k | 13, 13, 15 |
+
+**It did not.** Cost overlapped — median $0.13 → $0.10, Cliff's delta −0.78,
+p 0.200, one `nr` trial inside the candidate's range — and the runner stopped
+after the discovery round. The declared endpoint says the block is not where
+the saving lives. The exploratory lines lean the other way, and are recorded
+as that: input tokens separate completely, −1.00 at the smallest attainable p,
+and `verification` moved 0/3 → 2/3 at p 0.300, the one judged dimension that
+did. Three trials with the declared endpoint flat carry neither.
+
+**What the arm without the block did instead.** It ran equivalent greps by
+hand — `grep -r "declare(strict_types" … | wc -l`, `grep -r '\$GLOBALS' …`,
+`grep -r "GeneralUtility::makeInstance" …` — two to three per trial, counting
+files with a pattern where the block lists files without it. The same targets,
+inverted tests, chained with `wc -l` rather than run one per line. The body's
+Steps 1–11 name those tokens in prose; the agent greps for what the steps name
+whether or not a fenced block spells the command.
+
+**The observation this round adds, cause not established.** The token gap
+tracks agent steps — 13/13/15 without the block, 17/23/18 with it — and not
+the block's own size: per-step input is 28k against 31k, and 971 characters in
+context for seventeen turns is four thousand tokens, not a hundred and fifty
+thousand. Single-grep calls do not separate either. Where the extra turns go is
+not answered here.
+
+**So the plan this arm was written for is retired.** "More checks as blocks,
+chosen by what `nr` still greps by hand" assumed the greps were the saving.
+They are not; the equipped arm and the arm without the block both grep, and
+both cost a third of bare.
+
+**Where the saving lives, from the counts already on record — the next
+hypothesis, not this round's finding.** Over the six bare trials of 28 August
+the agent made 248 `Read` calls and 13 `Agent` calls, with `ListAgents` and
+`SendMessage` beside them: it read forty-one files a trial and fanned out to
+sub-agents in most of them. The six equipped trials read fifty-two files in
+total — nine a trial — and delegated in none. This round's two arms, both
+equipped, read 37 and 25 and delegated in none. What the conformance body
+supplies that the bare model lacks is not a grep; it is a plan — Steps 1–11
+say what to check, and the model checks that instead of reading everything and
+spawning help. That is testable the same way this round was: `candidate` =
+`nr` with the Steps list removed and the block kept. If reads and `Agent` calls
+come back, the plan is the mechanism.
