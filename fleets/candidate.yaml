@@ -91,9 +91,13 @@ at:
   # the list worked the same topics from the grep block's lines and inline
   # comments; the two ablations answer each other — list and block are copies
   # of one plan, and a single removal cannot see a mechanism present twice.
-  # The ref is removed: candidate equals nr again. Next question, not a
-  # finding: both out at once (body reduced to Step 0, Step 12, delegation,
-  # scoring, references), same two counts. Recorded in
+  # The ref is removed: candidate equals nr again. The both-out design this
+  # suggested is retired unrun: measured across every bare round, the
+  # forty-one-Read reference was one round's tail (bare Read median 19
+  # against equipped ~9; four of eleven bare trials above $0.35, none of
+  # thirty-five equipped above $0.20). The next round on this case declares
+  # the spread of cost, which needs an endpoint the runner does not have
+  # yet. Recorded in
   # tasks/open/typo3-extension-review/RESULTS.md, "The numbered checks are
   # not the saving either".
   #

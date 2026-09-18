@@ -106,6 +106,17 @@ class Arm:
         self.case_id: str | None = None
 
         for job in jobs:
+            # A record names its jobs and holds nothing per trial; a job
+            # directory that is gone leaves an empty snapshot, and two empty
+            # snapshots compare equal, which once read as "same provision
+            # digest" for a round whose directories a worktree removal had
+            # taken (instrument failure 35). Say what is actually missing.
+            if not job.is_dir():
+                sys.exit(
+                    f"{name}: job directory missing: {job} — the record names "
+                    f"it and nothing on disk answers; jobs/ is part of the "
+                    f"record (docs/instrument-failures.md, 35)"
+                )
             snapshot = validity.read_snapshot(job)
             self.snapshot = self.snapshot or snapshot
             self.case_id = self.case_id or snapshot.get("case_id")
