@@ -1,8 +1,19 @@
 # Netresearch Agent System Evals
 
-A benchmark that measures whether an agent, equipped with the Netresearch agent
-engineering stack, can take a realistic and deliberately underspecified request
-and work out for itself what the job actually is.
+A benchmark that measures whether the Netresearch agent engineering stack
+shortens the path from a realistic, underspecified request to a defensible
+result — in agent time, tool calls and tokens — against the same model working
+bare. A frontier model finds most answers eventually; the stack exists to make
+that sooner and cheaper, and this repository exists to prove it, and where it
+does not hold, to send the gap back to the skill that owns it. The loop is the
+point: case → measurement → retro → skill → the same case again
+([docs/open-forward-review.md](docs/open-forward-review.md) §1 and §10). It runs
+against fixed cases, apart from whatever happens in real sessions, so a change
+to a skill has one place where its effect is measured before it is believed.
+
+Every trial is one request, one cold start, one session run to a result under a
+fixed timeout. Long sessions, several tasks in one context, requirements that
+move — the benchmark does not measure those and says nothing about them.
 
 This repository is **not** an eval framework. Execution, isolation, agent
 integration, skill injection, trajectory recording, artifact collection,

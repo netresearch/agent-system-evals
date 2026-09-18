@@ -1,9 +1,11 @@
 # AGENTS.md
 
-Benchmark that measures whether an agent with the Netresearch stack can take an
-underspecified request and work out what the job is. Execution is
+Benchmark that measures whether the Netresearch stack shortens the path from an
+underspecified request to a defensible result — cost and time against the bare
+model — and sends what it finds back to the skill that owns it. One request, one
+cold start, one session per trial. Execution is
 [Harbor](https://harborframework.com); this repository holds the methodology,
-the cases and the rubric.
+the cases and the rubric. The question is docs/open-forward-review.md §1.
 
 ## Layout
 
