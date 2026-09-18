@@ -285,6 +285,17 @@ not declare the thing it went on to find, so the benchmark's most separated
 result could only ever be reported as a hypothesis. A dimension separating says
 the work changed; cost separating says the bill did, and both are results.
 
+**An endpoint may be a spread.** `cost_spread` and `input_tokens_spread`
+declare the dispersion of a resource rather than its middle, read as
+Brown-Forsythe — each trial's distance from its own arm's median, then the same
+rank test as everything else. Added on 18 September after the review case had
+shown the same shape three times: bare trials from $0.08 to $1.79 across three
+rounds, equipped ones from $0.08 to $0.20 across thirty-five, and the medians
+six cents apart. A location endpoint reads that as flat, and a discovery round
+of three per arm cannot contain the tail that is the finding, so a spread
+endpoint never stops after the discovery round — the schedule runs to the
+budget, and the budget is chosen for the tail rather than for the middle.
+
 **One endpoint, declared before the run.** `--primary` is required and is
 written into `experiments/<case>-<stamp>.json` before the first trial starts.
 Everything else `scripts/analyze` reports is labelled exploratory and carries

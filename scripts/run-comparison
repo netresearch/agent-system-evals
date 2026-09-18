@@ -35,7 +35,10 @@ were looked at. So a run starts at three blocks and continues only where the
 result is close enough that more blocks could settle it.
 
 **The endpoint.** `--primary` is required, and it is written into the record
-before the first trial starts. With eight dimensions read per run, something
+before the first trial starts. A dimension, the mechanical outcome, the
+invocation rate, a resource (`cost`, `input_tokens`) or a resource's spread
+(`cost_spread`, `input_tokens_spread`); the last kind never stops after the
+discovery round, because the thing it is declared for does not show in three. With eight dimensions read per run, something
 moves in most of them; choosing which one mattered afterwards turns a coin flip
 into a finding. Everything else the analysis reports is labelled exploratory.
 
@@ -90,6 +93,17 @@ MECHANICAL = "mechanical_outcome"
 # a dimension separating tells you the work changed, cost separating tells you
 # the bill did.
 RESOURCE = {"cost": "cost_usd", "input_tokens": "n_input_tokens"}
+
+# The spread of a resource rather than its middle. Declared when the question
+# is not "is the equipped arm cheaper" but "is it predictable": on the review
+# case eleven bare trials over three rounds cost $0.08 to $1.79 and thirty-five
+# equipped ones $0.08 to $0.20, with the medians six cents apart. A location
+# endpoint reads that as flat, three times, and a discovery round of three per
+# arm cannot contain the tail that is the finding. So a spread endpoint runs
+# the schedule out — nothing decided after three — and is read as
+# Brown-Forsythe: each trial's distance from its own arm's median, then the
+# same rank test as everything else.
+SPREAD = {"cost_spread": "cost_usd", "input_tokens_spread": "n_input_tokens"}
 
 # Whether the arm reached for anything it was given. A rate per trial, like the
 # mechanical outcome, and read from the trajectory rather than from a judge.
@@ -350,7 +364,7 @@ def main() -> int:
     # the matrix outcome reproduced across two independent runs while the
     # dimension that separated once did not.
     has_ground_truth = bool(cases.metadata(args.case_id).get("mechanical_outcome"))
-    allowed = graded | set(RESOURCE) | {INVOCATION} | (
+    allowed = graded | set(RESOURCE) | set(SPREAD) | {INVOCATION} | (
         {MECHANICAL} if has_ground_truth else set()
     )
     if args.primary not in allowed:
@@ -392,6 +406,7 @@ def main() -> int:
         "primary_kind": (
             "invocation" if args.primary == INVOCATION
             else "resource" if args.primary in RESOURCE
+            else "dispersion" if args.primary in SPREAD
             else "mechanical" if args.primary == MECHANICAL
             else "dimension"
         ),
@@ -414,10 +429,16 @@ def main() -> int:
         # other endpoint needs complete separation. Recording one sentence for
         # both let an audit reconstruct a protocol the run never followed.
         "stopping_rule": (
-            f"rounds of {ROUNDS} blocks; stop after the discovery round unless "
-            + ("the pass rates differ at all"
-               if args.primary == MECHANICAL
-               else "the primary endpoint separates completely")
+            f"rounds of {ROUNDS} blocks; "
+            + (
+                "no stop after the discovery round -- a spread is not visible "
+                "in three per arm, so the schedule runs out"
+                if args.primary in SPREAD
+                else "stop after the discovery round unless "
+                + ("the pass rates differ at all"
+                   if args.primary == MECHANICAL
+                   else "the primary endpoint separates completely")
+            )
             + f", and never exceed {args.max_trials} trials in total"
         ),
         "max_trials": args.max_trials,
@@ -608,6 +629,22 @@ def main() -> int:
             p, _ = stats.permutation_p(primary_a, primary_b)
             moved = stats.separated(primary_a, primary_b)
             summary = "separates completely" if moved else "overlaps"
+        elif args.primary in SPREAD:
+            # A spread cannot be seen in three per arm: a tail that shows in
+            # four trials of eleven is absent from most samples of three, and
+            # its absence says nothing. So the discovery round decides nothing
+            # here and the schedule runs to the budget; the p recorded is the
+            # Brown-Forsythe reading of what three blocks happen to show.
+            field = SPREAD[args.primary]
+            primary_a = stats.deviations_from_median(
+                resources(collected[first], args.case_id, field)
+            )
+            primary_b = stats.deviations_from_median(
+                resources(collected[second], args.case_id, field)
+            )
+            p, _ = stats.permutation_p(primary_a, primary_b)
+            moved = True
+            summary = "spread declared; the discovery round decides nothing"
         else:
             primary_a = scores(collected[first], args.case_id).get(args.primary, [])
             primary_b = scores(collected[second], args.case_id).get(args.primary, [])

@@ -521,6 +521,19 @@ def main() -> int:
 
     print("\ncost — every trial, then the effect")
     show_continuous(continuous_row("agent cost (USD)", a, b, a.cost(), b.cost()), a.name, b.name)
+    # The spread, read as Brown-Forsythe: each trial's distance from its own
+    # arm's median. On the review case the arms' medians sit six cents apart
+    # and the bare arm's range is twenty-two times the equipped arm's; the row
+    # above cannot show the second fact, and this one exists for it.
+    show_continuous(
+        continuous_row(
+            "agent cost, distance from the arm's median (USD)", a, b,
+            stats.deviations_from_median(a.cost()),
+            stats.deviations_from_median(b.cost()),
+        ),
+        a.name,
+        b.name,
+    )
     show_continuous(
         continuous_row("input tokens", a, b, a.cost("n_input_tokens"), b.cost("n_input_tokens")),
         a.name,
