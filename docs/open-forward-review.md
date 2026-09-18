@@ -8,15 +8,29 @@ not an Open Forward Review, whatever else it may be worth.
 
 An Open Forward Review answers one question:
 
-> Can an agent equipped with the Netresearch agent engineering stack take a
-> realistic, deliberately underspecified request and work out for itself what
-> the job is — and then do it defensibly?
+> Does the Netresearch agent engineering stack shorten the path from a
+> realistic, deliberately underspecified request to a defensible result — in
+> agent time, tool calls and tokens — against the same model working bare?
 
-Everything below follows from that sentence. In particular, the review measures
-the behaviour of the *whole system* — agent, model, skills, harness, canonical
-sources — not the correctness of any one skill. Single-skill correctness belongs
-in that skill's own eval; a specific known failure mode belongs in a contract
-eval under `tasks/contracts/`.
+A frontier model reaches most answers eventually. The stack exists to make it
+reach them sooner and for less: a skill is a shortcut before it is an
+explanation, and where a step can be a script it is not a paragraph. The review
+therefore measures two things and reports both. Whether the job got done is the
+floor — the case's mechanical outcome where it has one, the judged dimensions
+where it does not. What it cost to get there is the point — `cost`,
+`input_tokens` and tool calls, each a declarable endpoint under §8. A stack that
+reaches an outcome the bare model never reaches has earned its cost; one that
+reaches the same outcome for more has not; one that reaches it for less is what
+this repository exists to find and to keep.
+
+It measures the behaviour of the *whole system* — agent, model, skills,
+harness, canonical sources — not the correctness of any one skill, and it
+measures it under one shape of session: **one request, one cold start, one run
+to a result** under the case's timeout. Long sessions, several tasks in one
+context, requirements that move under the agent — none of that is measured
+here, and a result from here says nothing about it. Single-skill correctness
+belongs in that skill's own eval; a specific known failure mode belongs in a
+contract eval under `tasks/contracts/`.
 
 ## 2. The prompt
 

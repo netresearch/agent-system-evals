@@ -61,6 +61,34 @@ demands. It does not compute the next number: which digit that lands on depends
 on the paragraph above, and a script that guessed would be wrong on the day the
 leading zero goes.
 
+## What a result is measured against
+
+The bare model is the baseline. Every comparison that asks whether the stack is
+worth having runs `control` — the same model, the same case, no skills — beside
+the equipped arm, and the two axes a result lands on are the outcome and the
+bill:
+
+| | cheaper than bare | dearer than bare |
+|---|---|---|
+| **reaches what bare reaches** | the shortcut this repository exists to find | a cost with no return |
+| **reaches what bare does not** | both at once | earned its cost — the next question is whether it can earn less |
+
+The floor is the outcome: the mechanical result where the case has one, the
+judged dimensions where it does not. The point is the bill: `cost`,
+`input_tokens` and tool calls, which `--primary` may declare and which
+`scripts/analyze` reports for every run whether declared or not. A round that
+declares only an outcome and reads its cost line as exploratory has answered
+half the question, and the half it left is the one the stack is for.
+
+Two readings this table forbids. A skill that is loaded, read and moves neither
+axis has spent tokens for nothing — the census (`scripts/invocation-census`) and
+the cost line make that visible, and it is a finding against the skill, not a
+null. And a dearer arm that reaches an outcome the bare model never reaches —
+UPGRADE-001's 4 of 6 against 0 of 6 at sixteen times the cost — is not a
+failure of the stack; it is the right-hand column's bottom row, and its next
+round asks how much of that cost the skill can shed by replacing an explanation
+with a check.
+
 ### Dependency updates are not maintenance here
 
 A bot raising a dependency inside `tasks/*/*/environment/` changes what the
