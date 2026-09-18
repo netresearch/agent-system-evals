@@ -83,8 +83,22 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND FOURTEEN, open: is the numbered list of checks where the review
-  # case's saving lives?
+  # ROUND FOURTEEN, ANSWERED 18 September 2026: no. Six of six valid,
+  # declared on cost, cost overlapped — $0.12/0.13/0.12 with the list against
+  # $0.14/0.11/0.13 without, p 0.700. The pre-registered observables read
+  # the equipped shape on both arms: Read 11/10/8 against 13/6/9 a trial
+  # (bare on 28 August: forty-one), Agent calls 0 in all six. The arm without
+  # the list worked the same topics from the grep block's lines and inline
+  # comments; the two ablations answer each other — list and block are copies
+  # of one plan, and a single removal cannot see a mechanism present twice.
+  # The ref is removed: candidate equals nr again. Next question, not a
+  # finding: both out at once (body reduced to Step 0, Step 12, delegation,
+  # scoring, references), same two counts. Recorded in
+  # tasks/open/typo3-extension-review/RESULTS.md, "The numbered checks are
+  # not the saving either".
+  #
+  # It asked: is the numbered list of checks where the review case's saving
+  # lives?
   #
   # Round thirteen removed the grep block alone and cost did not move; the
   # arm without it typed equivalent greps by hand from the tokens the
@@ -110,7 +124,8 @@ at:
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/without-the-numbered-checks while a comparison names it.
   # Resolved commit at the time of writing: 8a87c50.
-  netresearch/typo3-conformance-skill: experiment/without-the-numbered-checks
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND THIRTEEN, ANSWERED 18 September 2026: no. Six of six valid, declared
   # on cost, and cost overlapped — $0.13/0.17/0.11 with the block against
