@@ -83,6 +83,32 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
+  # ROUND TWELVE, open: is a block that runs as pasted run at step 10's rate?
+  #
+  # typo3-extension-upgrade-skill#96 inlines the TU-58 loop at step 9 — no
+  # path to find, no variable to bind, exit 1 on a finding — after round
+  # eleven showed the instruction to run the runner was in context 3 of 3
+  # and attempted 0 of 3. Declared on cost. The per-trial question the
+  # artefacts answer afterwards: a Bash call carrying the seven-type
+  # alternation, yes or no. Step 10 (5 of 6) is the bar.
+  # Resolved commit at the time of writing: dcaa62c2.
+  netresearch/typo3-extension-upgrade-skill: main
+
+  # ROUND ELEVEN, ANSWERED 18 September 2026: in context, not pulled. Six of
+  # six valid, declared on cost; the arms overlapped at the discovery round,
+  # p 0.400, nr 2 of 3 and candidate 2 of 3. The step-9 line #95 added was
+  # in every candidate trial's Skill observation and no trial attempted the
+  # runner — zero Bash calls naming it across nine equipped trials of rounds
+  # ten and eleven, and zero Bash calls in any trial binding a variable at
+  # all; the agents use the loader's absolute path verbatim. Per-step counts
+  # say what is followed: rector 5, phpstan 6, composer-with 5 — a known
+  # command or a fenced block that runs as pasted — against pre-upgrade.md 1,
+  # the grep 2, the runner 0. Not position: step 10 sits below step 9.
+  # Recorded in tasks/open/typo3-extension-upgrade/RESULTS.md, round
+  # twenty-five, with instrument failure 34 (the transcript cuts at 4000
+  # characters and hid the line for half an hour).
+  #   (closed; the ref moves on to the block that replaces the instruction)
+  #
   # ROUND TEN, ANSWERED 18 September 2026: it was read, and the edit was made
   # anyway. Twelve trials, twelve valid: nr 6 of 6, candidate 3 of 6, Fisher
   # p 0.182. One trial in twelve made the exact edit the moved sentence names —
@@ -121,7 +147,7 @@ at:
   #
   # A branch ref, and the header's warning applies with force: do not push to
   # this skill's main while a comparison is using this arm.
-  netresearch/typo3-extension-upgrade-skill: main
+  #   (the ref line now sits with round twelve above)
 
   # An experiment branch, not a release, and the one variable under study.
   #
