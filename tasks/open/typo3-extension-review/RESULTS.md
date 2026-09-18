@@ -474,7 +474,10 @@ averaged.
 
 **No tail appeared.** Zero events under the tail rule on either arm. The
 declared endpoint reads Cliff's delta +0.22 on the deviations, p 0.554 — the
-bare arm is, if anything, the tighter one this round. Cost location is flat
+bare arm is, if anything, the tighter one this round. (The table shows costs
+and deviations to the cent; the test runs on the full-precision values from
+each trial's `result.json`, where no two deviations tie. Recomputed from the
+rounded figures it reads 0.565, because rounding creates ties.) Cost location is flat
 too (median $0.18 → $0.14, p 0.132), as are input tokens and tool calls.
 `outcome_quality` is at the ceiling on both arms, 6/6 each; every judged
 dimension is inside its Holm-adjusted 1.000. `skill_invoked` 0/6 against 6/6,
