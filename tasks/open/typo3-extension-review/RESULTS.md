@@ -341,3 +341,66 @@ say what to check, and the model checks that instead of reading everything and
 spawning help. That is testable the same way this round was: `candidate` =
 `nr` with the Steps list removed and the block kept. If reads and `Agent` calls
 come back, the plan is the mechanism.
+
+## The numbered checks are not the saving either
+
+`experiments/OFR-TYPO3-EXT-001-20260918-200017.json`, seed 5023, Haiku 4.5,
+benchmark 10.3.0. Six trials, six valid, declared on `cost`. `nr` pins
+`typo3-conformance` v2.19.4; `candidate` is `nr` with that skill at an
+experiment branch cut from v2.19.4 whose one commit deletes the "Steps 1-11:
+Checks" heading and its eleven lines from `SKILL.md` and nothing else,
+resolved `8a87c50` in every lock. Step 0, Step 12, the delegation paragraph,
+the grep block and the scoring table stayed; the installed `SKILL.md` in each
+trial directory carries the block six times and the heading three, on the
+`nr` side only.
+
+The hypothesis, from the section above: the body supplies a plan, and the
+28 August counts — bare trials at forty-one `Read` calls a trial with
+sub-agents in most, equipped at nine with none — are the plan's signature. The
+per-trial observables were named before the round ran, in `fleets/candidate.yaml`
+and the launch script: `Read` and `Agent` call counts from `steps[]`. If the
+plan is the saving, the arm without it drifts toward the bare shape and cost
+follows.
+
+| arm | `outcome_quality` | agent cost | input tokens | agent steps | `Read` calls | `Agent` calls |
+|---|---|---|---|---|---|---|
+| `nr` (list) | 3/3 | $0.12, $0.13, $0.12 | 522k, 544k, 531k | 16, 17, 17 | 11, 10, 8 | 0, 0, 0 |
+| `candidate` (no list) | 3/3 | $0.14, $0.11, $0.13 | 506k, 505k, 564k | 16, 17, 18 | 13, 6, 9 | 0, 0, 0 |
+
+**It did not drift.** Cost overlapped — median $0.12 → $0.13, Cliff's delta
++0.33, p 0.700 — and the runner stopped after the discovery round. The
+pre-registered observables read the equipped shape on both arms: a mean of
+9.7 `Read` calls a trial with the list and 9.3 without, against the bare
+forty-one; `Agent` calls zero in all six. Tokens and tool calls overlap too
+(p 0.700 and 1.000). No exploratory line points the way the hypothesis needed
+either: four judged dimensions moved by one or two trials against the
+candidate, each flagged by the analyzer as within one judge step of its
+threshold.
+
+**What the arm without the list checked.** Counting the tokens of the eleven
+checks in each trial's `Bash`, `Read` and `Grep` arguments: `nr` touched
+eleven to fourteen of twenty tracked topics a trial, `candidate` ten to
+twelve, and the core set is the same on both sides — `strict_types`,
+`$GLOBALS`, `makeInstance`, `ext_tables.php`, `HashService` and the magic
+finders, cache `has()`, `composer.json`, `ext_emconf.php`, `Services.yaml`.
+Those are the block's own lines and its inline comments. The list names the
+topics in prose; the block names the same topics as commands with a comment
+each. Either one alone carries the plan.
+
+**So the two ablations answer each other.** Removing the block left the list,
+and the agent typed the block's greps from the list's nouns. Removing the list
+left the block, and the agent worked the list's topics from the block's
+comments and commands. Neither is the saving on its own because each is a
+copy of the other, and the single-removal design cannot see a mechanism that
+is present twice. The 28 August contrast — nine reads against forty-one, no
+delegation against most — stands as the signature of *something* in this body;
+which sentence it is has not been found by taking sentences out one at a time.
+
+**The next question, not this round's finding.** Take both out — `candidate`
+= `nr` with the body reduced to Step 0, Step 12, delegation, scoring and the
+references list — and read the same two counts. If reads and `Agent` calls
+come back, the checklist in either form is the mechanism and the body's job is
+to name what to look at, in whatever shape. If they still do not, the
+shortening happens before the body is read: in the description that routes
+the skill (`skill_invoked` 3/3 on both arms of every equipped round here) or
+in the fleet's other skills, and the conformance body is along for the ride.
