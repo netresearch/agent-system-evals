@@ -885,3 +885,54 @@ run that would have found it — and this round had no finding to replace.
 **`nr` again.** 2/3 here after 2/3, 6/6, 4/6: the arm's own swing on this
 case now spans five rounds, and every arm comparison at three or six per arm
 sits inside it. `candidate` 3/3 against `nr` 2/3 is not a claim.
+
+## Round twenty-seven: the replication — five of six across both rounds
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260918-152227.json`, seed 3311, Haiku 4.5,
+benchmark 10.1.0. Six trials, six valid, declared on `cost`; the arms overlapped
+at the discovery round, p 1.000, and the runner stopped. Same arms and refs as
+round twenty-six — `candidate` at the skill's `main`, `dcaa62c2` in every lock.
+
+| arm | passed both legs | block ran | agent cost, three trials |
+|---|---|---|---|
+| `nr` | 3/3 | — | $1.92, $1.33, $0.92 |
+| `candidate` | 2/3 | 2/3 | $1.51, $1.06, $1.31 |
+
+**The block, over both rounds: pasted and run in five of six candidate trials.**
+Twice in three of them, as step 9 asks. The sixth (`154026`) had the block in
+its `Skill` observation and did not paste it; it ran
+`grep -rn "TypoScriptFrontendController" Classes Tests` by hand instead — the
+search the block automates, without the missing-import test the block adds.
+Against the shapes that have sat at the same step:
+
+| step 9 asked for | ran it | against the block, Fisher |
+|---|---|---|
+| an instruction to run the runner via `$SKILL_DIR` (round twenty-five) | 0/3 | p 0.048 |
+| the removed-types `grep`, beside either (round twenty-five) | 2/6 | p 0.242 |
+| the check as a fenced block (rounds twenty-six and twenty-seven) | **5/6** | — |
+| step 10's fenced block, for scale (rounds twenty-four and twenty-five) | 16/18 | p 1.000 |
+
+Five of six is step 10's rate to the digit, and it is the first difference
+between two shapes at this step to clear p 0.05. It says what a shortcut has to
+look like to be taken by this model: a block that runs as pasted, in the body,
+with nothing to find and nothing to bind first.
+
+**What it did not deliver, again.** Zero deleted-import edits in six trials, so
+the block printed nothing and caught nothing; one occurrence in forty-two trials
+across rounds twenty-three to twenty-seven. And the one candidate failure here
+is outside its scope by construction: `152227` rewrote `SessionContext` from
+`TypoScriptFrontendController` to `$GLOBALS['TYPO3_REQUEST']` and its
+`frontend.user` attribute — the v14 idiom, and correct — then reworked four test
+files and left thirty-one `SessionContextTest` assertions red on both legs. The
+import was replaced, not deleted, so there was no unqualified name for the
+block to see. That is the judgement the reference names — mock what replaced
+the class — and no grep decides it.
+
+**Cost, declared, overlapping for the third round running.** Median $1.33 →
+$1.31, Cliff's delta −0.11, p 1.000. A block that finds nothing costs one tool
+call and saves none; on this case the finding it exists for arrives once in
+forty-two trials. The cost proof belongs to a case where the check fires.
+
+**`nr`:** 3/3 after 2/3, 2/3, 6/6, 4/6 — six rounds, 20 of 24 on one fleet and
+one version, and the two arms' totals over rounds twenty-six and twenty-seven
+are 5/6 and 5/6.

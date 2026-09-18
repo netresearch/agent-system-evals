@@ -100,8 +100,11 @@ at:
   # runs adds a tool call and removes none by itself; the saving comes when
   # a finding replaces the test run that would have found it. Recorded in
   # tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-six.
-  #   (the ref stays: the arm's next round is a replication of this one, and
-  #   the question after that is chosen against the whole fleet, not here)
+  #   Replicated as round twenty-seven at seed 3311: 2 of 3, so 5 of 6 across
+  #   both — step 10's rate to the digit, p 0.048 against the instruction that
+  #   sat at the same step. The sixth trial had the block in context and typed
+  #   the grep it automates by hand. The ref stays; the question after this is
+  #   chosen against the whole fleet, not here.
   #
   # It asked: is a block that runs as pasted run at step 10's rate?
   #
