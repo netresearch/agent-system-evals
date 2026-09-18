@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the upgrade fix and a conformance description that hands the version raise to it — the boundary written into both skills rather than one
+description: nr with the v14 import rule moved from a reference into the SKILL.md body — the surface a sentence sits on, as the variable
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -66,38 +66,52 @@ derives_from: nr
 
 
 at:
-  # ROUND NINE, open: can a skill be reached by a bug report at all?
+  # ROUND NINE, ANSWERED 17 September 2026: no. Measured twice on
+  # OFR-TYPO3-RESIZE-001 at two seeds — rounds 36 and 40, six of six valid
+  # each — `Skill(` reads 0 of 3 in both arms of both rounds. v5.21.2's
+  # description opens almost on the request verbatim ("Use when a reported
+  # defect has to be reproduced as a failing test before it is fixed, when a
+  # change to a template or to any rendered output has to be proved") and the
+  # case's prompt is a user reporting that a resize is lost in the frontend.
+  # The skill is installed and reachable: the agent's slash_commands list
+  # carries typo3-testing and its tool list carries Skill. Nothing loads it.
+  # mechanical_outcome is 0 of 3 against 0 of 3 in both rounds, and all twelve
+  # trials write the same nested f:if that Fluid cannot parse. Recorded in
+  # tasks/open/typo3-rte-figure-resize/RESULTS.md. The description lever is
+  # spent on this case shape; the arm moves to the next question.
+  #   (closed; the ref is removed rather than left in place — an arm that
+  #   carries two refs measures two differences and reports one, and this
+  #   one's question is answered)
+
+  # ROUND TEN, open: does a rule that lives in the body land where the same
+  # rule in a reference did not?
   #
-  # On OFR-TYPO3-RESIZE-001 the eight skills in `nr` were installed and none
-  # was opened: `Skill(` 0 of 3 in the equipped arm, which therefore measured
-  # the base model twice. The request is a user's report — wrong output, "have
-  # a look and sort it out" — and no description in the fleet opens on that
-  # shape.
+  # On OFR-TYPO3-UPGRADE-001 the skill IS reached — `skill_invoked` 6 of 6 —
+  # so this arm asks about the second surface rather than the first. Round
+  # twenty-three (14 September, released stack, v3.12.5) read 4 of 6, and one
+  # of the two failures passed the v14.3 leg and lost v13.4 with five errors,
+  # every one of them a mock on
+  # `Netresearch\Contexts\Tests\Unit\Context\TypoScriptFrontendController` —
+  # the test's own namespace, which is what an unqualified name resolves to
+  # once its import is deleted. The upstream file at the pinned commit carries
+  # that import and five createMock calls, so the deletion was the agent's.
   #
-  # All six trials of that round found the right method in the right class,
-  # wrote the value into the Fluid template as a nested inline ViewHelper call
-  # that Fluid cannot parse, ran the extension's unit suite, saw it green and
-  # reported the defect fixed. The rendered markup carried the expression as
-  # text in all six. A unit suite loads PHP classes and never renders a
-  # template, so nothing in the run could have contradicted them.
+  # The rule against exactly that edit had been in
+  # references/upgrade-v13-to-v14.md since 5 September, and v3.12.5 shipped
+  # with it. Counting Read calls against references/ per trial in that round:
+  # 0, 0, 3, 2, 0, 0 — four of six opened no reference at all, and the trial
+  # that lost the leg was one of them. SKILL.md named the problem at the right
+  # step and pointed at the file.
   #
-  # v5.21.1 answers both halves: the description now opens on a reported defect
-  # and on proving a change to rendered output, and two rules sit at the top of
-  # the body — a report becomes a failing test before it becomes a fix, and a
-  # template change is proved by rendering it, reading the rendered string
-  # rather than the exit code. Recorded in
-  # tasks/open/typo3-rte-figure-resize/RESULTS.md.
+  # netresearch/typo3-extension-upgrade-skill#94 moves the load-bearing
+  # sentence into step 9 and leaves the judgement — mock what replaced the
+  # class, or delete the test — in the reference. This arm carries that merge
+  # and nothing else, so the variable is the surface the sentence sits on.
+  # Resolved commit at the time of writing: 7eec9c6.
   #
-  # Confound, stated rather than removed: `nr` pins v5.20.3, so this arm also
-  # carries v5.20.4 through v5.20.8 — pre-commit hook updates — and v5.21.1's
-  # reference generalisation. None of them touches testing guidance, and the
-  # generalisation removed a passage naming this case's target repository
-  # (netresearch/typo3-testing-skill#173), which is why the release is v5.21.1
-  # and not v5.21.0. v5.21.2 rather than v5.21.1, because v5.21.1 still carried
-  # two eval prompts ending on this benchmark's verbatim closing line
-  # (netresearch/typo3-testing-skill#175); contamination-check raised eight hits
-  # for it across four cases the first time the fleet resolved.
-  netresearch/typo3-testing-skill: v5.21.2
+  # A branch ref, and the header's warning applies with force: do not push to
+  # this skill's main while a comparison is using this arm.
+  netresearch/typo3-extension-upgrade-skill: main
 
   # An experiment branch, not a release, and the one variable under study.
   #
