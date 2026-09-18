@@ -83,8 +83,18 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND TEN, open: does a rule that lives in the body land where the same
-  # rule in a reference did not?
+  # ROUND TEN, ANSWERED 18 September 2026: it was read, and the edit was made
+  # anyway. Twelve trials, twelve valid: nr 6 of 6, candidate 3 of 6, Fisher
+  # p 0.182. One trial in twelve made the exact edit the moved sentence names —
+  # a candidate trial whose transcript carries the sentence. Cost rose in this
+  # arm (median 0.84 → 1.18 USD, p 0.026) and the rise tracks reference-reading,
+  # 3 of 6 against 1 of 6, confounded with v3.12.6's longer references. Recorded
+  # in tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-four. The
+  # sentence stays in the body — one trial is not grounds to revert — and the
+  # arm's next question is mechanical rather than textual.
+  #
+  # It asked: does a rule that lives in the body land where the same rule in
+  # a reference did not?
   #
   # On OFR-TYPO3-UPGRADE-001 the skill IS reached — `skill_invoked` 6 of 6 —
   # so this arm asks about the second surface rather than the first. Round
