@@ -273,6 +273,76 @@ is `nr` against `candidate`, which carries v5.21.2 and the two rules this
 case is about; rounds 35 and 36 were that comparison and the instrument took
 both.
 
+## Round 40, 17 September 2026 — the same pair again, at a second seed
+
+`scripts/run-comparison OFR-TYPO3-RESIZE-001 --arms nr,candidate --primary
+mechanical_outcome --model claude-haiku-4-5-20251001 --seed 4411`, benchmark
+version 10.0.0. Experiment record:
+`experiments/OFR-TYPO3-RESIZE-001-20260917-215131.json`. Six of six valid.
+
+This is round 36's pair at a second seed — a replication, not a first
+measurement. Round 36 ran these two arms on the repaired environment, six of
+six valid, and read the same zeros; round 35 is the one the memory wall took.
+`candidate` differs from `nr` in exactly one ref — `typo3-testing-skill`
+v5.21.2 against v5.20.3, confirmed in each job's `fleet_declares` — and
+v5.21.2 is the release carrying the two rules this case is about: a report
+becomes a failing test before it becomes a fix, and a template change is
+proved by rendering it, both in the description's opening clause and at the
+top of the body.
+
+**`Skill(` was called in 0 of 3 trials on either side.** The description
+names this request almost literally — "Use when a reported defect has to be
+reproduced as a failing test before it is fixed, when a change to a template
+or to any rendered output has to be proved" — and the case's prompt is a
+user reporting that a resize is lost in the frontend. It is installed and
+reachable: the agent's `slash_commands` list carries `typo3-testing` and its
+tool list carries `Skill`. Nothing loads it. With round 36 that is 0 of 6 per
+arm across two independent seeds, which is what a replication buys: one
+round's zero could belong to a seed, two rounds' cannot.
+
+`mechanical_outcome` is `0/3` against `0/3`, and all six artefacts carry
+`Tests: 13 … Failures: 4`.
+
+**What the round does say, against round 39.** Round 39 separated `control`
+from `nr` completely on cost. Here, with both arms equipped, the separation
+is gone: agent cost `0.52, 0.57, 0.87` against `0.37, 0.47, 0.78`, Cliff's
+delta −0.56 at p 0.400, and tool calls overlap outright (−0.11, p 1.000).
+Two rounds is not a proof, but it points the round-39 difference at
+equipped-versus-bare rather than at one skill version against another — and
+it stays unexplained either way, because no skill was loaded in any of the
+twelve trials.
+
+**And a warning about the judged dimensions.** Across the three rounds this
+case has on the repaired instrument, `outcome_quality` runs the full scale —
+0.25, 0.5, 0.75, 1.0 — while every trial fails identically. That is not judge
+noise in the sense of a judge reading the same work differently: the four
+criteria move sharply and for stated reasons, and `the_change_is_narrow` is
+1.0 in all eighteen of those trials.
+
+What they do instead is move together, per round, across both arms. Counting
+round 36 as well, which ran the same pair at seed 4211:
+
+| criterion, per arm of 3 | R36 `nr` | R36 `cand` | R39 `control` | R39 `nr` | R40 `nr` | R40 `cand` |
+|---|---|---|---|---|---|---|
+| `established_the_defect_before_changing_it` | 3 | 3 | 1 | 1 | 3 | 2 |
+| `claims_match_what_was_shown` | 3 | 2 | 1 | 2 | 2 | 2 |
+| `the_check_it_ran_could_have_failed` | 2 | 1 | 1 | 0 | 2 | 3 |
+
+Read down a column rather than across: the two arms of a round sit near each
+other, and the rounds sit far apart. `established_the_defect` is 3 and 3 in
+round 36, 1 and 1 in round 39, 3 and 2 in round 40 — the arms agree, the
+rounds do not. Thirty minutes separate round 39 from round 40 and nothing in
+the fleet or the case changed between them.
+
+This settles the reading round 40 on its own would have invited. `candidate`
+reads `the_check_it_ran_could_have_failed` 3 of 3 here, on exactly the
+criterion its added rule is about — and 1 of 3 in round 36, below the `nr`
+it is supposed to improve on. One round would have made that a hypothesis
+worth a bigger experiment. Three rounds make it the swing, and the same swing
+is on every judged criterion in both arms at once. Any arm difference on a
+judged dimension has to clear that first, and nothing at three trials per arm
+does.
+
 ## What the two cases say together
 
 RELEASE-001 and RESIZE-001 were both approached by naming things in a
