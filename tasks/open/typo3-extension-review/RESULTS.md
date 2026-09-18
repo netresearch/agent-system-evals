@@ -455,3 +455,65 @@ runner's endpoints are a dimension, the mechanical outcome, an invocation rate,
 and a resource's location; none of them can be declared for the thing this
 case's data have shown three times. That is the harness change this section
 hands on, and the next round on this case waits for it.
+
+## The spread, declared, is flat
+
+`experiments/OFR-TYPO3-EXT-001-20260918-204559.json`, seed 5031, Haiku 4.5,
+benchmark 10.3.0. Twelve trials, twelve valid, six per arm, bare (`control`)
+against `nr`, declared on `cost_spread` — the first round on any case to
+declare a spread, with the endpoint from the section above. The discovery
+round decided nothing by construction and the schedule ran to the budget of
+twelve. Pre-registered in the launch script: the endpoint, the block count,
+and a tail rule — any trial above $0.35 is an event with its own counts, never
+averaged.
+
+| arm | `outcome_quality` | agent cost, six trials | distance from the arm's median | `Read` per trial | `Agent` per trial |
+|---|---|---|---|---|---|
+| `control` | 6/6 | $0.10, $0.11, $0.18, $0.18, $0.18, $0.20 | 0.00, 0.00, 0.00, 0.02, 0.07, 0.08 | 20, 24, 13, 14, 22, 17 | 1, 0, 0, 0, 0, 0 |
+| `nr` | 6/6 | $0.10, $0.10, $0.13, $0.16, $0.17, $0.18 | 0.01, 0.01, 0.03, 0.03, 0.04, 0.04 | 13, 12, 13, 16, 4, 7 | 0, 0, 0, 0, 0, 0 |
+
+**No tail appeared.** Zero events under the tail rule on either arm. The
+declared endpoint reads Cliff's delta +0.22 on the deviations, p 0.554 — the
+bare arm is, if anything, the tighter one this round. (The table shows costs
+and deviations to the cent; the test runs on the full-precision values from
+each trial's `result.json`, where no two deviations tie. Recomputed from the
+rounded figures it reads 0.565, because rounding creates ties.) Cost location is flat
+too (median $0.18 → $0.14, p 0.132), as are input tokens and tool calls.
+`outcome_quality` is at the ceiling on both arms, 6/6 each; every judged
+dimension is inside its Holm-adjusted 1.000. `skill_invoked` 0/6 against 6/6,
+Fisher 0.002: the stack was reached for in every equipped trial and changed
+nothing that this case measures. The one stable difference from the sections
+above holds — `Read` median 18.5 bare against 12.5 equipped, one sub-agent
+call in the bare arm — and is worth about four cents at the median.
+
+**What the tail was, then.** Every bare trial above $0.35 on record — one on
+22 August, three on 28 August — ran before the case environment moved to PHP
+8.5 on 30 August and before the 1 GB memory limit of 17 September. The $1.79
+trial made 215 agent steps with no memory or fatal marker in its transcript;
+what it was doing for 215 steps is not read here. Whether the tail belonged
+to that environment or to the model is not established; what this round says
+is that at the current environment six bare trials produced none, and the
+predictability claim "What survived, and what it is" sketched on 28 August
+has nothing to stand on today.
+
+**So on this case, at this model and this environment, the stack has no
+measurable effect on cost or outcome.** Location flat three times, spread
+flat once, outcome at the ceiling on both arms in every round since 22
+August. In the governance table this is the row nobody wants: reaches what
+bare reaches, at what bare costs. The seventeen bare trials on record at the
+current cost class read $0.08 to $0.20 in thirteen and above $0.35 in four,
+all four from before the environment moved; the forty-one equipped ones read
+$0.08 to $0.20 without exception. The number that once separated this case —
+$0.13 against $0.32 on 28 August — was a median pulled by trials that this
+environment does not seem to produce.
+
+**What follows for the loop.** This case has answered its question for the
+review skill under Haiku: the skill routes, the body is read, and a task the
+bare model already does for twenty cents is not shortened by it. The
+mechanism-hunting rounds (thirteen, fourteen, the retired third) were looking
+for a saving that the current environment does not show. The next measurement
+on the stack's value belongs on a case where bare does not reach the ceiling
+or does not stay under a quarter — the upgrade case, where outcome moves, or a
+case whose bare cost has a middle worth shortening. This case stays in the
+fleet as the routing check it has become: `skill_invoked` 6/6 is what it
+measures now.
