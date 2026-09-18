@@ -525,3 +525,23 @@
   path: typo3-docs-skill-experiment-guides-xml-in-the-body/skills/typo3-docs/references/intercept-deployment.md
   marker: rte-ckeditor-image
   reason: The package name inside an example docs.typo3.org URL. Names where documentation is published, nothing about the code.
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/without-the-grep-block
+  path: typo3-conformance-skill-experiment-without-the-grep-block/skills/typo3-conformance/references/runtests-validation.md
+  marker: netresearch/rte-ckeditor-image
+  reason: "Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering. Same file, byte for byte, on the experiment branch \u2014 which changes SKILL.md only."
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/without-the-grep-block
+  path: typo3-conformance-skill-experiment-without-the-grep-block/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte-ckeditor-image
+  reason: "Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering. Same file, byte for byte, on the experiment branch \u2014 which changes SKILL.md only."
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/without-the-grep-block
+  path: typo3-conformance-skill-experiment-without-the-grep-block/skills/typo3-conformance/references/runtests-validation.md
+  marker: rte_ckeditor_image
+  reason: "Extension key and Composer package in a commented example of a runTests.sh configuration. Tooling shape, nothing about rendering. Same file, byte for byte, on the experiment branch \u2014 which changes SKILL.md only."
+- skill: netresearch/typo3-conformance-skill
+  ref: experiment/without-the-grep-block
+  path: typo3-conformance-skill-experiment-without-the-grep-block/skills/typo3-conformance/references/crowdin-integration.md
+  marker: rte_ckeditor_image
+  reason: "The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering. Same file, byte for byte, on the experiment branch \u2014 which changes SKILL.md only."
