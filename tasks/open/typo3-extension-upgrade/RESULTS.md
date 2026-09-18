@@ -701,7 +701,7 @@ cannot show: `nr-snapshot.json` records upgrade skill v3.11.1 for the first two
 rounds and v3.12.5 for this one, so those eighteen trials are two different arms
 under one name.
 
-## Round twenty-four: the sentence was read, and the edit was made anyway
+## Round twenty-four: the sentence was in context, and nobody made the edit
 
 `experiments/OFR-TYPO3-UPGRADE-001-20260918-073044.json`, seed 3011, Haiku 4.5,
 benchmark 10.1.0. Twelve trials, twelve valid, the schedule run to its budget.
@@ -723,14 +723,19 @@ is named here because it matters for the cost reading below.
 on the same fleet and version is the round-to-round swing RESIZE documented, not
 `nr` improving.
 
-**The direct test.** One trial in twelve made the edit the moved sentence names
-— deleted the import, left five `createMock` calls resolving to the test's own
-namespace, lost the v13.4 leg. It was `candidate` `084245`. Its transcript
-carries the sentence — "deleting the `use` line is not one" is in the `SKILL.md`
-it read — and it made the edit anyway. Zero such errors in `nr`, where the rule
-sat in a reference this trial's counterpart would mostly not open. That is n=1
-on the question the round was for, and it points the wrong way: the sentence
-reached the agent and did not change what it did.
+**The direct test, corrected.** This section first said one trial in twelve made
+the edit the moved sentence names — `candidate` `084245`, with the sentence in
+its context. It did not. Its v13.4 leg died on a PHP fatal in a compatibility
+stub the agent wrote — `Type of …TypoScriptFrontendControllerCompatStub::$rootLine
+must be array` — and the count that flagged it matched the stub's class name,
+`Tests\Unit\Context\TypoScriptFrontendController…`, not the
+`Class or interface … does not exist` line the deleted-import edit produces.
+Read with the exact line, the edit occurs in none of the twelve trials of this
+round, in either arm. Zero attempts is not a result for or against the sentence:
+the question the round was for went unmeasured here, and the one trial that has
+made the edit on this case remains round twenty-three's `3U8T7Rc`, with the rule
+in a reference it never opened. What the twelve trials do carry — the cost
+confound below, and `nr`'s swing — stands.
 
 **The cost reading, with its confound.** Median $0.84 → $1.18, Cliff's delta
 +0.78, p 0.026; tokens +42%; tool calls +31%. But the separation tracks
@@ -741,8 +746,9 @@ range. Two of the three readers failed. Whether the longer body prompts more
 reading, or the longer references (v3.12.6) cost more once read, this round
 cannot separate, and 3 of 6 against 1 of 6 is not itself significant.
 
-**What this says for the case.** The explanatory fix was tested at the surface
-it was moved to, and it did not prevent the edit it describes. The failure it
+**What this says for the case.** The explanatory fix was placed at the surface
+it was moved to, and the edit it describes did not occur in any of the twelve
+trials — so whether the sentence prevents it went unmeasured here. The failure it
 targets is a mechanical one — an unqualified `::class` to a type that no longer
 exists, findable by a grep before any test runs — and none of the skill's 45
 mechanical checkpoints looks for it. A sentence did not do it; a check has not
@@ -824,3 +830,58 @@ that in a 13,000-character skill body; a grep over transcripts returned zero
 for all three trials and was read for half an hour as "the body was not
 loaded". The trajectory is the artefact; the transcript now prints where it
 cuts.
+
+## Round twenty-six: a block that runs as pasted was run, three of three
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260918-121328.json`, seed 3211, Haiku 4.5,
+benchmark 10.1.0. Six trials, six valid, declared on `cost`; the arms overlapped
+at the discovery round, p 1.000, and the runner stopped.
+
+`nr` pins upgrade v3.12.5. `candidate` points at the skill's `main`, which
+after
+[#96](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/96)
+carries the `TU-58` loop inlined at step 9 — no path to find, no variable to
+bind, exit 1 on a finding — in place of the instruction to run the checkpoint
+runner. Each candidate job's lock resolved `dcaa62c2` and each installed
+`SKILL.md` carries the block.
+
+| arm | passed both legs | block ran | agent cost, three trials |
+|---|---|---|---|
+| `nr` | 2/3 | 0/3 (not installed) | $1.47, $1.15, $1.02 |
+| `candidate` | 3/3 | **3/3** | $1.30, $1.33, $0.91 |
+
+**The direct test, and the first one in this series to come back positive.**
+The block ran in every candidate trial — once, once, and twice in the third,
+which is what step 9 asks: before the suite and again after the edits. The
+signature is `types='TypoScriptFrontendController|…'` in the Bash arguments,
+so it was pasted whole rather than rebuilt. Against the three shapes step 9 has
+now carried at the same position, on the same case and model:
+
+| step 9 asked for | ran it |
+|---|---|
+| a rule, in the body (round twenty-four) | in context 3/3; the edit it names occurred 0/12, so untested |
+| an instruction to run a script via `$SKILL_DIR` (round twenty-five) | 0/3 |
+| the removed-types `grep`, beside either (rounds twenty-five) | 2/6 |
+| the check itself as a fenced block (this round) | **3/3** |
+
+Step 10's fenced block, the best-followed step in the body, is 16/18 across
+rounds twenty-four and twenty-five. Three of three clears that bar at three
+trials and does not establish it; the next round on this arm is a replication,
+not a new question.
+
+**What the block did not do this round is catch anything.** Neither arm made
+the deleted-import edit — zero namespace-resolution errors in six trials — so
+the block printed no findings and every run of it exited 0. Its value here is
+that it ran; whether it saves the v13.4 leg is measured on the round where the
+edit recurs, and rounds twenty-three to twenty-six put that at one trial in
+thirty-six.
+
+**Cost, declared and overlapping.** Median $1.15 → $1.30, Cliff's delta −0.11,
+p 1.000; tokens and tool calls overlap the same way. A block that runs adds its
+own tool call and removes none by itself, which is what the numbers show. The
+saving the restated purpose asks for comes when a finding replaces the test
+run that would have found it — and this round had no finding to replace.
+
+**`nr` again.** 2/3 here after 2/3, 6/6, 4/6: the arm's own swing on this
+case now spans five rounds, and every arm comparison at three or six per arm
+sits inside it. `candidate` 3/3 against `nr` 2/3 is not a claim.
