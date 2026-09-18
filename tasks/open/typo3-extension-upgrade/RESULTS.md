@@ -701,3 +701,49 @@ cannot show: `nr-snapshot.json` records upgrade skill v3.11.1 for the first two
 rounds and v3.12.5 for this one, so those eighteen trials are two different arms
 under one name.
 
+## Round twenty-four: the sentence was read, and the edit was made anyway
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260918-073044.json`, seed 3011, Haiku 4.5,
+benchmark 10.1.0. Twelve trials, twelve valid, the schedule run to its budget.
+
+`nr` pins upgrade v3.12.5, which carries the rule against deleting a `use` line
+and leaving `Foo::class` behind in `references/upgrade-v13-to-v14.md`.
+`candidate` points at the skill's `main` — v3.12.6 plus
+[#94](https://github.com/netresearch/typo3-extension-upgrade-skill/pull/94),
+which moves that rule's load-bearing sentence into step 9 of `SKILL.md`. That is
+two differences, not one: v3.12.6 also added 59 lines to two references, and it
+is named here because it matters for the cost reading below.
+
+| arm | passed both legs | Fisher exact |
+|---|---|---|
+| `nr` | 6/6 | 0.182 two-sided, 0.091 one-sided |
+| `candidate` | 3/6 | |
+
+`skill_invoked` 6/6 on both. `nr` reading 6/6 against round twenty-three's 4/6
+on the same fleet and version is the round-to-round swing RESIZE documented, not
+`nr` improving.
+
+**The direct test.** One trial in twelve made the edit the moved sentence names
+— deleted the import, left five `createMock` calls resolving to the test's own
+namespace, lost the v13.4 leg. It was `candidate` `084245`. Its transcript
+carries the sentence — "deleting the `use` line is not one" is in the `SKILL.md`
+it read — and it made the edit anyway. Zero such errors in `nr`, where the rule
+sat in a reference this trial's counterpart would mostly not open. That is n=1
+on the question the round was for, and it points the wrong way: the sentence
+reached the agent and did not change what it did.
+
+**The cost reading, with its confound.** Median $0.84 → $1.18, Cliff's delta
++0.78, p 0.026; tokens +42%; tool calls +31%. But the separation tracks
+reference-reading, not the four body lines. `candidate` opened references in 3
+of 6 trials against `nr`'s 1 of 6, and those three are the three expensive ones
+— $1.56, $1.60, $1.31 — while the three that opened none sit inside `nr`'s
+range. Two of the three readers failed. Whether the longer body prompts more
+reading, or the longer references (v3.12.6) cost more once read, this round
+cannot separate, and 3 of 6 against 1 of 6 is not itself significant.
+
+**What this says for the case.** The explanatory fix was tested at the surface
+it was moved to, and it did not prevent the edit it describes. The failure it
+targets is a mechanical one — an unqualified `::class` to a type that no longer
+exists, findable by a grep before any test runs — and none of the skill's 45
+mechanical checkpoints looks for it. A sentence did not do it; a check has not
+been tried.
