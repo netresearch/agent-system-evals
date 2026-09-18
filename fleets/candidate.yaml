@@ -83,7 +83,27 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND TWELVE, open: is a block that runs as pasted run at step 10's rate?
+  # ROUND TWELVE, ANSWERED 18 September 2026: yes — three of three. Six of
+  # six valid, declared on cost, arms overlapping at p 1.000. The TU-58 loop
+  # inlined at step 9 ran in every candidate trial, once, once and twice
+  # (before the suite and again after the edits, as the step asks), pasted
+  # whole — the `types='…'` signature is in the Bash arguments. Against the
+  # same position on the same case: a rule in the body was in context 3/3 and
+  # the edit it names occurred 0/12 (untested); the instruction to run the
+  # runner via $SKILL_DIR
+  # 0/3; the bare grep beside either 2/6; the check as a fenced block 3/3.
+  # Step 10's block, the body's best-followed step, is 16/18 across rounds
+  # twenty-four and twenty-five; three of three clears that bar at three
+  # trials and does not establish it.
+  # Nothing to catch this round — no trial made the deleted-import edit —
+  # so the block's value here is that it ran. Cost overlapped: a block that
+  # runs adds a tool call and removes none by itself; the saving comes when
+  # a finding replaces the test run that would have found it. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-six.
+  #   (the ref stays: the arm's next round is a replication of this one, and
+  #   the question after that is chosen against the whole fleet, not here)
+  #
+  # It asked: is a block that runs as pasted run at step 10's rate?
   #
   # typo3-extension-upgrade-skill#96 inlines the TU-58 loop at step 9 — no
   # path to find, no variable to bind, exit 1 on a finding — after round
@@ -109,10 +129,12 @@ at:
   # characters and hid the line for half an hour).
   #   (closed; the ref moves on to the block that replaces the instruction)
   #
-  # ROUND TEN, ANSWERED 18 September 2026: it was read, and the edit was made
-  # anyway. Twelve trials, twelve valid: nr 6 of 6, candidate 3 of 6, Fisher
-  # p 0.182. One trial in twelve made the exact edit the moved sentence names —
-  # a candidate trial whose transcript carries the sentence. Cost rose in this
+  # ROUND TEN, ANSWERED 18 September 2026: in context, and the edit it names
+  # did not occur — first read as one trial making it anyway; that trial's
+  # v13.4 fatal was a compat stub's property type, matched by a loose count.
+  # The sentence went untested on that axis. Twelve trials, twelve valid: nr
+  # 6 of 6, candidate 3 of 6, Fisher p 0.182. The edit the moved sentence
+  # names occurred in none of the twelve. Cost rose in this
   # arm (median 0.84 → 1.18 USD, p 0.026) and the rise tracks reference-reading,
   # 3 of 6 against 1 of 6, confounded with v3.12.6's longer references. Recorded
   # in tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-four. The
