@@ -62,3 +62,14 @@ def test_a_spread_endpoint_is_declarable_and_never_stops_at_discovery():
     assert "moved = True" in block
     assert "deviations_from_median" in block
     assert '"dispersion" if args.primary in SPREAD' in source
+
+
+def test_run_out_keeps_a_floor_round_going_past_discovery():
+    """Two arms at 2/3 ended a floor round at three per arm that had named six."""
+    source = (ROOT / "scripts" / "run-comparison").read_text()
+    assert '"--run-out"' in source
+    block = source[source.index('record["blocks"][-1]["primary_p"] = p'):]
+    block = block[: block.index("stopped = True")]
+    assert "elif args.run_out:" in block
+    assert "continuing to the budget" in block
+    assert "(--run-out)" in source  # the stopping rule written into the record says so

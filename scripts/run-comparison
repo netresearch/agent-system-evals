@@ -323,6 +323,17 @@ def main() -> int:
              "forty times a small-model run and says nothing while doing it",
     )
     parser.add_argument("--max-trials", type=int, default=12)
+    parser.add_argument(
+        "--run-out",
+        action="store_true",
+        help="do not stop after the discovery round; run the schedule to "
+             "--max-trials whatever the endpoint shows at three. For a round "
+             "whose purpose is to hold a floor rather than to find a "
+             "difference: the mechanical endpoint continues only on a rate "
+             "gap, so two arms at 2/3 ended a floor round at three per arm "
+             "that had named six. Say the count before the run; this flag "
+             "is how",
+    )
     parser.add_argument("--seed", type=int, default=None,
                         help="fix the block order, for reproduction")
     parser.add_argument("--dry-run", action="store_true",
@@ -434,6 +445,9 @@ def main() -> int:
                 "no stop after the discovery round -- a spread is not visible "
                 "in three per arm, so the schedule runs out"
                 if args.primary in SPREAD
+                else "no stop after the discovery round (--run-out): the "
+                "schedule runs to the budget whatever three per arm show"
+                if args.run_out
                 else "stop after the discovery round unless "
                 + ("the pass rates differ at all"
                    if args.primary == MECHANICAL
@@ -655,6 +669,13 @@ def main() -> int:
         record["blocks"][-1]["primary_p"] = p
         if moved:
             print(f"\n{args.primary}: {summary} (p {p:.3f}) — continuing")
+        elif args.run_out:
+            # A floor round: the question is not whether the arms differ at
+            # three but whether one holds the other's rate over the count
+            # named before the run. The reading at three is recorded and
+            # decides nothing.
+            print(f"\n{args.primary}: {summary} (p {p:.3f}) — --run-out, "
+                  f"continuing to the budget")
         else:
             record["stop_reason"] = (
                 f"{args.primary} did not move after the discovery round "
