@@ -145,9 +145,10 @@
   no visible change: two improved, one came out worse, and eight showed no change. Three runs per side is too few to call any of
   those a real difference.</p>
 
-  <p><strong>Does it change what a run costs?</strong> Yes, and this is the clearest thing on the
-  page — but the direction depends on the task. On a code review the equipped agent was cheaper in
-  every single run. On an upgrade it was far more expensive. Where no skill was loaded at all,
+  <p><strong>Does it change what a run costs?</strong> Where it does, the direction depends on the
+  task. On a code review a difference was not established: re-measured on 18 September with six
+  runs per side, the two arms overlapped. On an upgrade the equipped agent was far more expensive,
+  and it is the one case where the unaided agent does not finish. Where no skill was loaded at all,
   spend barely moved, which is exactly what you would expect.</p>
 
   <p><strong>Is the tooling even used?</strong> That turned out to be the real story. A skill is
@@ -157,7 +158,8 @@
   the opening sentence, the same words took a task from 1 run in 6 to 6 in 6.</p>
 
   <p><strong>So what is it good for, and where is it weak?</strong> Strong: it gets used reliably
-  when it fits the request, and on review-shaped work it pays for itself. Weak: on several tasks
+  when it fits the request, and on the upgrade it reaches a result the unaided agent does not. Weak:
+  on review-shaped work it changes neither the result nor, measurably, the cost; on several tasks
   nothing in the fleet matched, so the stack was carried and never opened; and on the one task
   where the right skill loaded every time, the job still came out wrong six times out of six.
   Being reached is not the same as being useful.</p>
@@ -180,16 +182,16 @@ compared with the same agent given nothing</em>.</p>
     </tr>
   </thead>
   <tbody>
-    <tr><td>a review</td><td><span class="flat">no change</span> <span class="lbl">3 of 3, both</span></td><td><span class="good">cheaper</span> <span class="lbl">$0.19 &rarr; $0.13, every run</span></td><td class="num">3 of 3</td></tr>
+    <tr><td>a review</td><td><span class="flat">no change</span> <span class="lbl">6 of 6, both</span></td><td><span class="flat">not established</span> <span class="lbl">$0.18 &rarr; $0.14, p 0.132</span></td><td class="num">6 of 6</td></tr>
     <tr><td>writing documentation from nothing</td><td><span class="good">better</span> <span class="lbl">0 of 3 &rarr; 2 of 3</span></td><td><span class="bad">costlier</span> <span class="lbl">$0.12 &rarr; $0.23, every run</span></td><td class="num">3 of 3</td></tr>
     <tr><td>an extension upgrade</td><td><span class="flat">no change</span> <span class="lbl">0 of 3, both</span></td><td><span class="bad">costlier &mdash; 9&times; more</span> <span class="lbl">$0.03 &rarr; $0.25, every run</span></td><td class="num">3 of 3</td></tr>
     <tr><td>preparing a release</td><td><span class="flat">no change</span> <span class="lbl">0 of 3, both</span></td><td><span class="flat">about the same</span> <span class="lbl">$0.09 &rarr; $0.08</span></td><td class="num">0 of 3</td></tr>
     <tr><td>version metadata, prepared repo</td><td><span class="flat">no change</span> <span class="lbl">3 of 3, both</span></td><td><span class="flat">about the same</span> <span class="lbl">$0.05 &rarr; $0.05</span></td><td class="num">0 of 3</td></tr>
     <tr><td>version metadata, bare repo</td><td><span class="flat">no change</span> <span class="lbl">2 of 3, both</span></td><td><span class="flat">about the same</span> <span class="lbl">$0.05 &rarr; $0.05</span></td><td class="num">0 of 3</td></tr>
-    <tr><td>checking something that is already fine</td><td><span class="flat">no change</span> <span class="lbl">1 of 3, both</span></td><td><span class="bad">costlier &mdash; 10&times; more</span> <span class="lbl">$0.01 &rarr; $0.08</span></td><td class="num">0 of 3</td></tr>
+    <tr><td>checking something that is already fine</td><td><span class="flat">no change</span> <span class="lbl">1 of 3, both</span></td><td><span class="flat">not established</span> <span class="lbl">$0.01 &rarr; $0.08, p 0.200</span></td><td class="num">0 of 3</td></tr>
     <tr><td>a runtime bug</td><td><span class="flat">no change</span> <span class="lbl">0 of 3, both</span></td><td><span class="flat">about the same</span> <span class="lbl">$0.01 &rarr; $0.01</span></td><td class="num">0 of 3</td></tr>
-    <tr><td>a timing side channel (Go)</td><td><span class="bad">worse</span> <span class="lbl">3 of 3 &rarr; 2 of 3</span></td><td><span class="good">cheaper</span> <span class="lbl">$0.24 &rarr; $0.17</span></td><td class="num">0 of 3</td></tr>
-    <tr><td>a scheduled job's exit status (Python)</td><td><span class="good">better</span> <span class="lbl">0 of 3 &rarr; 1 of 3</span></td><td><span class="good">cheaper</span> <span class="lbl">$0.07 &rarr; $0.05</span></td><td class="num">0 of 3</td></tr>
+    <tr><td>a timing side channel (Go)</td><td><span class="bad">worse</span> <span class="lbl">3 of 3 &rarr; 2 of 3</span></td><td><span class="flat">not established</span> <span class="lbl">$0.24 &rarr; $0.17, p 0.700</span></td><td class="num">0 of 3</td></tr>
+    <tr><td>a scheduled job's exit status (Python)</td><td><span class="good">better</span> <span class="lbl">0 of 3 &rarr; 1 of 3</span></td><td><span class="flat">not established</span> <span class="lbl">$0.07 &rarr; $0.05, p 1.000</span></td><td class="num">0 of 3</td></tr>
     <tr><td>a contract eval</td><td><span class="flat">no change</span> <span class="lbl">3 of 3, both</span></td><td><span class="flat">about the same</span> <span class="lbl">$0.02 &rarr; $0.02</span></td><td class="num">0 of 3</td></tr>
   </tbody>
 </table>
@@ -227,7 +229,7 @@ compared with the same agent given nothing</em>.</p>
       </tr>
     </thead>
     <tbody>
-    <tr><td>a review</td><td class="num">-1.00, p 0.100</td><td class="num">-0.78, p 0.200</td><td class="num">0.16 / 0.19 / 0.36</td><td class="num">0.09 / 0.13 / 0.14</td></tr>
+    <tr><td>a review</td><td class="num">-0.56, p 0.132</td><td class="num">-0.06, p 0.937</td><td class="num">0.10 / 0.11 / 0.18 / 0.18 / 0.18 / 0.20</td><td class="num">0.10 / 0.10 / 0.13 / 0.16 / 0.17 / 0.18</td></tr>
     <tr><td>writing documentation from nothing</td><td class="num">+1.00, p 0.100</td><td class="num">+1.00, p 0.100</td><td class="num">0.02 / 0.12 / 0.14</td><td class="num">0.21 / 0.23 / 0.25</td></tr>
     <tr><td>an extension upgrade</td><td class="num">+1.00, p 0.100</td><td class="num">+1.00, p 0.100</td><td class="num">0.02 / 0.03 / 0.03</td><td class="num">0.14 / 0.25 / 1.12</td></tr>
     <tr><td>preparing a release</td><td class="num">-0.78, p 0.200</td><td class="num">-0.56, p 0.400</td><td class="num">0.08 / 0.09 / 0.11</td><td class="num">0.08 / 0.08 / 0.09</td></tr>
@@ -254,8 +256,9 @@ calibration further down says sits inside the judge's own margin of error. Read 
 actually loaded, the direction is a property of the task:</p>
 
 <ul>
-  <li><strong>a review</strong> — same result, and <em>every</em> equipped run cheaper than
-    <em>every</em> unaided run, with input tokens roughly halved. The tooling paying for itself.</li>
+  <li><strong>a review</strong> — same result, and no cost difference established: six runs per
+    side on 18 September overlapped (p 0.132). The 22 August row this replaced had read cheaper in
+    every run; that contrast did not survive the environment change or the larger sample.</li>
   <li><strong>an upgrade</strong> — the widest gap on this page, the other way round: ten to
     seventy times the input tokens, one run at $1.23, and neither side finishes the job.</li>
   <li><strong>documentation</strong> — about twice the spend, and the largest outcome move on
@@ -543,10 +546,12 @@ that reports one number for it is answering a question nobody asked.</p>
 <h2>A second model, and every case at once</h2>
 
 <p>On 21 and 22 August 2026 the whole benchmark ran on
-<code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm,
-131 graded runs in all. Every trial passed the validity gate; none was discarded.
-The four sections above stay as they are — they are Opus figures, and putting the two models in
-one table would place numbers side by side under a heading that names neither.</p>
+<code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm.
+Every trial passed the validity gate; none was discarded. One row has since been re-measured: the
+review, on 18 September at the current environment, six trials per arm, and the row below is that
+measurement — the report's total of 137 graded runs includes it. The four sections
+above stay as they are — they are Opus figures, and putting the two models in one table would
+place numbers side by side under a heading that names neither.</p>
 
 <p>The declared endpoint moved in <strong>none</strong> of the nine. That is the headline and it is
 not the interesting part, because three trials per arm cannot establish a difference and the
@@ -556,7 +561,7 @@ case could.</p>
 <h3>Whether a skill is reached for at all</h3>
 
 <p>Counted over every equipped trial on record rather than over one series — every job on disk
-whose fleet resolves to at least one skill, across both models and every ablation, 131
+whose fleet resolves to at least one skill, across both models and every ablation, 137
 graded runs and the earlier ones besides. The counts are computed by
 <a href="https://github.com/netresearch/agent-system-evals/blob/main/scripts/invocation-census"><code>scripts/invocation-census</code></a>
 at build time, because the hand-written version of this table was stale within a week.</p>
@@ -567,18 +572,18 @@ at build time, because the hand-written version of this table was stale within a
     <tr><th>case</th><th>how the request is phrased</th><th class="num">skill invoked</th></tr>
   </thead>
   <tbody>
-    <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">41 of 42</td></tr>
-    <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">173 of 179</td></tr>
-    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">24 of 63<span class="lbl">candidate@experiment/version-declarations-in-lead-clause, v3.11.1, v5.20.3 6 of 6; candidate@main, v3.11.1, v5.20.3 on opus-5 6 of 6; candidate@main, v3.11.1, v5.20.3 on haiku-4-5 11 of 12; candidate@experiment/version-declarations-in-description, v3.11.1, v5.20.3 1 of 6; nr@v2.19.1, v3.11.1 on haiku-4-5 0 of 27; nr@v2.19.1, v3.11.1 on opus-5 0 of 6</span></td></tr>
-    <tr><td>documentation from nothing</td><td>a domain — &quot;documentation&quot;</td><td class="num">17 of 51<span class="lbl">candidate@v2.19.1, v2.18.0, v3.11.1, v5.20.3 3 of 3; candidate@v2.19.1, v2.19.0, v3.11.1, v5.20.3 3 of 3; nr@v2.19.1, v3.11.1 9 of 11; candidate@main, v5.20.3 1 of 5; candidate@experiment/guides-xml-in-the-body, v5.20.3 1 of 12; nr 0 of 17</span></td></tr>
-    <tr><td>release preparation</td><td>a task</td><td class="num">9 of 64<span class="lbl">nr-release@v2.19.1, v3.11.1 6 of 6; candidate@v1.0.2, v5.20.3 1 of 6; nr-release 2 of 24; candidate@experiment/version-lives-in-every-file, v5.20.3 0 of 6; nr 0 of 12; nr@v2.19.1, v3.11.1 0 of 10</span></td></tr>
+    <tr><td>a review</td><td>a domain — &quot;review this extension&quot;</td><td class="num">53 of 54</td></tr>
+    <tr><td>an upgrade</td><td>a domain — &quot;upgrade&quot;</td><td class="num">203 of 209</td></tr>
+    <tr><td>restraint: nothing to change</td><td>a task</td><td class="num">24 of 63<span class="lbl">candidate@experiment/version-declarations-in-lead-clause, v3.11.1 6 of 6; candidate@main, v3.11.1 on opus-5 6 of 6; candidate@main, v3.11.1 on haiku-4-5 11 of 12; candidate@experiment/version-declarations-in-description, v3.11.1 1 of 6; nr@v2.19.1, v3.11.1 on haiku-4-5 0 of 27; nr@v2.19.1, v3.11.1 on opus-5 0 of 6</span></td></tr>
+    <tr><td>documentation from nothing</td><td>a domain — &quot;documentation&quot;</td><td class="num">17 of 51<span class="lbl">candidate@v2.19.1, v2.18.0, v3.11.1 3 of 3; candidate@v2.19.1, v2.19.0, v3.11.1 3 of 3; nr@v2.19.1, v3.11.1 9 of 11; candidate@main 1 of 5; candidate@experiment/guides-xml-in-the-body 1 of 12; nr 0 of 17</span></td></tr>
+    <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">3 of 10<span class="lbl">nr 3 of 3; nr@v2.19.1, v3.11.1 0 of 7</span></td></tr>
+    <tr><td>release preparation</td><td>a task</td><td class="num">9 of 64<span class="lbl">nr-release@v2.19.1, v3.11.1 6 of 6; candidate@v1.0.2 1 of 6; nr-release 2 of 24; candidate@experiment/version-lives-in-every-file 0 of 6; nr 0 of 12; nr@v2.19.1, v3.11.1 0 of 10</span></td></tr>
     <tr><td>a contract eval</td><td>a task</td><td class="num">0 of 6</td></tr>
     <tr><td>a timing side channel (Go)</td><td>a task</td><td class="num">0 of 5</td></tr>
     <tr><td>a scheduled job&#x27;s exit status (Python)</td><td>a task</td><td class="num">0 of 11</td></tr>
-    <tr><td>a reported calendar bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 9</td></tr>
-    <tr><td>version metadata, prepared repository</td><td>a task</td><td class="num">0 of 7</td></tr>
+    <tr><td>a reported calendar bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 12</td></tr>
     <tr><td>version metadata, unprepared repository</td><td>a task</td><td class="num">0 of 3</td></tr>
-    <tr><td>a reported rendering bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 15</td></tr>
+    <tr><td>a reported rendering bug (from the world)</td><td>a user&#x27;s bug report</td><td class="num">0 of 24</td></tr>
     <tr><td>a runtime bug</td><td>a task</td><td class="num">0 of 52</td></tr>
   </tbody>
 </table>
@@ -738,16 +743,19 @@ that; all six found the checkout.</p>
   </thead>
   <tbody>
     <tr><td>Declared endpoint</td><td class="num">3/3 both arms</td><td class="num">0/3 both arms</td><td class="num">0/3 → 2/3</td></tr>
-    <tr><td>Agent cost, control</td><td class="num">0.16 / 0.19 / 0.36</td><td class="num">0.02 / 0.03 / 0.03</td><td class="num">0.02 / 0.12 / 0.14</td></tr>
-    <tr><td>Agent cost, nr</td><td class="num">0.09 / 0.13 / 0.14</td><td class="num">0.14 / 0.25 / 1.12</td><td class="num">0.21 / 0.23 / 0.25</td></tr>
-    <tr><td>Tool calls, control</td><td class="num">21 / 58 / 80</td><td class="num">4 / 5 / 5</td><td class="num">5 / 17 / 28</td></tr>
-    <tr><td>Tool calls, nr</td><td class="num">25 / 32 / 43</td><td class="num">27 / 33 / 117</td><td class="num">27 / 32 / 33</td></tr>
+    <tr><td>Agent cost, control</td><td class="num">0.10 / 0.11 / 0.18 / 0.18 / 0.18 / 0.20</td><td class="num">0.02 / 0.03 / 0.03</td><td class="num">0.02 / 0.12 / 0.14</td></tr>
+    <tr><td>Agent cost, nr</td><td class="num">0.10 / 0.10 / 0.13 / 0.16 / 0.17 / 0.18</td><td class="num">0.14 / 0.25 / 1.12</td><td class="num">0.21 / 0.23 / 0.25</td></tr>
+    <tr><td>Tool calls, control</td><td class="num">31 / 33 / 35 / 45 / 46 / 47</td><td class="num">4 / 5 / 5</td><td class="num">5 / 17 / 28</td></tr>
+    <tr><td>Tool calls, nr</td><td class="num">35 / 38 / 38 / 46 / 48 / 60</td><td class="num">27 / 33 / 117</td><td class="num">27 / 32 / 33</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>Three cases, three different trades. On the review the equipped arm reaches the same result for
-about a third less — every equipped trial cheaper than every control trial. On the upgrade it
+<p>Three cases, three different trades. On the review the equipped arm reaches the same result and
+a cost difference was not established: the row above is the 18 September re-measurement, six trials
+per arm at the current environment, and it replaced a 22 August row of three per arm on which every
+equipped trial had been cheaper than every control trial. That contrast did not survive the
+environment change or the larger sample; the case's results file says why. On the upgrade it
 spends ten to seventy times the tokens and neither arm finishes; what it buys there is verification
 and prioritisation of an upgrade nobody completed. On documentation it costs roughly twice as much
 and is the only case in the sweep where the equipped arm moves a dimension at all.</p>
@@ -919,8 +927,8 @@ not fail the build until an independent rater has set the bands.</p>
 
 <div class="grid">
   <div class="card"><span class="big">13</span><span class="lbl">cases, one environment baseline</span></div>
-  <div class="card"><span class="big">131</span><span class="lbl">graded runs in the current series</span></div>
-  <div class="card"><span class="big">33</span><span class="lbl">instrument failures found and fixed</span></div>
+  <div class="card"><span class="big">137</span><span class="lbl">graded runs in the current series</span></div>
+  <div class="card"><span class="big">35</span><span class="lbl">instrument failures found and fixed</span></div>
 </div>
 
 <p>Execution, isolation, skill injection, trajectory recording and regrading are provided by
@@ -959,7 +967,7 @@ the public repository. Twelve further items remain
   rule.
 </div>
 
-<p>These figures were produced by benchmark <code>0.6.2, 0.7.0, 0.8.0, 2.0.0, unversioned</code> — read from the recorded
+<p>These figures were produced by benchmark <code>0.6.2, 0.7.0, 0.8.0, 10.3.0, 2.0.0, unversioned</code> — read from the recorded
 jobs rather than from the repository's current VERSION, which says what the tree is today and not
 what produced a number. A result names
 the version that produced it: a case added or retired makes earlier numbers measurements of a
