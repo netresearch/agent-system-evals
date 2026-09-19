@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the v14 import rule moved from a reference into the SKILL.md body — the surface a sentence sits on, as the variable
+description: nr with the upgrade body's install block sending Composer's listing to a log instead of the transcript — context size, as the variable
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,48 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND FIFTEEN, open: does keeping Composer's listing out of the transcript
+  # cost nothing in outcome and show up as a smaller context?
+  #
+  # OFR-TYPO3-UPGRADE-001 is the case where the stack reaches what bare does
+  # not (14 September: nr 4/6 against control 0/6 on the mechanical outcome,
+  # at $0.66–1.36 against $0.03–0.35), so the question there is whether it
+  # can cost less. Over thirty-three equipped Haiku trials the largest single
+  # observation in every transcript was the step-10 block's Composer output:
+  # 33–36k characters a call, three calls a trial, carried by every later
+  # step in a context that is 98–99% cache reads and grows linearly with no
+  # plateau (31k → 52k → 99k tokens a step across one trial). Priced at the
+  # cache-read rate against the steps that follow each call, that listing is
+  # about a tenth of what a trial costs — up to $0.25 on a $1.1 trial — and
+  # no line of the body reads it.
+  #
+  # candidate = nr with typo3-extension-upgrade at an experiment branch cut
+  # from v3.12.5, the ref nr pins, whose one commit sends the block's
+  # composer output to /tmp/composer.log and prints the last twenty lines
+  # only when the install fails. The && chain, the versions line and the
+  # exit= line are unchanged, so step 3's failure case and step 12's reading
+  # are untouched. Resolved commit at the time of writing: 9393803.
+  #
+  # PRE-REGISTERED. The mechanism is read deterministically, per trial, from
+  # trajectory.json: the size of the observation returned by the Bash call
+  # that carries the step-10 block (`--with typo3/cms-core:^14.3`) — nr about
+  # 33k characters, candidate under 3k if the block ran as pasted. That is
+  # the claim three trials can carry. Declared endpoint: cost, because that
+  # is what the change is for; but a tenth of a trial sits inside the nr
+  # arm's own threefold spread, so a flat cost line after the discovery round
+  # is expected and is not a refutation of the mechanism — the fleet note
+  # says so now, not after. mechanical_outcome is the floor: the one thing a
+  # quieter install could break is the agent's reading of a failed install,
+  # and if candidate's rate drops below nr's the change is withdrawn.
+  #
+  # What this does not do: shorten the test-fix loop. Ten phpunit and five
+  # phpstan runs a trial are where the dollar goes, and a filter on Composer
+  # replaces context, not calls.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/composer-output-only-on-failure while a comparison names it.
+  netresearch/typo3-extension-upgrade-skill: experiment/composer-output-only-on-failure
 
   # ROUND FOURTEEN, ANSWERED 18 September 2026: no. Six of six valid,
   # declared on cost, cost overlapped — $0.12/0.13/0.12 with the list against
