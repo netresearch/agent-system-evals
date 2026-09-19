@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the v14 import rule moved from a reference into the SKILL.md body — the surface a sentence sits on, as the variable
+description: nr, carrying no variable — the last question closed on 19 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,80 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
+  # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the
+  # runner stopped, because that endpoint continues only on a rate gap — the
+  # six per arm the script named were never reached (harness gap: a floor
+  # round needs a fixed block count, as the spread endpoint has). Pooled
+  # with round fifteen the floor reads 5/9 against 6/9, p 1.000; the rule
+  # below is not met and the withdrawal stands. Of the seven candidate
+  # trials that ran the block, five passed both legs; the two that did not
+  # stopped to ask the user a question with the legs red, which nr did in
+  # none of nine — a question, not a finding, and the next round on this
+  # block asks it first. The ref is REMOVED: candidate equals nr again.
+  # Recorded in tasks/open/typo3-extension-upgrade/RESULTS.md, round
+  # twenty-nine.
+  #
+  # ROUND FIFTEEN, ANSWERED 19 September 2026: the mechanism, yes; the floor,
+  # one trial lower. Twelve of twelve valid, declared on cost, separated at
+  # discovery and overlapped at six per arm (median $1.10 → $0.82, p 0.132 —
+  # inside the spread, as written below). Every candidate trial that ran the
+  # block ran it with the log, zero listing lines in all seven calls against
+  # nr's 776; two printed the failure tail and went on to pass both legs.
+  # mechanical_outcome 3/6 against 4/6: the rule below withdraws the change
+  # on that, and it is not adopted from this round, although none of the
+  # three candidate failures ran the changed block (one asked the user a
+  # question and stopped, one committed without installing, one never
+  # called Composer). The ref STAYS for round sixteen: same arms, declared
+  # on mechanical_outcome at six per arm. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-eight.
+  #
+  # It asked: does keeping Composer's listing out of the transcript cost
+  # nothing in outcome and show up as a smaller context?
+  #
+  # OFR-TYPO3-UPGRADE-001 is the case where the stack reaches what bare does
+  # not (14 September: nr 4/6 against control 0/6 on the mechanical outcome,
+  # at $0.66–1.36 against $0.03–0.35), so the question there is whether it
+  # can cost less. Over thirty-three equipped Haiku trials the largest single
+  # observation in every transcript was the step-10 block's Composer output:
+  # 33–36k characters a call, three calls a trial, carried by every later
+  # step in a context that is 98–99% cache reads and grows linearly with no
+  # plateau (31k → 52k → 99k tokens a step across one trial). Priced at the
+  # cache-read rate against the steps that follow each call, that listing is
+  # about a tenth of what a trial costs — up to $0.25 on a $1.1 trial — and
+  # no line of the body reads it.
+  #
+  # candidate = nr with typo3-extension-upgrade at an experiment branch cut
+  # from v3.12.5, the ref nr pins, whose one commit sends the block's
+  # composer output to /tmp/composer.log and prints the last twenty lines
+  # only when the install fails. The && chain, the versions line and the
+  # exit= line are unchanged, so step 3's failure case and step 12's reading
+  # are untouched. Resolved commit at the time of writing: 9393803.
+  #
+  # PRE-REGISTERED. The mechanism is read deterministically, per trial, from
+  # trajectory.json, in the observation returned by the Bash call that
+  # carries the step-10 block (`--with typo3/cms-core:^14.3`): the number of
+  # Composer listing lines in it (`  - Locking|Installing|Upgrading|
+  # Downgrading|Removing …`) — nr in the hundreds, candidate zero if the
+  # block ran as pasted — and, second, the observation's total size, which
+  # on nr reads about 63k characters because PHPUnit's failures share the
+  # call and stay on both arms. That is the claim three trials can carry. Declared endpoint: cost, because that
+  # is what the change is for; but a tenth of a trial sits inside the nr
+  # arm's own threefold spread, so a flat cost line after the discovery round
+  # is expected and is not a refutation of the mechanism — the fleet note
+  # says so now, not after. mechanical_outcome is the floor: the one thing a
+  # quieter install could break is the agent's reading of a failed install,
+  # and if candidate's rate drops below nr's the change is withdrawn.
+  #
+  # What this does not do: shorten the test-fix loop. Ten phpunit and five
+  # phpstan runs a trial are where the dollar goes, and a filter on Composer
+  # replaces context, not calls.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/composer-output-only-on-failure while a comparison names it.
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND FOURTEEN, ANSWERED 18 September 2026: no. Six of six valid,
   # declared on cost, cost overlapped — $0.12/0.13/0.12 with the list against
