@@ -1013,7 +1013,8 @@ endpoint continues on any gap in the rate, and there was none. The six per arm
 the launch script named were therefore never reached — the stop rule belongs to
 the endpoint, not to the script, and a round whose purpose is to hold a floor
 needs a fixed block count the way the spread endpoint has one. That is a
-harness gap, named here and not built here.
+harness gap, named here; `scripts/run-comparison --run-out` closes it for the
+next such round, and this one is not re-run to get the count.
 
 | arm | passed both legs | ran the block | agent cost, three trials |
 |---|---|---|---|

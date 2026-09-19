@@ -86,8 +86,8 @@ at:
   # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
   # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the
   # runner stopped, because that endpoint continues only on a rate gap — the
-  # six per arm the script named were never reached (harness gap: a floor
-  # round needs a fixed block count, as the spread endpoint has). Pooled
+  # six per arm the script named were never reached (harness gap, closed
+  # since by --run-out: a floor round names its count and runs it). Pooled
   # with round fifteen the floor reads 5/9 against 6/9, p 1.000; the rule
   # below is not met and the withdrawal stands. Of the seven candidate
   # trials that ran the block, five passed both legs; the two that did not
