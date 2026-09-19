@@ -83,8 +83,22 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND FIFTEEN, open: does keeping Composer's listing out of the transcript
-  # cost nothing in outcome and show up as a smaller context?
+  # ROUND FIFTEEN, ANSWERED 19 September 2026: the mechanism, yes; the floor,
+  # one trial lower. Twelve of twelve valid, declared on cost, separated at
+  # discovery and overlapped at six per arm (median $1.10 → $0.82, p 0.132 —
+  # inside the spread, as written below). Every candidate trial that ran the
+  # block ran it with the log, zero listing lines in all seven calls against
+  # nr's 776; two printed the failure tail and went on to pass both legs.
+  # mechanical_outcome 3/6 against 4/6: the rule below withdraws the change
+  # on that, and it is not adopted from this round, although none of the
+  # three candidate failures ran the changed block (one asked the user a
+  # question and stopped, one committed without installing, one never
+  # called Composer). The ref STAYS for round sixteen: same arms, declared
+  # on mechanical_outcome at six per arm. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round twenty-eight.
+  #
+  # It asked: does keeping Composer's listing out of the transcript cost
+  # nothing in outcome and show up as a smaller context?
   #
   # OFR-TYPO3-UPGRADE-001 is the case where the stack reaches what bare does
   # not (14 September: nr 4/6 against control 0/6 on the mechanical outcome,

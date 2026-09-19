@@ -936,3 +936,69 @@ forty-two trials. The cost proof belongs to a case where the check fires.
 **`nr`:** 3/3 after 2/3, 2/3, 6/6, 4/6 — six rounds, 20 of 24 on one fleet and
 one version, and the two arms' totals over rounds twenty-six and twenty-seven
 are 5/6 and 5/6.
+
+## Round twenty-eight: Composer's listing left the transcript, and the floor read one trial lower
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260919-071602.json`, seed 5041, Haiku 4.5,
+benchmark 10.4.0. Twelve trials, twelve valid, declared on `cost`; the arms
+separated completely at the discovery round (p 0.100) and the runner ran to the
+budget. `nr` pins `typo3-extension-upgrade` v3.12.5; `candidate` is `nr` with
+that skill at an experiment branch cut from v3.12.5 whose one commit sends the
+step-10 block's Composer output to `/tmp/composer.log` and prints the last
+twenty lines only when the install fails — chain, `versions` line and `exit=`
+unchanged — resolved `9393803` in every lock.
+
+The lever, measured before the round on the thirty-three equipped trials
+already on disk: the largest single observation in every transcript was that
+block's Composer listing, 33–36k characters a call, three calls a trial,
+carried by every later step in a context that is 98–99% cache reads and grows
+linearly (31k → 52k → 99k tokens a step across one trial, no plateau). Priced
+at the cache-read rate against the steps that follow each call, the listing
+was 9.5% of what those trials cost, and no line of the body reads it.
+Pre-registered in the fleet note: the count of Composer listing lines in the
+observation the step-10 call returns (`nr` in the hundreds, `candidate` zero
+if the block ran as pasted); cost declared but expected flat, a tenth sitting
+inside the `nr` arm's own threefold spread; `mechanical_outcome` the floor,
+with a drop below `nr`'s rate withdrawing the change.
+
+| arm | passed both legs | ran the step-10 block | listing lines in its observation | agent cost, six trials | agent steps |
+|---|---|---|---|---|---|
+| `nr` | 4/6 | 6/6 | 776, 776, 776, 776, 184, 60 (first call each) | $0.74, $0.89, $0.99, $1.21, $1.25, $1.32 | 72, 96, 103, 111, 119, 128 |
+| `candidate` | 3/6 | 4/6 | 0, 0, 0, 0 — in all seven calls that carried the log | $0.15, $0.72, $0.73, $0.90, $1.18, $1.21 | 23, 68, 88, 90, 108, 112 |
+
+**The mechanism ran as pasted.** In every candidate trial that ran the block,
+it ran with the log, and its observation carried no listing line — 537 to
+11,593 characters where `nr`'s first call carried 63k. One block call retyped
+without the log carried nine. Two of the
+four printed `install failed; last lines of /tmp/composer.log` on a leg, and
+both went on to fix the line and pass both legs: the failure case the note
+said the block must keep, kept.
+
+**Cost went the way the arithmetic said, and no further.** Median $1.10 →
+$0.82, Cliff's delta −0.56, p 0.132 over six per arm — inside the spread, as
+pre-registered. Cached tokens and tool calls read the same shape (−0.56 and
+−0.53, both above p 0.13). The $0.15 trial is not a saving: it stopped after
+twenty-three steps to ask which of two approaches the user would prefer, on a
+benchmark with nobody to answer.
+
+**The floor read 3/6 against 4/6, and the rule written before the round says
+that withdraws the change.** So it is not adopted from this round. What the
+three candidate failures were, read from the trajectories: the trial that
+asked a question and stopped; a trial that committed "TYPO3 v14.3 LTS support"
+without ever running an install, one Composer call in sixty-eight steps; a
+trial with no Composer call at all in a hundred and eight. None of the three
+ran the changed block, so the change had no path to them — the block's own
+trials went 3 of 4, `nr`'s 4 of 6. That is the reading; the rule stands until
+a round declared on the floor says otherwise, because a reading that explains
+away the pre-registered number is exactly what pre-registration exists to
+refuse.
+
+**What this round does not shorten.** The test-fix loop. Ten `phpunit` and
+five `phpstan` runs a trial are where the dollar goes on this case, and a
+quieter install replaces context, not calls.
+
+**Next, stated and not started.** The same two arms declared on
+`mechanical_outcome` at six per arm: if the candidate's rate holds `nr`'s, the
+block goes into the skill as released; if it does not, the withdrawal stands
+and the reason is looked for in the trials that ran it, not in the ones that
+did not.
