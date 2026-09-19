@@ -106,10 +106,13 @@ at:
   # are untouched. Resolved commit at the time of writing: 9393803.
   #
   # PRE-REGISTERED. The mechanism is read deterministically, per trial, from
-  # trajectory.json: the size of the observation returned by the Bash call
-  # that carries the step-10 block (`--with typo3/cms-core:^14.3`) — nr about
-  # 33k characters, candidate under 3k if the block ran as pasted. That is
-  # the claim three trials can carry. Declared endpoint: cost, because that
+  # trajectory.json, in the observation returned by the Bash call that
+  # carries the step-10 block (`--with typo3/cms-core:^14.3`): the number of
+  # Composer listing lines in it (`  - Locking|Installing|Upgrading|
+  # Downgrading|Removing …`) — nr in the hundreds, candidate zero if the
+  # block ran as pasted — and, second, the observation's total size, which
+  # on nr reads about 63k characters because PHPUnit's failures share the
+  # call and stay on both arms. That is the claim three trials can carry. Declared endpoint: cost, because that
   # is what the change is for; but a tenth of a trial sits inside the nr
   # arm's own threefold spread, so a flat cost line after the discovery round
   # is expected and is not a refutation of the mechanism — the fleet note
