@@ -145,9 +145,10 @@
   no visible change: two improved, one came out worse, and eight showed no change. Three runs per side is too few to call any of
   those a real difference.</p>
 
-  <p><strong>Does it change what a run costs?</strong> Yes, and this is the clearest thing on the
-  page — but the direction depends on the task. On a code review the equipped agent was cheaper in
-  every single run. On an upgrade it was far more expensive. Where no skill was loaded at all,
+  <p><strong>Does it change what a run costs?</strong> Where it does, the direction depends on the
+  task. On a code review a difference was not established: re-measured on 18 September with six
+  runs per side, the two arms overlapped. On an upgrade the equipped agent was far more expensive,
+  and it is the one case where the unaided agent does not finish. Where no skill was loaded at all,
   spend barely moved, which is exactly what you would expect.</p>
 
   <p><strong>Is the tooling even used?</strong> That turned out to be the real story. A skill is
@@ -157,7 +158,8 @@
   the opening sentence, the same words took a task from 1 run in 6 to 6 in 6.</p>
 
   <p><strong>So what is it good for, and where is it weak?</strong> Strong: it gets used reliably
-  when it fits the request, and on review-shaped work it pays for itself. Weak: on several tasks
+  when it fits the request, and on the upgrade it reaches a result the unaided agent does not. Weak:
+  on review-shaped work it changes neither the result nor, measurably, the cost; on several tasks
   nothing in the fleet matched, so the stack was carried and never opened; and on the one task
   where the right skill loaded every time, the job still came out wrong six times out of six.
   Being reached is not the same as being useful.</p>
@@ -254,8 +256,9 @@ calibration further down says sits inside the judge's own margin of error. Read 
 actually loaded, the direction is a property of the task:</p>
 
 <ul>
-  <li><strong>a review</strong> — same result, and <em>every</em> equipped run cheaper than
-    <em>every</em> unaided run, with input tokens roughly halved. The tooling paying for itself.</li>
+  <li><strong>a review</strong> — same result, and no cost difference established: six runs per
+    side on 18 September overlapped (p 0.132). The 22 August row this replaced had read cheaper in
+    every run; that contrast did not survive the environment change or the larger sample.</li>
   <li><strong>an upgrade</strong> — the widest gap on this page, the other way round: ten to
     seventy times the input tokens, one run at $1.23, and neither side finishes the job.</li>
   <li><strong>documentation</strong> — about twice the spend, and the largest outcome move on
@@ -543,11 +546,12 @@ that reports one number for it is answering a question nobody asked.</p>
 <h2>A second model, and every case at once</h2>
 
 <p>On 21 and 22 August 2026 the whole benchmark ran on
-<code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm,
-137 graded runs in all. Every trial passed the validity gate; none was discarded.
-One row has since been re-measured: the review, on 18 September at the current environment, six
-trials per arm, and the row below is that measurement. The four sections above stay as they are — they are Opus figures, and putting the two models in
-one table would place numbers side by side under a heading that names neither.</p>
+<code>claude-haiku-4-5-20251001</code>: nine cases, randomised block series, three trials per arm.
+Every trial passed the validity gate; none was discarded. One row has since been re-measured: the
+review, on 18 September at the current environment, six trials per arm, and the row below is that
+measurement — the report's total of 137 graded runs includes it. The four sections
+above stay as they are — they are Opus figures, and putting the two models in one table would
+place numbers side by side under a heading that names neither.</p>
 
 <p>The declared endpoint moved in <strong>none</strong> of the nine. That is the headline and it is
 not the interesting part, because three trials per arm cannot establish a difference and the
@@ -747,11 +751,11 @@ that; all six found the checkout.</p>
 </table>
 </div>
 
-<p>Three cases, three different trades. On the review the equipped arm reaches the same result at
-the same cost: the row above is the 18 September re-measurement, six trials per arm at the current
-environment, and it replaced a 22 August row of three per arm on which every equipped trial had
-been cheaper than every control trial. That contrast did not survive the environment change or the
-larger sample; the case's results file says why. On the upgrade it
+<p>Three cases, three different trades. On the review the equipped arm reaches the same result and
+a cost difference was not established: the row above is the 18 September re-measurement, six trials
+per arm at the current environment, and it replaced a 22 August row of three per arm on which every
+equipped trial had been cheaper than every control trial. That contrast did not survive the
+environment change or the larger sample; the case's results file says why. On the upgrade it
 spends ten to seventy times the tokens and neither arm finishes; what it buys there is verification
 and prioritisation of an upgrade nobody completed. On documentation it costs roughly twice as much
 and is the only case in the sweep where the equipped arm moves a dimension at all.</p>
