@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the upgrade body's install block sending Composer's listing to a log instead of the transcript — context size, as the variable
+description: nr, carrying no variable — the last question closed on 19 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -83,6 +83,20 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
+  # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
+  # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the
+  # runner stopped, because that endpoint continues only on a rate gap — the
+  # six per arm the script named were never reached (harness gap: a floor
+  # round needs a fixed block count, as the spread endpoint has). Pooled
+  # with round fifteen the floor reads 5/9 against 6/9, p 1.000; the rule
+  # below is not met and the withdrawal stands. Of the seven candidate
+  # trials that ran the block, five passed both legs; the two that did not
+  # stopped to ask the user a question with the legs red, which nr did in
+  # none of nine — a question, not a finding, and the next round on this
+  # block asks it first. The ref is REMOVED: candidate equals nr again.
+  # Recorded in tasks/open/typo3-extension-upgrade/RESULTS.md, round
+  # twenty-nine.
+  #
   # ROUND FIFTEEN, ANSWERED 19 September 2026: the mechanism, yes; the floor,
   # one trial lower. Twelve of twelve valid, declared on cost, separated at
   # discovery and overlapped at six per arm (median $1.10 → $0.82, p 0.132 —
@@ -140,7 +154,8 @@ at:
   #
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/composer-output-only-on-failure while a comparison names it.
-  netresearch/typo3-extension-upgrade-skill: experiment/composer-output-only-on-failure
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND FOURTEEN, ANSWERED 18 September 2026: no. Six of six valid,
   # declared on cost, cost overlapped — $0.12/0.13/0.12 with the list against

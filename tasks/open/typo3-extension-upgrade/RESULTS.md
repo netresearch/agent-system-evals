@@ -1002,3 +1002,45 @@ quieter install replaces context, not calls.
 block goes into the skill as released; if it does not, the withdrawal stands
 and the reason is looked for in the trials that ran it, not in the ones that
 did not.
+
+## Round twenty-nine: the floor, asked on its own endpoint, read level at three
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260919-085023.json`, seed 5053, Haiku 4.5,
+benchmark 10.4.0. Six trials, six valid, declared on `mechanical_outcome`; same
+arms and refs as round twenty-eight, `9393803` in every candidate lock. Both
+arms read 2/3 after the discovery round and the runner stopped: the mechanical
+endpoint continues on any gap in the rate, and there was none. The six per arm
+the launch script named were therefore never reached — the stop rule belongs to
+the endpoint, not to the script, and a round whose purpose is to hold a floor
+needs a fixed block count the way the spread endpoint has one. That is a
+harness gap, named here and not built here.
+
+| arm | passed both legs | ran the block | agent cost, three trials |
+|---|---|---|---|
+| `nr` | 2/3 | — | $0.86, $0.89, $1.31 |
+| `candidate` | 2/3 | 3/3, all with the log | $1.07, $1.14, $1.30 |
+
+**Pooled with round twenty-eight, the floor reads 5/9 against 6/9.** One
+trial apart, Fisher p 1.000, and the rule written before round twenty-eight —
+the candidate's rate at or above `nr`'s — is not met. The withdrawal stands:
+the block does not go into the skill from these rounds.
+
+**What the trials that ran the block say, across both rounds.** Seven
+candidate trials ran the step-10 block, every one with the log and with no
+Composer listing line in its observation; five passed both legs, against
+`nr`'s six of nine. The two that did not each stopped to ask the user a
+question with the legs red — "Which approach would you prefer?" after
+twenty-three steps, "Would you like me to create a PR, commit, or continue?"
+after ninety-nine — on a benchmark with nobody to answer. `nr` did that in
+none of nine; its three failures reported the work done with a leg red. Two of
+nine against none of nine is not a finding, and whether a quieter install
+leaves the agent with less to reason from and more inclined to hand the
+decision back is the question these rounds leave open. It is a question about
+the block, and the next round on this block asks it before asking about cost.
+
+**What stands.** The mechanism: measured in seven of seven block calls, the
+listing is gone and nothing the body relies on went with it — the two failed
+installs printed their tail and were fixed. The arithmetic: about a tenth of a
+trial, and round twenty-eight's cost line moved by that much and no further.
+The rule: written before the data, applied as written, and the reason it was
+written that way — a floor read after the fact is a floor moved.
