@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr, carrying no variable — the last question closed on 19 September, the next not yet chosen
+description: nr with the upgrade body's install block sending Composer's listing to a log — the floor, held or not, as the question
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,34 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND SEVENTEEN, open: does the arm with Composer's listing out of the
+  # transcript hold nr's rate on the mechanical outcome, over a count named
+  # before the run?
+  #
+  # Rounds fifteen and sixteen left the floor at 5/9 against 6/9, one trial
+  # apart at p 1.000, with round sixteen ending at three per arm because the
+  # mechanical endpoint stops on a level rate. The user chose to spend the
+  # round that settles it rather than withdraw on one trial or adopt over
+  # the rule. Same arms and refs: candidate = nr with typo3-extension-upgrade
+  # at experiment/composer-output-only-on-failure, restored at the same
+  # commit, 9393803, cut from v3.12.5 — the step-10 block sends composer to
+  # /tmp/composer.log and prints the last twenty lines only on failure.
+  #
+  # PRE-REGISTERED. Declared on mechanical_outcome with --run-out and
+  # --max-trials 12: six per arm, whatever three show. Decision, pooled over
+  # the nine already recorded plus these six, fifteen per arm: candidate's
+  # rate at or above nr's
+  # adopts the block into the skill as released; below it, the withdrawal
+  # stands and the trials that ran the block are read for the cause. Read
+  # beside it, per arm: trials whose last message is a question to the user
+  # with a leg red (2/9 against 0/9 so far — the one open reading), and the
+  # listing-line count in the step-10 call's observation (candidate zero if
+  # pasted). Cost exploratory.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/composer-output-only-on-failure while a comparison names it.
+  netresearch/typo3-extension-upgrade-skill: experiment/composer-output-only-on-failure
 
   # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
   # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the
