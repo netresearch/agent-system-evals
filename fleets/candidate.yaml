@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr, carrying no variable — the last question closed on 19 September, the next not yet chosen
+description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,47 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND SEVENTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
+  # declared on mechanical_outcome with --run-out, six per arm as named:
+  # nr 5/6, candidate 4/6; pooled over fifteen per arm 9/15 against 11/15,
+  # Fisher 0.70. The rule is not met and the withdrawal is final for this
+  # change. Where the block ran as pasted it lost nothing — eleven trials,
+  # nine passes, zero listing lines in every observation — but the rule
+  # counts the arm. Three candidate trials of fifteen ended with a question
+  # to the user against none on nr, one of them before any install ran;
+  # noted, unexplained, p 0.22. The ref is REMOVED:
+  # candidate equals nr again. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round thirty.
+  #
+  # It asked: does the arm with Composer's listing out of the transcript
+  # hold nr's rate on the mechanical outcome, over a count named before the
+  # run?
+  #
+  # Rounds fifteen and sixteen left the floor at 5/9 against 6/9, one trial
+  # apart at p 1.000, with round sixteen ending at three per arm because the
+  # mechanical endpoint stops on a level rate. The user chose to spend the
+  # round that settles it rather than withdraw on one trial or adopt over
+  # the rule. Same arms and refs: candidate = nr with typo3-extension-upgrade
+  # at experiment/composer-output-only-on-failure, restored at the same
+  # commit, 9393803, cut from v3.12.5 — the step-10 block sends composer to
+  # /tmp/composer.log and prints the last twenty lines only on failure.
+  #
+  # PRE-REGISTERED. Declared on mechanical_outcome with --run-out and
+  # --max-trials 12: six per arm, whatever three show. Decision, pooled over
+  # the nine already recorded plus these six, fifteen per arm: candidate's
+  # rate at or above nr's
+  # adopts the block into the skill as released; below it, the withdrawal
+  # stands and the trials that ran the block are read for the cause. Read
+  # beside it, per arm: trials whose last message is a question to the user
+  # with a leg red (2/9 against 0/9 so far — the one open reading), and the
+  # listing-line count in the step-10 call's observation (candidate zero if
+  # pasted). Cost exploratory.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/composer-output-only-on-failure while a comparison names it.
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
   # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the

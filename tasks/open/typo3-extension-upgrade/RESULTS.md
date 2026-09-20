@@ -1045,3 +1045,53 @@ installs printed their tail and were fixed. The arithmetic: about a tenth of a
 trial, and round twenty-eight's cost line moved by that much and no further.
 The rule: written before the data, applied as written, and the reason it was
 written that way — a floor read after the fact is a floor moved.
+
+## Round thirty: the floor, over the count it named — 9 of 15 against 11 of 15
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260920-112449.json`, seed 5059, Haiku 4.5,
+benchmark 10.5.0. Twelve trials, twelve valid, declared on `mechanical_outcome`
+with `--run-out`, six per arm as named; same arms and refs as rounds
+twenty-eight and twenty-nine, the experiment branch restored at `9393803`. The
+round the user chose over withdrawing on one trial or adopting over the rule.
+
+| arm | passed both legs | ran the block as pasted (with the log) | agent cost, six trials |
+|---|---|---|---|
+| `nr` | 5/6 | — | $0.95, $0.95, $0.99, $1.10, $1.16, $1.50 |
+| `candidate` | 4/6 | 4/6, and those four passed | $0.05, $0.51, $0.86, $1.07, $1.27, $1.42 |
+
+**Pooled over fifteen per arm: 9/15 against 11/15.** Fisher p 0.70. The rule
+written before round twenty-eight — the candidate's rate at or above `nr`'s —
+is not met over the count this round was run to reach, and the withdrawal is
+final for this change: the block does not go into the skill.
+
+**What the count says about the block itself.** Eleven candidate trials
+across the three rounds ran the step-10 block as pasted, with the log; nine
+passed both legs. Every one of those eleven observations carried zero Composer
+listing lines against `nr`'s 776 on a first call, and the two installs that
+failed printed their tail and were fixed. The six candidate failures split:
+three never ran the block at all, one ran a retyped block without the log, two
+ran it with the log and then stopped to ask the user a question. The block, where
+it ran as written, did not lose a trial to what it hid. That is a reading of
+a subset chosen after the fact, and the pre-registered rule counts the arm,
+not the subset — which is why the withdrawal stands on 9/15.
+
+**The question-and-stop endings, counted.** Three candidate trials of fifteen
+ended with a question to the user and a leg red — "Which approach would you
+prefer?" — against none of fifteen on `nr`. One of the three asked before any
+install ran (six steps, $0.05), so for that one the block's quieter output
+cannot have been what it lacked; the other two ran the block with the log
+once and asked after it. Whether the quieter install, or the one sentence the
+branch adds beside it, reads to Haiku as a reason to consult rather than
+proceed, is a question this record cannot answer; Fisher on 3/15 against
+0/15 is 0.22. It is noted as the observation that would be tested first if
+this change were tried again in another form.
+
+**Cost, exploratory.** Median $1.05 → $0.96, p 0.485; across the three rounds
+the candidate's medians sat $0.09 to $0.29 under `nr`'s, the arithmetic's
+tenth, never separated.
+
+**What this round closes.** The lever is measured and not adopted: a tenth
+of a trial, provable in every call, withdrawn on a floor that read two trials
+lower over fifteen. The next lever on this case is not context but calls — ten
+`phpunit` and five `phpstan` runs a trial — and that is where the next round
+looks, when there is one.
