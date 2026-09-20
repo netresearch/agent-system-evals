@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
+description: nr with the TSFE replacement table in the upgrade body — the edit loop, shortened or not, as the question
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,51 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND EIGHTEEN, open: does the TSFE replacement table, in the body,
+  # shorten the edit loop on the upgrade case?
+  #
+  # Over sixty-five equipped Haiku trials, sixteen of the twenty-four edits
+  # a trial carried TypoScriptFrontendController (median eighteen), 9.7 of
+  # them in Tests/, with 4.3 phpunit runs a trial following an edit: the
+  # agent rediscovers by hand what the removed class's members are replaced
+  # with. The map is in the changelog and in references/upgrade-v13-to-v14.md,
+  # which 21 of 65 trials opened — and those 21 passed 7 against 22 of 44,
+  # at $1.02 against $0.82 and 99 steps against 79: confounded (struggling
+  # trials read more), but knowing more TSFE prose shortened nothing. The
+  # body differs in two ways: read 12/12 rather than 21/65, and a map rather
+  # than prose. That is the null this round is set against.
+  #
+  # candidate = nr with typo3-extension-upgrade at an experiment branch cut
+  # from v3.12.5, the ref nr pins, whose one commit inserts before step 10 a
+  # table of $GLOBALS['TSFE'] members and their replacements (in the
+  # changelog's order, with the version each exists from — PageInformation
+  # is in the 13.4 tree and not in 12.4), the sentence about which request,
+  # and the test-side shape the passing trials used: mock what replaced the
+  # class, guard the old branch with class_exists, skip on the line that
+  # lacks it, delete the test for behaviour that left with the class.
+  # Twenty-five lines; every row checked against docs.typo3.org. Resolved
+  # commit at the time of writing: 9e1b34c.
+  #
+  # PRE-REGISTERED. Declared on mechanical_outcome with --run-out and
+  # --max-trials 12: six per arm. Rule: candidate's rate below nr's on this
+  # round withdraws the table; at or above, the deterministic observables
+  # decide what it did — per trial from steps[]: edits carrying
+  # TypoScriptFrontendController (nr median 18), edits under Tests/ (9.7),
+  # phpunit runs within four calls of an edit (4.3), agent steps (79). The
+  # table is the saving if TSFE edits fall below the nr median in this
+  # round's candidate arm; if the rate holds and the edits do not fall, the
+  # table is read and is not where the loop is, and the bottleneck is the
+  # tests. Cost exploratory: a fifth fewer steps sits inside nr's threefold
+  # spread and will not separate at six per arm; said now, not after.
+  #
+  # Not this round's variable, noted for a separate change: the skill's
+  # assets/rector.php targets UP_TO_TYPO3_12 under a description that
+  # promises v13 -> v14.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/tsfe-replacement-table-in-the-body while a comparison names it.
+  netresearch/typo3-extension-upgrade-skill: experiment/tsfe-replacement-table-in-the-body
 
   # ROUND SEVENTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
   # declared on mechanical_outcome with --run-out, six per arm as named:
