@@ -663,5 +663,9 @@ resolved is `3ffe2ad`.
 
 Six trials, 0.82 USD of agent spend in total; the harness records no separate
 judge cost, the verifier running on the same subscription credential. The
-experiment record names `benchmark_version 10.4.0` because the bump to 10.5.0
-is committed alongside it — the fleet had already moved when the run started.
+experiment record names `benchmark_version 10.4.0` because that is what the
+tree the trials ran against carried. The repository moved past it while this
+round was open — `10.5.0` and `10.6.0` from other work, `10.7.0` here for
+emptying this arm's spent `at:` — so a reader comparing this result with one
+recorded at `10.5.0` or later is comparing different benchmarks, which is
+exactly what the version is for.
