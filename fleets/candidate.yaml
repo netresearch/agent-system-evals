@@ -66,6 +66,38 @@ derives_from: nr
 
 
 at:
+  # ROUND SEVENTEEN, ANSWERED 20 September 2026: no. `skill_invoked` 0 of 3
+  # against 0 of 3, Fisher exact 1.000, and the runner stopped after the
+  # discovery round. The position lever that took typo3-conformance from 1 of 6
+  # to 6 of 6 does nothing here. Recorded in
+  # tasks/open/typo3-release-prep/RESULTS.md.
+  #
+  # The question was: does moving automated-assessment's release wording into
+  # its opening clause get the skill loaded on the release case?
+  #
+  # automated-assessment-skill#79 records that this skill was not invoked on
+  # OFR-TYPO3-RELEASE-001 although its description says "verifying release
+  # readiness" in the words the request uses, and calls that a genuine open
+  # question. agent-harness-skill#61 has since answered the general form of it
+  # on typo3-conformance: words appended to the trigger list routed 1 of 6, the
+  # same words placed in the opening `Use when` clause routed 6 of 6, Fisher
+  # exact 0.002, twelve trials each. Position, not vocabulary.
+  #
+  # The arm was a third shape rather than a replication, and stricter: both of
+  # #61's arms ADDED words to a description that lacked them and differed in
+  # where the addition landed, while here the words were already in the
+  # `Also use for:` tail at character 324 of 401 and the branch RELOCATED them
+  # to character 9, so the tail lost them. The word multiset stayed identical.
+  #
+  # Branched from v2.15.1, the ref `nr` pins, rather than from `main` at
+  # v2.18.2 — a branch off `main` would have carried three minor releases
+  # alongside the description and measured two changes while reporting one.
+  #
+  # The ref is removed now the round is closed, per this file's header: a ref
+  # that changes nothing today changes something the moment its branch moves.
+  # The branch is experiment/release-readiness-in-lead-clause and the commit
+  # the run resolved is 3ffe2ad, both named in the case's RESULTS.md.
+
   # ROUND NINE, ANSWERED 17 September 2026: no. Measured twice on
   # OFR-TYPO3-RESIZE-001 at two seeds — rounds 36 and 40, six of six valid
   # each — `Skill(` reads 0 of 3 in both arms of both rounds. v5.21.2's

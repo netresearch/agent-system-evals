@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "experiment_id": "OFR-TYPO3-RELEASE-001-20260920-114618",
+  "case": "OFR-TYPO3-RELEASE-001",
+  "arms": [
+    "nr",
+    "candidate"
+  ],
+  "primary_endpoint": "skill_invoked",
+  "secondary_endpoints": [
+    "release"
+  ],
+  "primary_kind": "invocation",
+  "model": "claude-haiku-4-5-20251001",
+  "benchmark_version": "10.4.0",
+  "randomization": "one trial per arm per block, order shuffled per block",
+  "randomization_seed": 4111,
+  "stopping_rule": "rounds of (3, 4, 5) blocks; stop after the discovery round unless the primary endpoint separates completely, and never exceed 12 trials in total",
+  "max_trials": 12,
+  "started_at": "2026-09-20T11:46:18+00:00",
+  "blocks": [
+    {
+      "round": 1,
+      "block": 1,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-114618",
+        "candidate": "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-114618"
+      }
+    },
+    {
+      "round": 1,
+      "block": 2,
+      "order": [
+        "nr",
+        "candidate"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "nr": "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-115351",
+        "candidate": "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-115351"
+      }
+    },
+    {
+      "round": 1,
+      "block": 3,
+      "order": [
+        "candidate",
+        "nr"
+      ],
+      "concurrent": true,
+      "jobs": {
+        "candidate": "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-120014",
+        "nr": "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-120014"
+      },
+      "primary_p": 1.0
+    }
+  ],
+  "stop_reason": "skill_invoked did not move after the discovery round (0/3 against 0/3, p 1.000)",
+  "trials_spent": 6,
+  "jobs": {
+    "nr": [
+      "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-114618",
+      "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-115351",
+      "jobs/OFR-TYPO3-RELEASE-001-nr-20260920-120014"
+    ],
+    "candidate": [
+      "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-114618",
+      "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-115351",
+      "jobs/OFR-TYPO3-RELEASE-001-candidate-20260920-120014"
+    ]
+  },
+  "finished_at": "2026-09-20T12:05:37+00:00",
+  "valid_trials": {
+    "nr": 3,
+    "candidate": 3
+  }
+}
