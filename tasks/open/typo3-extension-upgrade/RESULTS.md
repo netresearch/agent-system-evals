@@ -1223,3 +1223,18 @@ they are the agent making a suite and a codebase agree on a class one line
 lacks, with the suite run between them. That is the work the stack turns from
 a three-cent non-attempt into a dollar's result, and on this case it has not
 been made cheaper by anything written into the skill.
+
+**Why the migrated code fails the suite — read afterwards, from the three
+failing trials' `phpunit` observations.** Rector rewrites the production read
+of `$tsfe->fe_user` to `$GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.user')`;
+the unit suite injects a `TypoScriptFrontendController` mock through a test
+helper and never sets that global. One trial's suite reads `Undefined global
+variable $TYPO3_REQUEST` eight times; another's test helper `setMockTsfe()`
+rejects, by its type hint, what the migrated code now hands it, forty times;
+the third's test references the class by name and dies on the line that
+lacks it. The mechanic moves the production side to the request and leaves
+the suite speaking TSFE, and the agent that starts from that gap did not
+close it in three trials of three, where the agent that migrated by hand —
+class and test together, one file at a time — did in six of six. The
+migration is not the work; making both sides agree is, and Rector does one
+side.
