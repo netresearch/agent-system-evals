@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with step 5 raising Rector's level set to the version window as a block — a mechanic doing the edits, or not, as the question
+description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -83,8 +83,20 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND NINETEEN, open: does a block that raises Rector's level set to the
-  # window make Rector do the TSFE edits the agent makes by hand?
+  # ROUND NINETEEN, ANSWERED 20 September 2026: it does the migration, and
+  # the trials that let it did not finish. Twelve of twelve valid, declared
+  # on mechanical_outcome with --run-out, six per arm: nr 6/6, candidate
+  # 3/6, Fisher 0.182 — the rule withdraws the change. The three candidate
+  # trials in which a TSFE Rector rule fired are exactly the three failures
+  # (v14.3 leg red after the migration); the three that passed had not let
+  # it fire. No trial ran the block as pasted; four of six raised the set by
+  # editing Build/rector.php. TSFE edits outside Tests/ median 12 against
+  # 14, steps and cost up. Why the migrated code fails the v14.3 suite is
+  # not read here. The ref is REMOVED: candidate equals nr again. Recorded
+  # in tasks/open/typo3-extension-upgrade/RESULTS.md, round thirty-two.
+  #
+  # It asked: does a block that raises Rector's level set to the window
+  # make Rector do the TSFE edits the agent makes by hand?
   #
   # The one lever in this series that is a mechanic doing edits, not a
   # sentence. The upgrade case's extension carries Build/rector.php at
@@ -122,7 +134,8 @@ at:
   #
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/rector-level-set-follows-the-window while a comparison names it.
-  netresearch/typo3-extension-upgrade-skill: experiment/rector-level-set-follows-the-window
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND EIGHTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
   # declared on mechanical_outcome with --run-out, six per arm: nr 5/6,

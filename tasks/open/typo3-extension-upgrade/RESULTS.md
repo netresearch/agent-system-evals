@@ -1151,3 +1151,75 @@ suite runs between them. That is where a mechanical shortcut would have to
 act — a check that says which tests reference a removed class before the
 suite is run, which step 9's grep already is — and step 9's grep ran in every
 trial of every round here. What it did not do is shorten what follows it.
+
+## Round thirty-two: Rector did the migration, and the trials that let it did not finish
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260920-150759.json`, seed 5081, Haiku 4.5,
+benchmark 10.7.0. Twelve trials, twelve valid, declared on `mechanical_outcome`
+with `--run-out`, six per arm. `nr` pins `typo3-extension-upgrade` v3.12.5;
+`candidate` is `nr` with that skill at an experiment branch cut from v3.12.5
+whose two commits make step 5 a fenced block — `sed` the level set from
+`UP_TO_TYPO3_12` to `UP_TO_TYPO3_13` in the extension's own Rector config, then
+the dry run — with one sentence saying the set follows the version window,
+and set the asset's level to 13. Resolved `76b90ca` in every candidate lock.
+
+**Why this lever, and what was checked before spending.** It is the one lever
+in this series that is a mechanic doing edits rather than a sentence. The
+case's extension holds `Build/rector.php` at `UP_TO_TYPO3_12` for a window
+that drops v12, so the `TypoScriptFrontendController` rules never fire and
+the agent makes those edits by hand — over seventy-one equipped trials a
+median of eighteen a trial, ten outside `Tests/`, nine in it. Raised to 13 in
+the case's own environment, the dry run fires
+`MigrateTypoScriptFrontendControllerFeUserRector` and
+`…ReadOnlyPropertiesRector` in three of the seven most-edited files
+(`AbstractContext`, `SessionContext`, `PageAccessEventListener`, five hunks),
+in the form the passing trials had written by hand. The record already held a
+split: in 17 of 71 trials the agent had raised the set itself and a TSFE rule
+had fired, and those trials passed 5 of 17 against 29 of 54 at more steps and
+cost. That split is confounded — a struggling trial tries more — and cannot
+refute; a first write-up that read it as a refutation was closed unmerged.
+This randomized round is the instrument, pre-registered: a candidate rate
+below `nr`'s withdraws the change; the rule firing in a Bash observation says
+the block ran; TSFE edits outside `Tests/` below the median of ten say the
+mechanic did the work.
+
+| arm | passed both legs | block run as pasted | a TSFE Rector rule fired | TSFE edits outside / in `Tests/` | agent steps | agent cost |
+|---|---|---|---|---|---|---|
+| `nr` | 6/6 | — | 0/6 | median 14 / 12 | median 104 | median $1.10 |
+| `candidate` | 3/6 | 0/6 | 3/6 — and those three are the three failures | median 12 / 12 | median 120 | median $1.23 |
+
+**The rate read 3/6 against 6/6, and the rule withdraws the change.** Fisher
+p 0.182 two-sided, 0.091 in the observed direction — the widest gap any round
+on this arm has read, and in the wrong direction. The three candidate trials
+in which a TSFE Rector rule fired are exactly the three that failed: two
+with the v14.3 leg red after the migration, one that also wrote a constraint
+Composer could not resolve. The three that passed had not let the rule fire.
+No candidate trial ran the block as pasted — the `sed` signature is in no
+Bash call — but four of six edited `Build/rector.php` by hand to raise the
+set, which is the instruction followed, not the block.
+
+**So the mechanic does the migration, and the migration is not the work.**
+Rector rewrites `$tsfe->fe_user` to `$GLOBALS['TYPO3_REQUEST']->getAttribute('frontend.user')`
+in three production files; the suite that then runs against v14.3 does not
+pass, and the agent that started from Rector's output did not get it to pass
+in six trials of twelve, where the agent that started from the old code did
+in six of six. Why the migrated code fails the v14.3 suite is not read here —
+the matrix artefacts carry the verdict, not the failure — and it is the one
+thing a next round on this lever would have to read first. What this round
+establishes is the direction the confounded split only suggested: on this
+case, letting Rector do the TSFE migration costs the floor, and the
+pre-registered rule withdraws it.
+
+**What three levers now say together.** Composer's listing out of the
+transcript: mechanism proven, floor one trial lower over fifteen, withdrawn.
+The TSFE map in the body: read in every trial, edits did not fall, withdrawn.
+Rector's migration by a block: the rule fired in half the trials and every
+one of them failed, withdrawn on the widest gap of the three. Each was
+chosen from the transcripts' own counts, built as the kind of thing a skill
+can carry, pre-registered, and measured; none shortened the path on this case
+under this model, and the third made it longer. The eighteen TSFE edits a
+trial are not a name to look up, a listing to hide, or a rewrite to automate;
+they are the agent making a suite and a codebase agree on a class one line
+lacks, with the suite run between them. That is the work the stack turns from
+a three-cent non-attempt into a dollar's result, and on this case it has not
+been made cheaper by anything written into the skill.
