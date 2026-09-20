@@ -513,3 +513,155 @@ consumer of the skill actually gets.
 
 Costs move with it and not much: median agent cost 0.12 → 0.16 USD, tool calls
 23 → 24.5, both well inside their intervals.
+
+## The position lever does not move this skill: 0 of 3 against 0 of 3
+
+`experiments/OFR-TYPO3-RELEASE-001-20260920-114618.json`, seed 4111, Haiku 4.5,
+benchmark 10.5.0. `nr` against `candidate`, where `candidate` is `nr` with
+`netresearch/automated-assessment-skill` moved from `v2.15.1` to
+[`experiment/release-readiness-in-lead-clause`](https://github.com/netresearch/automated-assessment-skill/tree/experiment/release-readiness-in-lead-clause)
+(`3ffe2ad`), branched from `v2.15.1` and differing from it in one line.
+
+**Declared before the first trial:** `skill_invoked`, written into the
+experiment record at `started_at` by `run-comparison --primary skill_invoked`.
+Nothing else here is a finding.
+
+| arm | `skill_invoked` | Wilson | Fisher exact |
+|---|---|---|---|
+| `nr` | 0/3 | [0.00, 0.56] | 1.000 two-sided, 1.000 one-sided |
+| `candidate` | 0/3 | [0.00, 0.56] | |
+
+The runner stopped after the discovery round, by its own rule: the endpoint did
+not move, so more trials were not bought.
+
+### What was manipulated, and what was not
+
+[automated-assessment-skill#79](https://github.com/netresearch/automated-assessment-skill/issues/79)
+records that this skill was not invoked on this case although its description
+says *"verifying release readiness"* in the words the request uses, and calls
+that a genuine open question.
+[agent-harness-skill#61](https://github.com/netresearch/agent-harness-skill/issues/61)
+had since answered the general form of it on `typo3-conformance`: words
+appended to the trigger list routed 1 of 6, the same words placed in the
+opening `Use when` clause routed 6 of 6, Fisher exact 0.002, twelve trials
+each. Position, not vocabulary.
+
+**This round is a third shape, and the difference matters.** Both of #61's
+arms *added* words to a description that did not carry them, and differed in
+where the addition landed. Here the words are already in the tail, so the
+variant relocates them and the tail loses them. That is a stricter test of the
+same lever — it asks whether the front position is worth more than the tail
+position, rather than whether either beats absence — and a reader should not
+take this as a replication of #61.
+
+The wording sat at character 324 of a 401-character description, inside the
+`Also use for:` tail — the position #61 measured not to route. It now opens the
+clause at character 9:
+
+> `Use when verifying release readiness, working with ANY project compliance assessment, quality enhancement, or test suite improvement. …`
+
+The word multiset is identical in both directions — nothing added, nothing
+dropped — so the arms differ in where three words sit and in nothing that could
+be read as more or different words. The alternative reading of "move it and
+remove nothing", naming it up front *and* leaving the tail, would have made the
+arms differ in length as well as position and was rejected for that.
+
+### The plumbing is not the explanation
+
+Four things were checked against the recorded trials rather than assumed, and
+all six trials agree:
+
+- each arm's agent carried its own description — the installed
+  `agent/sessions/skills/automated-assessment/SKILL.md` opens `Use when
+  verifying release readiness` in all three `candidate` trials and `Use when
+  working with ANY project compliance` in all three `nr` trials;
+- `automated-assessment` is in every trial's `slash_commands` list;
+- the `Skill` tool is in every trial's tool list;
+- the locks resolve the intended refs in every trial — `71bfb62`, the `v2.15.1`
+  tag object, in `nr`, and `3ffe2ad` in `candidate`, with no drift across
+  blocks.
+
+So the zero is a choice the agent made with the description in front of it, not
+a skill that was missing, unlisted or unreachable.
+
+### The endpoint counts any skill, and none was opened
+
+`skill_invoked` is satisfied by a `Skill` call to anything in the fleet, so a
+`typo3-docs` invocation would have counted for the endpoint and against the
+hypothesis. Neither happened: the trajectories hold **zero** `Skill` calls
+across all six trials, in both arms.
+
+### The work did not move either, and it failed identically
+
+| | `nr` | `candidate` |
+|---|---|---|
+| `release: ok` | 0/3 | 0/3 |
+| `release` dimension met | 0/3 | 0/3 |
+
+All six trials produced the same six lines of `release-check.txt`, byte for
+byte:
+
+```
+requested: 2.4.2
+ext_emconf.php: 2.4.2
+Documentation/guides.xml: 2.4.2
+CHANGELOG.md mentions: 0
+Documentation/Changelog/Index.rst mentions: 2
+release: incomplete
+```
+
+Three of the four places carry the new version in every trial and `CHANGELOG.md`
+in none — the same single-file gap the 16 September rounds left, and the same
+one the `github-release` description closed when it named the files. Six of six
+trials sit within one judge step of the `release` threshold, so the dimension
+count carries nothing either way.
+
+Cost is flat and exploratory: median agent cost 0.13 → 0.13 USD (Cliff's delta
+−0.11, p 1.000), input tokens 719.9k → 709.1k (p 1.000), tool calls 23 → 24
+(p 0.800).
+
+### What this says, and what it does not
+
+**The two levers #61 named as solved do not both generalise.** Carrying a skill
+the request names moved invocation on this case from 0 of 6 to 6 of 6. Naming a
+skill's matching words in its opening clause rather than its trigger list moved
+`typo3-conformance` from 1 of 6 to 6 of 6 on the restraint case. The same
+position, on `automated-assessment`, on this case, moved nothing at three per
+arm — under the stricter form of the manipulation described above.
+
+Three per arm is what the runner's rule bought and it is not much. Under the
+rate #61 measured — 6 of 6, Wilson [0.61, 1.00] — 0 of 3 has probability
+0.39³ = 0.06 at that interval's lower bound and less above it. That is
+suggestive against the hypothesis at this size, not decisive, and the honest
+statement is the interval rather than a refutation.
+
+What the round does close is the reading that #79's zero was a position
+artefact fixable in the description. It was tested as such, with the
+manipulation that worked elsewhere, and the endpoint did not move. The
+difference between the skills that route and this one is therefore not the
+position of the matching words, and whatever it is has not been measured here.
+
+**No pull request was opened against the skill.** The rule was fixed in writing
+before the first trial: the wording moves in `SKILL.md` only if `skill_invoked`
+separates in `candidate`'s favour at Fisher exact two-sided p ≤ 0.05. It read
+1.000. The branch stays as the record's evidence and is not proposed for merge.
+
+### Reproducing
+
+```
+scripts/run-comparison OFR-TYPO3-RELEASE-001 --arms nr,candidate \
+    --primary skill_invoked --model claude-haiku-4-5-20251001 --seed 4111
+scripts/analyze experiments/OFR-TYPO3-RELEASE-001-20260920-114618.json
+```
+
+The round is closed, so `candidate` has been repointed and no longer carries
+the branch — the fleet file's own rule, because a ref left in place changes
+something the moment the branch moves. Reproducing the `candidate` arm means
+pinning `netresearch/automated-assessment-skill` to
+`experiment/release-readiness-in-lead-clause` again; the commit the run
+resolved is `3ffe2ad`.
+
+Six trials, 0.82 USD of agent spend in total; the harness records no separate
+judge cost, the verifier running on the same subscription credential. The
+experiment record names `benchmark_version 10.4.0` because the bump to 10.5.0
+is committed alongside it — the fleet had already moved when the run started.
