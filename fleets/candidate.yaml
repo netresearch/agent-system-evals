@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the TSFE replacement table in the upgrade body — the edit loop, shortened or not, as the question
+description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -83,8 +83,19 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND EIGHTEEN, open: does the TSFE replacement table, in the body,
-  # shorten the edit loop on the upgrade case?
+  # ROUND EIGHTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
+  # declared on mechanical_outcome with --run-out, six per arm: nr 5/6,
+  # candidate 4/6, and the rule withdraws the table. The counts say the same
+  # without it: TSFE edits median 27 against 22, no candidate trial under
+  # nineteen; Tests/ edits, steps and cost all up. The table was in every
+  # candidate body and Skill was invoked 12/12. The map is read and is not
+  # where the loop is — the passing trials on both arms knew the replacement
+  # names; the loop is making suite and code agree on a class one line
+  # lacks. The ref is REMOVED: candidate equals nr again. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round thirty-one.
+  #
+  # It asked: does the TSFE replacement table, in the body, shorten the edit
+  # loop on the upgrade case?
   #
   # Over sixty-five equipped Haiku trials, sixteen of the twenty-four edits
   # a trial carried TypoScriptFrontendController (median eighteen), 9.7 of
@@ -126,7 +137,8 @@ at:
   #
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/tsfe-replacement-table-in-the-body while a comparison names it.
-  netresearch/typo3-extension-upgrade-skill: experiment/tsfe-replacement-table-in-the-body
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND SEVENTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
   # declared on mechanical_outcome with --run-out, six per arm as named:

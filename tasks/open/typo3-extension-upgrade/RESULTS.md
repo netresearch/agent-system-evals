@@ -1095,3 +1095,59 @@ of a trial, provable in every call, withdrawn on a floor that read two trials
 lower over fifteen. The next lever on this case is not context but calls — ten
 `phpunit` and five `phpstan` runs a trial — and that is where the next round
 looks, when there is one.
+
+## Round thirty-one: the TSFE table in the body did not shorten the loop
+
+`experiments/OFR-TYPO3-UPGRADE-001-20260920-132151.json`, seed 5077, Haiku 4.5,
+benchmark 10.6.0. Twelve trials, twelve valid, declared on `mechanical_outcome`
+with `--run-out`, six per arm. `nr` pins `typo3-extension-upgrade` v3.12.5;
+`candidate` is `nr` with that skill at an experiment branch cut from v3.12.5
+whose one commit inserts, before step 10, a twenty-five-line table of
+`$GLOBALS['TSFE']` members and their replacements — in the changelog's order,
+with the version each attribute exists from, every row checked against
+docs.typo3.org — the sentence about which request, and the test-side shape the
+passing trials had used. The table was in the installed body of every
+candidate trial, and `Skill` was invoked in all twelve.
+
+The lever, measured before the round on sixty-five equipped trials: sixteen of
+twenty-four edits a trial carried `TypoScriptFrontendController` (median
+eighteen), 9.7 in `Tests/`, 4.3 `phpunit` runs a trial following an edit. The
+null it was set against: the twenty-one trials that had opened the reference
+carrying the same facts in prose passed 7 of 21 against 22 of 44 and cost
+more. Pre-registered: a candidate rate below `nr`'s withdraws the table;
+otherwise the counts decide, and the table is the saving only if TSFE edits
+fall below the median of eighteen.
+
+| arm | passed both legs | TSFE edits | `Tests/` edits | `phpunit` after an edit | agent steps | agent cost |
+|---|---|---|---|---|---|---|
+| `nr` | 5/6 | 7, 39, 0, 21, 28, 23 — median 22 | median 10 | median 8 | median 88 | median $0.92 |
+| `candidate` | 4/6 | 19, 28, 29, 26, 34, 19 — median 27 | median 16 | median 10 | median 110 | median $1.10 |
+
+**The rate read 4/6 against 5/6, and the rule withdraws the table.** Fisher
+p 1.000; one trial, as before, and the rule holds as before. The counts say
+the same thing without the rule: TSFE edits did not fall — a median of 27
+against 22, and no candidate trial under nineteen — `Tests/` edits rose,
+steps rose from 88 to 110, and cost with them (+$0.19 at the median, p 0.180,
+exploratory). The one `nr` failure gave up at twenty-two steps; the two
+candidate failures worked 125 and 134 steps and left a leg red.
+
+**So the map, in the body, is read and is not where the loop is.** This
+extends the null the round was set against: the reference's prose did not
+shorten the loop for the third of trials that read it, and the same facts as
+a table on the surface every trial reads did not shorten it either. What the
+eighteen edits are is not a search for the replacement's name — the agent
+knows `frontend.user` and `FrontendUserAuthentication`, the passing trials
+introduced them without the table — it is the work of making two lines of a
+suite and a codebase agree on a class that one of them lacks. The loop is the
+tests, as the pre-registration said it would be if the counts did not move.
+
+**What stands, and what is next.** The table is withdrawn; the branch is
+deleted. Two rounds on this case have now taken a lever the transcripts
+pointed at — Composer's listing, the TSFE map — built it as the body's own
+kind of thing, measured it as pre-registered, and withdrawn it on the floor.
+The one lever left standing in the counts is the test-fix loop itself, which
+is not a sentence in a body: it is the `Tests/` edits, ten a trial, and the
+suite runs between them. That is where a mechanical shortcut would have to
+act — a check that says which tests reference a removed class before the
+suite is run, which step 9's grep already is — and step 9's grep ran in every
+trial of every round here. What it did not do is shorten what follows it.
