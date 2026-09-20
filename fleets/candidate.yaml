@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
+description: nr with step 5 raising Rector's level set to the version window as a block — a mechanic doing the edits, or not, as the question
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -82,6 +82,47 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND NINETEEN, open: does a block that raises Rector's level set to the
+  # window make Rector do the TSFE edits the agent makes by hand?
+  #
+  # The one lever in this series that is a mechanic doing edits, not a
+  # sentence. The upgrade case's extension carries Build/rector.php at
+  # UP_TO_TYPO3_12 for a window that drops v12, so the
+  # TypoScriptFrontendController rules never fire; the agents run rector
+  # against that config (58 default invocations, 5 with a config path).
+  # Raised to 13 in the case's own environment, the dry run fires
+  # MigrateTypoScriptFrontendControllerFeUserRector and
+  # ...ReadOnlyPropertiesRector in three of the seven most-edited files, in
+  # the form the passing trials wrote by hand. Over seventy-one equipped
+  # trials: TSFE edits median 18, ten of them outside Tests/, nine in it;
+  # in 17 of 71 the agent raised the set itself and a TSFE rule fired — and
+  # those trials passed 5/17 against 29/54 at more steps and cost. That
+  # split is confounded (a struggling trial tries more), cannot refute, and
+  # is the reason this is a randomized round and not a reading of the
+  # record.
+  #
+  # candidate = nr with typo3-extension-upgrade at an experiment branch cut
+  # from v3.12.5 whose two commits make step 5 a block — sed the set to 13
+  # in the extension's config, then the dry run — with one sentence saying
+  # why, and set the asset's level to 13 with the comment rewritten. A
+  # sentence at this position measured 0/3; a block 5/6. Resolved commit at
+  # the time of writing: 76b90ca.
+  #
+  # PRE-REGISTERED. Declared on mechanical_outcome with --run-out and
+  # --max-trials 12: six per arm. Rule: candidate's rate below nr's
+  # withdraws the change. Per trial from steps[]: (1) a Bash observation
+  # carrying MigrateTypoScriptFrontendController — the block ran and the
+  # rule fired; nr 24% spontaneous, candidate near 6/6 if pasted; (2) TSFE
+  # edits outside Tests/ (nr median 10) and in Tests/ (median 9); (3) total
+  # TSFE edits (median 18); (4) agent steps (79). The mechanic did the work
+  # if (1) reads 6/6 and (2)-outside falls below 10 at the median; if (1)
+  # reads 6/6 and the edits do not fall, the migration is made and then
+  # remade by hand, and that is the finding. Cost exploratory.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/rector-level-set-follows-the-window while a comparison names it.
+  netresearch/typo3-extension-upgrade-skill: experiment/rector-level-set-follows-the-window
 
   # ROUND EIGHTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
   # declared on mechanical_outcome with --run-out, six per arm: nr 5/6,
