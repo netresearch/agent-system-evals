@@ -1151,3 +1151,46 @@ suite runs between them. That is where a mechanical shortcut would have to
 act — a check that says which tests reference a removed class before the
 suite is run, which step 9's grep already is — and step 9's grep ran in every
 trial of every round here. What it did not do is shorten what follows it.
+
+## The Rector lever, measured before a round, and not run
+
+Round thirty-one's fleet note named a side finding: the skill's `assets/rector.php`
+holds `Typo3LevelSetList::UP_TO_TYPO3_12`, with a comment that the v13 rules
+introduce v13-only APIs and break a `^12.4` line — a warning about the line
+this case's window drops. Raised to 13 in the case's own environment, Rector's
+dry run moves exactly the `fe_user`, `page` and `rootLine` uses to the request
+attributes in three of the seven files the agents edit most (`AbstractContext`,
+`SessionContext`, `PageAccessEventListener`, five hunks, rules
+`MigrateTypoScriptFrontendControllerFeUserRector` and
+`…ReadOnlyPropertiesRector`), in the form the passing trials wrote by hand.
+That is the mechanical shortcut this repository looks for, and a skill change
+was drafted: step 5 says the level set follows the window, the asset carries
+13.
+
+Then the same question that retired the both-out design was asked of the
+record before spending a round: has this lever already been pulled, and what
+happened? It has. In 19 of 71 equipped trials the agent raised the level set
+to 13 or 14 itself, and in 17 a TSFE Rector rule fired in a dry run:
+
+| `nr` trials | passed both legs | TSFE edits | steps | cost |
+|---|---|---|---|---|
+| a TSFE Rector rule fired, 17 | 5/17 | median 17 | median 99 | median $1.02 |
+| it did not, 54 | 29/54 | median 20 | median 82 | median $0.82 |
+
+Confounded the way the reference-readers split was — a trial that is
+struggling tries more things — but the direction is the same as for the
+reference and the table: where Rector did the migration, the TSFE edits did
+not fall (17 against 20), and the trial went longer and passed less often.
+Five hunks in three production files are not the eighteen edits; the edits
+are the tests, and Rector does not touch `Tests/`.
+
+**So the change is not built and no round is spent.** The draft stays on this
+machine; the asset's level set is a documentation question for the skill,
+not a saving on this case. Three levers the transcripts pointed at have now
+been read against the record before or after a round — Composer's listing,
+the TSFE map, the Rector set — and on this case none of them is where the
+cost is. The cost is the suite-and-code work on a class one line lacks,
+which the stack turns from a non-attempt at three cents into a result at a
+dollar: the governance table's "earned its cost" cell, with the next question
+being whether it can earn less — and every sentence-shaped answer to that
+tried here has said no.
