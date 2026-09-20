@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with the upgrade body's install block sending Composer's listing to a log — the floor, held or not, as the question
+description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -83,9 +83,21 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND SEVENTEEN, open: does the arm with Composer's listing out of the
-  # transcript hold nr's rate on the mechanical outcome, over a count named
-  # before the run?
+  # ROUND SEVENTEEN, ANSWERED 20 September 2026: no. Twelve of twelve valid,
+  # declared on mechanical_outcome with --run-out, six per arm as named:
+  # nr 5/6, candidate 4/6; pooled over fifteen per arm 9/15 against 11/15,
+  # Fisher 0.70. The rule is not met and the withdrawal is final for this
+  # change. Where the block ran as pasted it lost nothing — eleven trials,
+  # nine passes, zero listing lines in every observation — but the rule
+  # counts the arm. Three candidate trials of fifteen ended with a question
+  # to the user against none on nr, one of them before any install ran;
+  # noted, unexplained, p 0.22. The ref is REMOVED:
+  # candidate equals nr again. Recorded in
+  # tasks/open/typo3-extension-upgrade/RESULTS.md, round thirty.
+  #
+  # It asked: does the arm with Composer's listing out of the transcript
+  # hold nr's rate on the mechanical outcome, over a count named before the
+  # run?
   #
   # Rounds fifteen and sixteen left the floor at 5/9 against 6/9, one trial
   # apart at p 1.000, with round sixteen ending at three per arm because the
@@ -109,7 +121,8 @@ at:
   #
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/composer-output-only-on-failure while a comparison names it.
-  netresearch/typo3-extension-upgrade-skill: experiment/composer-output-only-on-failure
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND SIXTEEN, ANSWERED 19 September 2026: level at three. Declared on
   # mechanical_outcome, same arms; 2/3 against 2/3 after discovery and the
