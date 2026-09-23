@@ -699,6 +699,15 @@ def main() -> int:
     for arm, jobs in collected.items():
         print(f"  {arm}: {len(jobs)} job(s), "
               f"{record['valid_trials'][arm]} valid trial(s)")
+    # The record names its jobs; jobs/ is ignored by git, and a removed
+    # worktree once took a round's trials with it (instrument failure 35).
+    # Write the per-trial values into the record now, while the jobs are
+    # certainly on disk, so the committed file is the one analysis needs.
+    inline = subprocess.run(
+        [str(ROOT / "scripts" / "analyze"), "--write-inline", str(log)],
+        capture_output=True, text=True,
+    )
+    print(inline.stdout.strip() or inline.stderr.strip())
     print(f"\nscripts/analyze {log.relative_to(ROOT)}")
     return 0
 
