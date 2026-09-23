@@ -106,3 +106,13 @@
   path: github-project-skill-2.17.0/skills/github-project/references/merge-strategy.md
   marker: t3x-nr-image-optimize
   reason: The same citation, matched by the shorter repository marker.
+- skill: netresearch/typo3-testing-skill
+  ref: experiment/rendered-output-is-proved-in-functional
+  path: typo3-testing-skill-experiment-rendered-output-is-proved-in-functional/skills/typo3-testing/references/ci-cd.md
+  marker: netresearch/t3x-nr-image-optimize
+  reason: Attribution on a note about PHPUnit strict coverage metadata; names the target and nothing about its release. Same file, byte for byte, on the experiment branch — which changes the description only.
+- skill: netresearch/typo3-testing-skill
+  ref: experiment/rendered-output-is-proved-in-functional
+  path: typo3-testing-skill-experiment-rendered-output-is-proved-in-functional/skills/typo3-testing/references/ci-cd.md
+  marker: t3x-nr-image-optimize
+  reason: The same attribution, matched by the shorter repository marker. Same file, byte for byte, on the experiment branch — which changes the description only.

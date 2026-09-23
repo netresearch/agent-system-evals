@@ -248,7 +248,11 @@ is broken. That is a limit of the fleet on this model, not a property of any
 one description; `typo3-testing`'s was rewritten to name the situation and read
 0 of 3 on the resize case. Whether a model that opens skills more readily
 behaves otherwise is the measurement that would separate the model from the
-skills, and it has not been run.
+skills, and it has not been run. One further channel was tried and closed on
+the resize case: a description that names the directory the right test belongs
+in (`Tests/Functional/`), present in every candidate trial, moved no test there
+(0 of 6). On a bug-report request the description is neither routed nor acted
+on under this model.
 
 ## 9. Case admission
 

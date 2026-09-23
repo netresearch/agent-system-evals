@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr, carrying no variable — the last question closed on 20 September, the next not yet chosen
+description: nr, carrying no variable — the last question closed on 23 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -114,6 +114,53 @@ at:
   #   (closed; the ref is removed rather than left in place — an arm that
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
+
+  # ROUND TWENTY, ANSWERED 23 September 2026: no. Twelve of twelve valid,
+  # mechanical_outcome with --run-out, six per arm: 0/6 against 0/6, and the
+  # candidate wrote under Tests/Functional/ in 0 of 6 (nr 1 of 6), under
+  # Tests/Unit/ in 5 of 6. The new description was installed in all six
+  # candidate trials; Skill 0/12. The directory result from the documentation
+  # case does not transfer to a bug-report request: the description is
+  # neither routed nor acted on. The ref is REMOVED: candidate equals nr
+  # again. Recorded in tasks/open/typo3-rte-figure-resize/RESULTS.md, round
+  # forty-one.
+  #
+  # It asked: does a description that names where rendered output is proved
+  # move the test the agent writes, on a case where the skill is never loaded?
+  #
+  # On the bug-report cases Haiku loads no skill (docs/open-forward-review.md,
+  # "A zero invocation count is ambiguous"), and a description rewritten to
+  # name the reported-defect situation did not change that (0/3 on this case,
+  # round 36). But a description is in context whether or not the skill is
+  # opened, and one that names a directory has moved where the agent writes
+  # (the documentation case: docs/ -> Documentation/, 3 of 3, skill never
+  # opened). On OFR-TYPO3-RESIZE-001 the agents write a test in most trials
+  # and it is a unit test: over 32 valid trials, 3 wrote under
+  # Tests/Functional/, 13 under Tests/Unit/, and none passed. A unit test does
+  # not run Fluid, and the defect is in what Fluid prints.
+  #
+  # candidate = nr with typo3-testing at an experiment branch cut from
+  # v5.20.3, the ref nr pins, whose one commit changes only the description:
+  # it leads with "a reported defect or a fix touches rendered output ...
+  # prove it in Tests/Functional/, which renders; Tests/Unit/ never runs
+  # Fluid", keeps the existing triggers after it, and stays inside the repo's
+  # own 500-word hook. Resolved commit at the time of writing: b898e1a.
+  #
+  # PRE-REGISTERED. Declared on mechanical_outcome with --run-out and
+  # --max-trials 12, six per arm. Per trial from steps[]: an Edit/Write under
+  # Tests/Functional/ (nr 1 of 15 on record) and under Tests/Unit/ (8 of 15),
+  # and Skill invocations. The description moved the test if candidate
+  # writes under Tests/Functional/ in at least 3 of 6. If it moves the test
+  # and the floor stays at 0, the functional test is written and does not
+  # find the defect — the finding is then about the test, not the routing. If
+  # it does not move, the description is not read on this shape of request
+  # either. nr has passed 0 of 15; any pass is information, none is expected.
+  #
+  # A branch ref: do not push to, rebase, merge or delete
+  # experiment/rendered-output-is-proved-in-functional while a comparison
+  # names it.
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND NINETEEN, ANSWERED 20 September 2026: it does the migration, and
   # the trials that let it did not finish. Twelve of twelve valid, declared

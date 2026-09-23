@@ -368,3 +368,45 @@ What follows for this case is that the next thing to try is not another
 description. Either the rules have to reach the agent some other way, or the
 case measures something a small model does not do regardless of what it is
 told.
+
+## Round forty-one, 23 September 2026: the description named the directory, and the test did not move
+
+`experiments/OFR-TYPO3-RESIZE-001-20260923-170621.json`, seed 5107, Haiku 4.5,
+benchmark 10.8.0. Twelve trials, twelve valid, `nr` against `candidate`,
+declared on `mechanical_outcome` with `--run-out`, six per arm. `candidate` is
+`nr` with `typo3-testing` at an experiment branch cut from v5.20.3, the ref `nr`
+pins, whose one commit changes the description only: it leads with "a reported
+defect or a fix touches rendered output (Fluid template, partial, ViewHelper):
+prove it in Tests/Functional/, which renders; Tests/Unit/ never runs Fluid".
+Resolved `b898e1a` in the lock; the new description was in the installed
+`SKILL.md` of all six candidate trials.
+
+**Why this lever.** The agents write a test on this case in most trials, and
+it is a unit test — over the 32 valid trials before this round, 3 wrote under
+`Tests/Functional/`, 13 under `Tests/Unit/`, and none passed. A unit test does
+not run Fluid, and the defect is in what Fluid prints. The skill is never
+loaded here, but a description is in context whether or not it is, and on the
+documentation case a description naming a directory had moved where the agent
+wrote (`docs/` → `Documentation/`, 3 of 3). Pre-registered: the description
+moved the test if the candidate wrote under `Tests/Functional/` in at least 3
+of 6.
+
+| arm | passed the check | wrote under `Tests/Functional/` | wrote under `Tests/Unit/` | `Skill` | agent cost |
+|---|---|---|---|---|---|
+| `nr` | 0/6 | 1/6 | 3/6 | 0/6 | median $0.62 |
+| `candidate` | 0/6 | **0/6** | 5/6 | 0/6 | median $0.71 |
+
+**It did not move.** No candidate trial wrote a functional test; five wrote
+unit tests, two more than `nr`. The floor is 0/6 on both arms, as on every
+round of this case. By the pre-registered reading, the description is not
+acted on for this shape of request either.
+
+**So the directory result does not transfer.** On the documentation case the
+request names the domain the description is about ("give it documentation"),
+and the directory it named was taken. Here the request reports that something
+is broken, and a description that names exactly the directory the right test
+belongs in is present in every trial and changes nothing. Together with the
+routing zeros (`docs/open-forward-review.md`), that closes the description as
+a channel for bug-report requests under this model: it neither gets the skill
+loaded nor steers what the agent writes. The ref is removed.
+

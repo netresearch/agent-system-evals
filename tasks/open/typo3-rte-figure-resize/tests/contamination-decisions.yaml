@@ -565,3 +565,18 @@
   path: typo3-conformance-skill-experiment-without-the-numbered-checks/skills/typo3-conformance/references/crowdin-integration.md
   marker: rte_ckeditor_image
   reason: "The extension key as the product-name attribute in an example XLIFF header. Translation file shape, nothing about rendering. Same file, byte for byte, on the experiment branch \u2014 which changes SKILL.md only."
+- skill: netresearch/typo3-testing-skill
+  ref: experiment/rendered-output-is-proved-in-functional
+  path: typo3-testing-skill-experiment-rendered-output-is-proved-in-functional/skills/typo3-testing/references/javascript-testing.md
+  marker: netresearch/t3x-rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path. Same file, byte for byte, on the experiment branch — which changes the description only.
+- skill: netresearch/typo3-testing-skill
+  ref: experiment/rendered-output-is-proved-in-functional
+  path: typo3-testing-skill-experiment-rendered-output-is-proved-in-functional/skills/typo3-testing/references/javascript-testing.md
+  marker: t3x-rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path. Same file, byte for byte, on the experiment branch — which changes the description only.
+- skill: netresearch/typo3-testing-skill
+  ref: experiment/rendered-output-is-proved-in-functional
+  path: typo3-testing-skill-experiment-rendered-output-is-proved-in-functional/skills/typo3-testing/references/javascript-testing.md
+  marker: rte_ckeditor_image
+  reason: Named as a real-world example of a JavaScript test layout. Test tooling, nothing about the rendering path. Same file, byte for byte, on the experiment branch — which changes the description only.
