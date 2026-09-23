@@ -1098,6 +1098,26 @@ per-trial metrics and snapshot digest inline, so that the file git keeps is
 the one the analysis needs; until that exists, `jobs/` is part of the record
 and is treated as such.
 
+**Repaired, 23 September 2026.** A record now carries its trials.
+`scripts/analyze --write-inline <record>` reads every per-trial value the
+analysis uses — validity, rewards, the criteria counts behind each dimension,
+cost, input tokens, tool calls, skill invocation, the mechanical outcome —
+and writes them into the record under `inline`, with each arm's snapshot and
+exclusions. It computes each value with the same `Arm` method the disk path
+uses, on a one-trial view, so the two readings cannot drift;
+`--from-inline` forces the inline path, and on the day it was built the two
+readings printed identical output for all 84 records whose jobs were on the
+machine. `scripts/run-comparison` writes the inline trials at the end of every
+run, and `analyze` falls back to them when a job directory is missing,
+saying so on a `source` line. Records written before the repair were filled
+from the jobs on disk.
+
+Two records could not be filled, because their jobs were already gone: this
+round's, and `OFR-TYPO3-RELEASE-001-20260920-114618`, recorded by a parallel
+session whose job directories are not on the measuring machine either — the
+same loss, found only because the backfill asked for every record's jobs.
+Their numbers stand in their results sections and cannot be re-derived.
+
 ## What this cost, and what it teaches
 
 Four regrade rounds. The recorded agent trials survived all of it, which is the

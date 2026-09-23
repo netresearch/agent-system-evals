@@ -74,5 +74,265 @@
   "valid_trials": {
     "nr-general": 3,
     "nr-ci": 3
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "nr-general": {
+        "case_id": "OFR-PY-CI-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-PY-CI-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr-general",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:e628b64c16fe315104b0650679fa6cbee4df812dd66946c809682a230f127cd4",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "a65e619536b86663",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "15cd599c2b35fe11",
+          "grade": {
+            "rubric_digest": "92142f8f2682a173",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-28T17:23:44+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260828-171752",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-PY-CI-001-nr-general-20260828-171752",
+          "OFR-PY-CI-001-nr-general-20260828-172753",
+          "OFR-PY-CI-001-nr-general-20260828-173751"
+        ],
+        "trials": [
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260828-171752",
+            "trial": "py-scheduled-job-exit-code__Tuz6d92",
+            "reward": {
+              "exit_semantics": 0.875
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 7,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.16125985000000004,
+            "n_input_tokens": 397647.0,
+            "tool_calls": 17.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260828-172753",
+            "trial": "py-scheduled-job-exit-code__Xx7EvJc",
+            "reward": {
+              "exit_semantics": 0.8375
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1285165,
+            "n_input_tokens": 400599.0,
+            "tool_calls": 15.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260828-173751",
+            "trial": "py-scheduled-job-exit-code__T4vVhgs",
+            "reward": {
+              "exit_semantics": 0.8375
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.054443,
+            "n_input_tokens": 130373.0,
+            "tool_calls": 4.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      },
+      "nr-ci": {
+        "case_id": "OFR-PY-CI-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-PY-CI-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr-ci",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/security-audit-skill@v2.11.1",
+            "netresearch/github-project-skill@v2.17.0"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/security-audit-skill@v2.11.1",
+              "netresearch/github-project-skill@v2.17.0"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:e628b64c16fe315104b0650679fa6cbee4df812dd66946c809682a230f127cd4",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "a65e619536b86663",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "github-project@/home/sme/.cache/harbor/skills/github.com/netresearch/github-project-skill/05ae6dc8a0e7d0c59ed417843c8d5a8583b61bb9/skills/github-project",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "4ebdfd440197cd5d",
+          "grade": {
+            "rubric_digest": "92142f8f2682a173",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-28T17:27:53+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260828-172344",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-PY-CI-001-nr-ci-20260828-172344",
+          "OFR-PY-CI-001-nr-ci-20260828-173232",
+          "OFR-PY-CI-001-nr-ci-20260828-174226"
+        ],
+        "trials": [
+          {
+            "job": "OFR-PY-CI-001-nr-ci-20260828-172344",
+            "trial": "py-scheduled-job-exit-code__T4D5ise",
+            "reward": {
+              "exit_semantics": 0.7125
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.06168680000000001,
+            "n_input_tokens": 131421.0,
+            "tool_calls": 4.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-ci-20260828-173232",
+            "trial": "py-scheduled-job-exit-code__zjkR2ph",
+            "reward": {
+              "exit_semantics": 0.6375
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 5,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.16903259999999998,
+            "n_input_tokens": 788193.0,
+            "tool_calls": 22.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-ci-20260828-174226",
+            "trial": "py-scheduled-job-exit-code__r9rser5",
+            "reward": {
+              "exit_semantics": 0.775
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.2396787,
+            "n_input_tokens": 896731.0,
+            "tool_calls": 31.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

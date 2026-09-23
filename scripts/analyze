@@ -114,8 +114,10 @@ class Arm:
             if not job.is_dir():
                 sys.exit(
                     f"{name}: job directory missing: {job} — the record names "
-                    f"it and nothing on disk answers; jobs/ is part of the "
-                    f"record (docs/instrument-failures.md, 35)"
+                    f"it, nothing on disk answers, and the record carries no "
+                    f"inline trials for this arm; `scripts/analyze "
+                    f"--write-inline` on the machine that holds the jobs "
+                    f"makes a record self-contained (docs/instrument-failures.md, 35)"
                 )
             snapshot = validity.read_snapshot(job)
             self.snapshot = self.snapshot or snapshot
@@ -268,6 +270,92 @@ class Arm:
         return outcomes
 
 
+INLINE_VERSION = 1
+
+
+def inline_arm(arm: Arm) -> dict:
+    """What `Arm` reads from an arm's job directories, read once, per trial.
+
+    A record names its jobs and, until September 2026, held nothing per
+    trial: every number `analyze` prints was read from `jobs/`, which git
+    ignores. A worktree removal took six trial directories and left a
+    record that could be named and not analysed (instrument failure 35).
+    This is what the record carries instead, so that the file git keeps is
+    the one the analysis needs.
+
+    Each value is computed by the same `Arm` method the disk path uses, on
+    a one-trial view of the arm, so the inline reading cannot drift from
+    the disk reading — `--from-inline` exists to prove that on every record.
+    """
+    rows = []
+    for trial in arm.trials:
+        one = object.__new__(Arm)
+        one.trials = [trial]
+        one.case_id = arm.case_id
+        reward = (one.rewards() or [None])[0]
+        cost = one.cost()
+        tokens = one.cost("n_input_tokens")
+        calls = one.tool_calls()
+        invoked = one.invoked_skill()
+        mechanical = one.mechanical()
+        rows.append({
+            "job": trial.parent.name,
+            "trial": trial.name,
+            "reward": reward,
+            "categories": {d: one.categories(d) for d in (reward or {})},
+            "cost_usd": cost[0] if cost else None,
+            "n_input_tokens": tokens[0] if tokens else None,
+            "tool_calls": calls[0] if calls else None,
+            "skill_invoked": invoked[0] if invoked else None,
+            "mechanical": mechanical[0] if mechanical else None,
+        })
+    return {
+        "case_id": arm.case_id,
+        "snapshot": arm.snapshot,
+        "jobs": [job.name for job in arm.jobs],
+        "trials": rows,
+        "excluded": list(arm.excluded),
+    }
+
+
+class InlineArm(Arm):
+    """An arm read from the record's inline trials rather than from `jobs/`."""
+
+    def __init__(self, name: str, data: dict):
+        self.name = name
+        self.jobs = [Path(j) for j in data.get("jobs") or []]
+        self.rows = list(data.get("trials") or [])
+        self.trials = self.rows  # counted and tested for emptiness only
+        self.excluded = list(data.get("excluded") or [])
+        self.snapshot = data.get("snapshot") or {}
+        self.case_id = data.get("case_id")
+
+    def _values(self, key: str) -> list[float]:
+        return [float(r[key]) for r in self.rows if r.get(key) is not None]
+
+    def rewards(self) -> list[dict]:
+        return [r["reward"] for r in self.rows if r.get("reward")]
+
+    def cost(self, field: str = "cost_usd") -> list[float]:
+        return self._values(field)
+
+    def tool_calls(self) -> list[float]:
+        return self._values("tool_calls")
+
+    def invoked_skill(self) -> list[float]:
+        return self._values("skill_invoked")
+
+    def mechanical(self) -> list[float]:
+        return self._values("mechanical")
+
+    def categories(self, dimension: str) -> dict[str, int]:
+        counts = {"met": 0, "partial": 0, "not_met": 0, "other": 0}
+        for row in self.rows:
+            for key, value in ((row.get("categories") or {}).get(dimension) or {}).items():
+                counts[key] = counts.get(key, 0) + value
+        return counts
+
+
 def continuous_row(label: str, a: Arm, b: Arm, values_a, values_b) -> dict:
     if not values_a or not values_b:
         return {"label": label, "skipped": "not recorded on both arms"}
@@ -346,6 +434,18 @@ def main() -> int:
         help="what these arms are allowed to differ in; everything else must match",
     )
     parser.add_argument("--json", action="store_true", help="machine-readable output")
+    parser.add_argument(
+        "--write-inline",
+        action="store_true",
+        help="read every trial of the record's jobs and write the per-trial "
+             "values into the record, so it can be analysed without jobs/",
+    )
+    parser.add_argument(
+        "--from-inline",
+        action="store_true",
+        help="read the record's inline trials even where the job directories "
+             "exist; for proving the two readings agree",
+    )
     args = parser.parse_args()
 
     record: dict = {}
@@ -361,8 +461,27 @@ def main() -> int:
         sys.exit("need at least two arms; pass an experiment record or --arm twice")
 
     primary = args.primary or record.get("primary_endpoint")
-    built = {name: Arm(name, jobs) for name, jobs in arms.items()}
+    inline = ((record.get("inline") or {}).get("arms")) or {}
+    if args.write_inline:
+        if not args.experiment:
+            sys.exit("--write-inline needs an experiment record")
+        record["inline"] = {
+            "version": INLINE_VERSION,
+            "arms": {name: inline_arm(Arm(name, jobs)) for name, jobs in arms.items()},
+        }
+        args.experiment.write_text(json.dumps(record, indent=2))
+        rows = sum(len(a["trials"]) for a in record["inline"]["arms"].values())
+        print(f"{args.experiment}: {rows} trial(s) written inline")
+        return 0
+    built: dict[str, Arm] = {}
+    for name, jobs in arms.items():
+        if name in inline and (args.from_inline or not all(j.is_dir() for j in jobs)):
+            built[name] = InlineArm(name, inline[name])
+        else:
+            built[name] = Arm(name, jobs)
     names = list(built)
+    if any(isinstance(arm, InlineArm) for arm in built.values()):
+        print("source    the record's inline trials (job directories not read)")
 
     # Comparability, which this script did not check at all until 20 August
     # 2026. It would pool an Opus arm against a Haiku one, or two different

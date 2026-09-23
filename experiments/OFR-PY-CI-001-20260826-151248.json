@@ -71,5 +71,247 @@
   "valid_trials": {
     "control": 3,
     "nr-general": 3
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": "OFR-PY-CI-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-PY-CI-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "control",
+          "fleet_requested": [],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {},
+          "comparison": {
+            "task_digest": "sha256:47c84a9050ac1bf094e84a9216c770d0e09af9cf8d5cf4e37f9317c4ec120540",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "2dd1d168f426d476",
+          "provision": {
+            "skills": [],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "3f9ba13aeb756ce1",
+          "grade": {
+            "rubric_digest": "dd8c1a30e10900ae",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-26T15:17:37+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260826-151248",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-PY-CI-001-control-20260826-151248",
+          "OFR-PY-CI-001-control-20260826-152551",
+          "OFR-PY-CI-001-control-20260826-153001"
+        ],
+        "trials": [
+          {
+            "job": "OFR-PY-CI-001-control-20260826-151248",
+            "trial": "py-scheduled-job-exit-code__SHV3uZp",
+            "reward": {
+              "exit_semantics": 0.7125
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1069505,
+            "n_input_tokens": 251125.0,
+            "tool_calls": 17.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-control-20260826-152551",
+            "trial": "py-scheduled-job-exit-code__o67eghN",
+            "reward": {
+              "exit_semantics": 0.7125
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.0494749,
+            "n_input_tokens": 117680.0,
+            "tool_calls": 3.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-control-20260826-153001",
+            "trial": "py-scheduled-job-exit-code__GbXqxmt",
+            "reward": {
+              "exit_semantics": 0.45
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 3,
+                "partial": 2,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.07390435000000001,
+            "n_input_tokens": 161987.0,
+            "tool_calls": 11.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      },
+      "nr-general": {
+        "case_id": "OFR-PY-CI-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-PY-CI-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr-general",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:47c84a9050ac1bf094e84a9216c770d0e09af9cf8d5cf4e37f9317c4ec120540",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "2dd1d168f426d476",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "15cd599c2b35fe11",
+          "grade": {
+            "rubric_digest": "dd8c1a30e10900ae",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-26T15:21:56+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260826-151737",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-PY-CI-001-nr-general-20260826-151737",
+          "OFR-PY-CI-001-nr-general-20260826-152156",
+          "OFR-PY-CI-001-nr-general-20260826-153452"
+        ],
+        "trials": [
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260826-151737",
+            "trial": "py-scheduled-job-exit-code__MdR5L8u",
+            "reward": {
+              "exit_semantics": 0.8375
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1134535,
+            "n_input_tokens": 471751.0,
+            "tool_calls": 17.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260826-152156",
+            "trial": "py-scheduled-job-exit-code__zacQPWU",
+            "reward": {
+              "exit_semantics": 0.45
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 3,
+                "partial": 2,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.050086900000000004,
+            "n_input_tokens": 131927.0,
+            "tool_calls": 4.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-PY-CI-001-nr-general-20260826-153452",
+            "trial": "py-scheduled-job-exit-code__6niV386",
+            "reward": {
+              "exit_semantics": 0.65
+            },
+            "categories": {
+              "exit_semantics": {
+                "met": 6,
+                "partial": 0,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.0545876,
+            "n_input_tokens": 145037.0,
+            "tool_calls": 4.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }
