@@ -229,6 +229,27 @@ turns out to live — was withdrawn for the release case: the instruction says
 that word, and neither `nr` nor `nr-full` carries it. The vocabulary was there
 and the capability was not.
 
+**Read with that table, the bug-report cases are on offer and not selected.**
+Four cases open on a report of wrong behaviour rather than on a named job — the
+figure resize, the calendar event, the runtime save failure, the registration
+checkbox — and under Haiku 4.5 none of them has loaded a skill in any equipped
+trial: 0 of 24, 0 of 12, 0 of 52 and 0 of 6 (`scripts/invocation-census`,
+September 2026). The runtime case's zero is a composition result — its README
+records that the instance-operation skill sits in `nr-full` and not in the `nr`
+arm that ran. The other three are routing results: `nr` carries
+`typo3-testing`, whose description opens on a reported defect that has to be
+reproduced as a failing test, and on the registration case the `Skill` tool was
+in the tool list and all eight skills were listed in every `nr` trial. Set
+against the cases that do route — the review and the upgrade, at 53 of 54 and
+257 of 263 — the pattern is the one the release case first suggested and then
+withdrew for want of a capability: this model reaches for a skill when the
+request names a domain or an artefact, and not when it describes something that
+is broken. That is a limit of the fleet on this model, not a property of any
+one description; `typo3-testing`'s was rewritten to name the situation and read
+0 of 3 on the resize case. Whether a model that opens skills more readily
+behaves otherwise is the measurement that would separate the model from the
+skills, and it has not been run.
+
 ## 9. Case admission
 
 A case enters the benchmark only via the lifecycle in

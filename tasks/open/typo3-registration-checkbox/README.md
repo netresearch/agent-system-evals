@@ -57,3 +57,11 @@ trials, no instance, a functional suite of one test.
 It also stands as the worked example of the recovery route: a candidate rejected
 because the fix's test does not discriminate, brought back by reading the fix
 for the behaviour it changed rather than the test it shipped.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read (see `docs/open-forward-review.md`, "A zero invocation count is ambiguous").
+
+Reproducing a reported validation defect as a failing test, including the input shapes the report does not spell out, then fixing it. `netresearch/typo3-testing-skill` covers that and is in `nr`.
+
+**On offer in the arm that ran.** On 23 September the `Skill` tool was in the tool list and all eight `nr` skills were listed in every equipped trial; the zero is a routing result.

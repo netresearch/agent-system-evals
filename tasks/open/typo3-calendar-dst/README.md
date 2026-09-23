@@ -79,3 +79,11 @@ One difference between the arms is worth recording as a hypothesis rather than
 a finding: `claims_match_what_was_shown` is met in 6 of 6 equipped trials
 against 3 of 7 unaided ones. The equipped agents were more careful about what
 they *claimed* — and equally unable to produce a check that could fail.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read (see `docs/open-forward-review.md`, "A zero invocation count is ambiguous").
+
+Reproducing a reported date-handling defect as a failing test, then fixing it. `netresearch/typo3-testing-skill` covers the reproduce-first step and is in `nr`.
+
+**On offer in the arm that ran.** A zero here is a routing result, not a composition one.
