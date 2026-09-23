@@ -397,7 +397,7 @@ of 6.
 | `candidate` | 0/6 | **0/6** | 5/6 | 0/6 | median $0.71 |
 
 **It did not move.** No candidate trial wrote a functional test; five wrote
-unit tests, one more than `nr`. The floor is 0/6 on both arms, as on every
+unit tests, two more than `nr`. The floor is 0/6 on both arms, as on every
 round of this case. By the pre-registered reading, the description is not
 acted on for this shape of request either.
 
