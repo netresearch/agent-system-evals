@@ -24,6 +24,13 @@ the declared endpoint; `outcome_quality` 2/6 on both arms; cost median $0.27
 → $0.37, p 0.394, exploratory. With nothing loaded, the `nr` arm is the bare
 model plus eight skills it never opens, and the result reads that way.
 
+**The ceiling the README expected is not here.** The case was admitted as
+"near its ceiling" on a pre-use check of three control trials, two of which
+fixed it. At six per arm and the current environment the control arm reads
+2/6. The earlier figure was three trials; this one is six, and the case has
+more room than its admission assumed — which also means an equipped arm could
+now show an improvement, had it loaded anything.
+
 **Every failure is the same test.** All eight failing trials, four per arm,
 fail `requiredCheckboxGroupWithNothingTickedIsAnError`: the agent fixes the
 single required checkbox the maintainer's report names and leaves a checkbox

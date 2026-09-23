@@ -144,3 +144,11 @@ base to the *working tree* and covers both. It was not changed mid-series: a
 task edit changes the digest, and half the trials would then have been measured
 with a different instrument. The declared endpoint is unaffected — only the
 judge's diff input was degraded.
+
+## What capability this task plausibly needs
+
+Recorded so that a skill-invocation count of zero can be read (see `docs/open-forward-review.md`, "A zero invocation count is ambiguous").
+
+Reproducing a reported rendering defect as a failing test and proving the fix by rendering. `netresearch/typo3-testing-skill` covers exactly that and is in `nr`.
+
+**On offer in the arm that ran.** A zero here is a routing result: the skill was installed and listed, and was not selected (see RESULTS.md, rounds 36 and 40).
