@@ -15,7 +15,7 @@
 # and the lock is the only thing that will show it.
 
 name: candidate
-description: nr with typo3-testing's description naming Tests/Functional/ as where rendered output is proved — the test written, moved or not, as the question
+description: nr, carrying no variable — the last question closed on 23 September, the next not yet chosen
 
 derives_from: nr
 # At 7.1.0 (16 September 2026) the arm moves from the documentation question to
@@ -115,9 +115,18 @@ at:
   #   carries two refs measures two differences and reports one, and this
   #   one's question is answered)
 
-  # ROUND TWENTY, open: does a description that names where rendered output
-  # is proved move the test the agent writes, on a case where the skill is
-  # never loaded?
+  # ROUND TWENTY, ANSWERED 23 September 2026: no. Twelve of twelve valid,
+  # mechanical_outcome with --run-out, six per arm: 0/6 against 0/6, and the
+  # candidate wrote under Tests/Functional/ in 0 of 6 (nr 1 of 6), under
+  # Tests/Unit/ in 5 of 6. The new description was installed in all six
+  # candidate trials; Skill 0/12. The directory result from the documentation
+  # case does not transfer to a bug-report request: the description is
+  # neither routed nor acted on. The ref is REMOVED: candidate equals nr
+  # again. Recorded in tasks/open/typo3-rte-figure-resize/RESULTS.md, round
+  # forty-one.
+  #
+  # It asked: does a description that names where rendered output is proved
+  # move the test the agent writes, on a case where the skill is never loaded?
   #
   # On the bug-report cases Haiku loads no skill (docs/open-forward-review.md,
   # "A zero invocation count is ambiguous"), and a description rewritten to
@@ -150,7 +159,8 @@ at:
   # A branch ref: do not push to, rebase, merge or delete
   # experiment/rendered-output-is-proved-in-functional while a comparison
   # names it.
-  netresearch/typo3-testing-skill: experiment/rendered-output-is-proved-in-functional
+  #   (closed; the ref is removed and the experiment branch deleted once this
+  #   is merged — the arm carries no variable until the next question)
 
   # ROUND NINETEEN, ANSWERED 20 September 2026: it does the migration, and
   # the trials that let it did not finish. Twelve of twelve valid, declared
