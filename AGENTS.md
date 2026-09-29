@@ -111,11 +111,11 @@ refutation and was closed for it.
 
 **A pre-registered floor rule names its tolerance.** "The candidate's rate at
 or above `nr`'s" cannot tell one trial from a real drop. The Composer-output
-change on UPGRADE-001 read 3/6 against 4/6, then 5/9 against 6/9, then 9/15
-against 11/15 (Fisher p 0.70), and was withdrawn only after two further rounds
-spent on a gap the rule could never close. Write the rule as non-inferiority
-with a stated margin, for example "at most one trial in six below `nr`", before
-the round runs.
+change on UPGRADE-001 read 3/6 against 4/6 and was withdrawn on it; two
+further rounds, run to learn whether one trial was noise, ended at 5/9 against
+6/9 and 9/15 against 11/15 (Fisher p 0.70) and still could not tell. Write the
+rule as non-inferiority with a stated margin, for example "at most one trial
+in six below `nr`", before the round runs.
 
 **When a number changes, recompute every sentence that restates it.** Prose
 comparisons ("one more", "twice as many", a p-value) are derived from the
@@ -128,7 +128,8 @@ recurring class of review findings on this repository.
 
 **Check `docker info` before starting.** Without Docker the first block fails
 at once, `run-comparison` stops with "arm control failed in round 1 block 1",
-and an empty record is left in `experiments/` that has to be deleted by hand.
+and a record with no trials is left in `experiments/` that has to be deleted
+by hand.
 
 **Run from the `main` worktree.** `jobs/` is ignored by git and
 `git worktree remove` deletes ignored files, so a round run from a branch
