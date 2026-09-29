@@ -465,10 +465,16 @@ def main() -> int:
     if args.write_inline:
         if not args.experiment:
             sys.exit("--write-inline needs an experiment record")
-        record["inline"] = {
-            "version": INLINE_VERSION,
-            "arms": {name: inline_arm(Arm(name, jobs)) for name, jobs in arms.items()},
-        }
+        fresh = {name: inline_arm(Arm(name, jobs)) for name, jobs in arms.items()}
+        for name, data in fresh.items():
+            # An empty reading is legitimate for an arm that never had a valid
+            # trial, and a loss where the record already holds some: those may
+            # be the only copy left once jobs/ is gone.
+            if not data["trials"] and (inline.get(name) or {}).get("trials"):
+                sys.exit(
+                    f"{name}: refusing to replace inline trials with an empty reading"
+                )
+        record["inline"] = {"version": INLINE_VERSION, "arms": fresh}
         args.experiment.write_text(json.dumps(record, indent=2))
         rows = sum(len(a["trials"]) for a in record["inline"]["arms"].values())
         print(f"{args.experiment}: {rows} trial(s) written inline")

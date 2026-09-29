@@ -176,3 +176,33 @@ def test_a_missing_job_without_inline_trials_names_the_repair(tmp_path):
 def test_the_runner_writes_inline_trials_at_the_end_of_every_run():
     source = (ROOT / "scripts" / "run-comparison").read_text()
     assert '"--write-inline", str(log)' in source
+
+
+def test_write_inline_refuses_to_replace_trials_with_an_empty_reading(tmp_path):
+    """Once jobs/ is gone, the record's inline trials may be the only copy."""
+    empty_job = tmp_path / "jobs" / "empty-job"
+    empty_job.mkdir(parents=True)
+    record = tmp_path / "record.json"
+    original = {
+        "case": CASE,
+        "jobs": {"control": [str(empty_job)], "nr": [str(empty_job)]},
+        "inline": {"version": 1, "arms": {"control": {"trials": [{"cost_usd": 0.1}]}}},
+    }
+    record.write_text(json.dumps(original))
+    result = subprocess.run(
+        [str(ROOT / "scripts" / "analyze"), "--write-inline", str(record)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "refusing to replace inline trials" in result.stdout + result.stderr
+    assert json.loads(record.read_text()) == original
+
+
+def test_the_runner_fails_when_the_inline_write_fails():
+    source = (ROOT / "scripts" / "run-comparison").read_text()
+    block = source[source.index('"--write-inline", str(log)') :]
+    block = block[: block.index("return 0")]
+    assert "inline.returncode != 0" in block
+    assert "return 1" in block

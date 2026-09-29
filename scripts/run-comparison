@@ -708,6 +708,10 @@ def main() -> int:
         capture_output=True, text=True,
     )
     print(inline.stdout.strip() or inline.stderr.strip())
+    if inline.returncode != 0:
+        print("inline trials were NOT written; the record depends on jobs/ "
+              "(docs/instrument-failures.md, 35)", file=sys.stderr)
+        return 1
     print(f"\nscripts/analyze {log.relative_to(ROOT)}")
     return 0
 
