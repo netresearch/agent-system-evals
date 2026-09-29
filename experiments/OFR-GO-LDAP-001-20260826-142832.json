@@ -71,5 +71,250 @@
   "valid_trials": {
     "control": 3,
     "nr-go": 3
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": "OFR-GO-LDAP-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-GO-LDAP-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "control",
+          "fleet_requested": [],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {},
+          "comparison": {
+            "task_digest": "sha256:d67255495bc3322d9782e7b78be151222fb77c3dfa900fe47e1a3c7636f9a25b",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "eea8fea5dc093872",
+          "provision": {
+            "skills": [],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "3f9ba13aeb756ce1",
+          "grade": {
+            "rubric_digest": "9092d2e5b52180ec",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-26T14:45:14+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260826-143824",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-GO-LDAP-001-control-20260826-143824",
+          "OFR-GO-LDAP-001-control-20260826-144514",
+          "OFR-GO-LDAP-001-control-20260826-150525"
+        ],
+        "trials": [
+          {
+            "job": "OFR-GO-LDAP-001-control-20260826-143824",
+            "trial": "go-ldap-auth-timing__uFEKTr3",
+            "reward": {
+              "timing_parity": 0.75
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 6,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.18617099999999998,
+            "n_input_tokens": 897075.0,
+            "tool_calls": 20.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-GO-LDAP-001-control-20260826-144514",
+            "trial": "go-ldap-auth-timing__fDSGfTk",
+            "reward": {
+              "timing_parity": 0.8125
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.23831159999999998,
+            "n_input_tokens": 918098.0,
+            "tool_calls": 32.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-GO-LDAP-001-control-20260826-150525",
+            "trial": "go-ldap-auth-timing__b93TJ4X",
+            "reward": {
+              "timing_parity": 0.8125
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.32018304999999997,
+            "n_input_tokens": 1084550.0,
+            "tool_calls": 31.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          }
+        ],
+        "excluded": []
+      },
+      "nr-go": {
+        "case_id": "OFR-GO-LDAP-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-GO-LDAP-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr-go",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/security-audit-skill@v2.11.1",
+            "netresearch/go-development-skill@v1.14.0"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/security-audit-skill@v2.11.1",
+              "netresearch/go-development-skill@v1.14.0"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:d67255495bc3322d9782e7b78be151222fb77c3dfa900fe47e1a3c7636f9a25b",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "eea8fea5dc093872",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "go-development@/home/sme/.cache/harbor/skills/github.com/netresearch/go-development-skill/ddda44f1ff42541356d34dafa60fb85a0d698b6d/skills/go-development",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "bd0101297828df22",
+          "grade": {
+            "rubric_digest": "9092d2e5b52180ec",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-26T14:38:24+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260826-142833",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-GO-LDAP-001-nr-go-20260826-142833",
+          "OFR-GO-LDAP-001-nr-go-20260826-145210",
+          "OFR-GO-LDAP-001-nr-go-20260826-145809"
+        ],
+        "trials": [
+          {
+            "job": "OFR-GO-LDAP-001-nr-go-20260826-142833",
+            "trial": "go-ldap-auth-timing__wGWWxCv",
+            "reward": {
+              "timing_parity": 0.625
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 5,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.4490396,
+            "n_input_tokens": 1647152.0,
+            "tool_calls": 39.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-GO-LDAP-001-nr-go-20260826-145210",
+            "trial": "go-ldap-auth-timing__jFHzx9Z",
+            "reward": {
+              "timing_parity": 0.75
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 6,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1585348,
+            "n_input_tokens": 670529.0,
+            "tool_calls": 15.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-GO-LDAP-001-nr-go-20260826-145809",
+            "trial": "go-ldap-auth-timing__2SHVyhb",
+            "reward": {
+              "timing_parity": 0.75
+            },
+            "categories": {
+              "timing_parity": {
+                "met": 6,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1664868,
+            "n_input_tokens": 573452.0,
+            "tool_calls": 13.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

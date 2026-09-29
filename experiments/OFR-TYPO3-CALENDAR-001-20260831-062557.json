@@ -78,5 +78,262 @@
       "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-064433",
       "jobs/OFR-TYPO3-CALENDAR-001-nr-20260831-070651"
     ]
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": "OFR-TYPO3-CALENDAR-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-TYPO3-CALENDAR-001",
+          "variant_of": "OFR-TYPO3-CALENDAR-001",
+          "variant": "vanilla",
+          "fleet": "control",
+          "fleet_requested": [],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {},
+          "comparison": {
+            "task_digest": "sha256:60ff390324b0ba34cb6300812d6db40b97f9cb567ff197894a5ca167b1b015fe",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "dc93c19d9efb5b73",
+          "provision": {
+            "skills": [],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "3f9ba13aeb756ce1",
+          "grade": {
+            "rubric_digest": "53c9442841f27ea9",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-31T06:44:32+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260831-063443",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-CALENDAR-001-control-20260831-063443",
+          "OFR-TYPO3-CALENDAR-001-control-20260831-065137",
+          "OFR-TYPO3-CALENDAR-001-control-20260831-070052"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-control-20260831-063443",
+            "trial": "typo3-calendar-dst__yfxVDB3",
+            "reward": {
+              "outcome_quality": 0.75
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.5242296000000001,
+            "n_input_tokens": 2802709.0,
+            "tool_calls": 49.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-control-20260831-065137",
+            "trial": "typo3-calendar-dst__zEoZsmr",
+            "reward": {
+              "outcome_quality": 0.0
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 0,
+                "partial": 0,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.5724675999999999,
+            "n_input_tokens": 3195081.0,
+            "tool_calls": 61.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-control-20260831-070052",
+            "trial": "typo3-calendar-dst__DiwAWNw",
+            "reward": {
+              "outcome_quality": 0.25
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 1,
+                "partial": 0,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.10719220000000002,
+            "n_input_tokens": 486710.0,
+            "tool_calls": 15.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      },
+      "nr": {
+        "case_id": "OFR-TYPO3-CALENDAR-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "2.0.0",
+          "case_id": "OFR-TYPO3-CALENDAR-001",
+          "variant_of": "OFR-TYPO3-CALENDAR-001",
+          "variant": "vanilla",
+          "fleet": "nr",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/typo3-conformance-skill@v2.19.1",
+            "netresearch/typo3-testing-skill@v5.20.3",
+            "netresearch/typo3-docs-skill@v2.16.0",
+            "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+            "netresearch/php-modernization-skill@v1.22.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/typo3-conformance-skill@v2.19.1",
+              "netresearch/typo3-testing-skill@v5.20.3",
+              "netresearch/typo3-docs-skill@v2.16.0",
+              "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+              "netresearch/php-modernization-skill@v1.22.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:60ff390324b0ba34cb6300812d6db40b97f9cb567ff197894a5ca167b1b015fe",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "dc93c19d9efb5b73",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "php-modernization@/home/sme/.cache/harbor/skills/github.com/netresearch/php-modernization-skill/7474a1396e033b92d2797e0b46bf34afb2bcf579/skills/php-modernization",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit",
+              "typo3-conformance@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-conformance-skill/f3d5dad829bda37c527b7cebcdab22ca52d23668/skills/typo3-conformance",
+              "typo3-docs@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-docs-skill/688bc252cbdf047be3e1fa9c81debfd68285aee8/skills/typo3-docs",
+              "typo3-extension-upgrade@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-extension-upgrade-skill/8109506af4cbd9a4a8772e142fdf0b6b0ddf9a62/skills/typo3-extension-upgrade",
+              "typo3-testing@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-testing-skill/466819b8db080d051ec978c92f8403b59b35762f/skills/typo3-testing"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "c76394d5c1ca33b4",
+          "grade": {
+            "rubric_digest": "53c9442841f27ea9",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-31T06:34:43+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260831-062557",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-CALENDAR-001-nr-20260831-062557",
+          "OFR-TYPO3-CALENDAR-001-nr-20260831-064433",
+          "OFR-TYPO3-CALENDAR-001-nr-20260831-070651"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-nr-20260831-062557",
+            "trial": "typo3-calendar-dst__ZjcgtJ9",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.4156239000000001,
+            "n_input_tokens": 2337601.0,
+            "tool_calls": 50.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-nr-20260831-064433",
+            "trial": "typo3-calendar-dst__6VqKpRD",
+            "reward": {
+              "outcome_quality": 0.25
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 1,
+                "partial": 0,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.27806279999999994,
+            "n_input_tokens": 1385067.0,
+            "tool_calls": 33.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-TYPO3-CALENDAR-001-nr-20260831-070651",
+            "trial": "typo3-calendar-dst__QWgFvPb",
+            "reward": {
+              "outcome_quality": 0.25
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 1,
+                "partial": 0,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.6087408999999998,
+            "n_input_tokens": 2967385.0,
+            "tool_calls": 70.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

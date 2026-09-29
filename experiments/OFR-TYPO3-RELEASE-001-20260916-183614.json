@@ -35,5 +35,24 @@
   "jobs": {
     "nr-release": [],
     "candidate": []
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "nr-release": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      },
+      "candidate": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      }
+    }
   }
 }

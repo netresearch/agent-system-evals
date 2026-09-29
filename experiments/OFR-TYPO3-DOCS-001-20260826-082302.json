@@ -30,5 +30,24 @@
   "jobs": {
     "nr": [],
     "candidate": []
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "nr": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      },
+      "candidate": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      }
+    }
   }
 }

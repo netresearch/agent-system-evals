@@ -79,5 +79,583 @@
   "valid_trials": {
     "nr": 3,
     "nr-minus-conformance": 3
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "nr": {
+        "case_id": "OFR-TYPO3-EXT-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "0.8.0",
+          "case_id": "OFR-TYPO3-EXT-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/typo3-conformance-skill@v2.19.1",
+            "netresearch/typo3-testing-skill@v5.20.3",
+            "netresearch/typo3-docs-skill@v2.16.0",
+            "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+            "netresearch/php-modernization-skill@v1.22.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/typo3-conformance-skill@v2.19.1",
+              "netresearch/typo3-testing-skill@v5.20.3",
+              "netresearch/typo3-docs-skill@v2.16.0",
+              "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+              "netresearch/php-modernization-skill@v1.22.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:3bb3bfdb1c3bd26d5e3654cea00b185ba667435f1adfe5130312af4c7d5c10f4",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "66ef81ffd963f428",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "php-modernization@/home/sme/.cache/harbor/skills/github.com/netresearch/php-modernization-skill/7474a1396e033b92d2797e0b46bf34afb2bcf579/skills/php-modernization",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit",
+              "typo3-conformance@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-conformance-skill/f3d5dad829bda37c527b7cebcdab22ca52d23668/skills/typo3-conformance",
+              "typo3-docs@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-docs-skill/688bc252cbdf047be3e1fa9c81debfd68285aee8/skills/typo3-docs",
+              "typo3-extension-upgrade@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-extension-upgrade-skill/8109506af4cbd9a4a8772e142fdf0b6b0ddf9a62/skills/typo3-extension-upgrade",
+              "typo3-testing@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-testing-skill/466819b8db080d051ec978c92f8403b59b35762f/skills/typo3-testing"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "c76394d5c1ca33b4",
+          "grade": {
+            "rubric_digest": "ee8e7fb9ef8df47c",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-22T15:08:24+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260822-150027",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-EXT-001-nr-20260822-150027",
+          "OFR-TYPO3-EXT-001-nr-20260822-150825",
+          "OFR-TYPO3-EXT-001-nr-20260822-152347"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260822-150027",
+            "trial": "typo3-extension-review__N2kYrMA",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.5,
+              "context_discovery": 0.7708,
+              "evidence": 0.625,
+              "outcome_quality": 1.0,
+              "prioritization": 0.8333,
+              "unsupported_claims": 0.3333,
+              "verification": 0.5625
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 5,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "verification": {
+                "met": 4,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1388017,
+            "n_input_tokens": 614133.0,
+            "tool_calls": 42.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260822-150825",
+            "trial": "typo3-extension-review__9Ac5rkU",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.5,
+              "context_discovery": 1.0,
+              "evidence": 0.5,
+              "outcome_quality": 1.0,
+              "prioritization": 0.8333,
+              "unsupported_claims": 0.6667,
+              "verification": 0.5625
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 0,
+                "partial": 4,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 4,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.14858710000000003,
+            "n_input_tokens": 634583.0,
+            "tool_calls": 48.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260822-152347",
+            "trial": "typo3-extension-review__3r7zT6T",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.5,
+              "context_discovery": 0.875,
+              "evidence": 0.5,
+              "outcome_quality": 0.75,
+              "prioritization": 0.5,
+              "unsupported_claims": 0.6667,
+              "verification": 0.75
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 5,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 5,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.11171110000000001,
+            "n_input_tokens": 491280.0,
+            "tool_calls": 19.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          }
+        ],
+        "excluded": []
+      },
+      "nr-minus-conformance": {
+        "case_id": "OFR-TYPO3-EXT-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "0.8.0",
+          "case_id": "OFR-TYPO3-EXT-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr-minus-conformance",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/typo3-testing-skill@v5.20.3",
+            "netresearch/typo3-docs-skill@v2.16.0",
+            "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+            "netresearch/php-modernization-skill@v1.22.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/typo3-testing-skill@v5.20.3",
+              "netresearch/typo3-docs-skill@v2.16.0",
+              "netresearch/typo3-extension-upgrade-skill@v3.11.1",
+              "netresearch/php-modernization-skill@v1.22.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:3bb3bfdb1c3bd26d5e3654cea00b185ba667435f1adfe5130312af4c7d5c10f4",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "66ef81ffd963f428",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "php-modernization@/home/sme/.cache/harbor/skills/github.com/netresearch/php-modernization-skill/7474a1396e033b92d2797e0b46bf34afb2bcf579/skills/php-modernization",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit",
+              "typo3-docs@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-docs-skill/688bc252cbdf047be3e1fa9c81debfd68285aee8/skills/typo3-docs",
+              "typo3-extension-upgrade@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-extension-upgrade-skill/8109506af4cbd9a4a8772e142fdf0b6b0ddf9a62/skills/typo3-extension-upgrade",
+              "typo3-testing@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-testing-skill/466819b8db080d051ec978c92f8403b59b35762f/skills/typo3-testing"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "64d8790067c4fd07",
+          "grade": {
+            "rubric_digest": "ee8e7fb9ef8df47c",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-08-22T15:00:27+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260822-145242",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-145242",
+          "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-151627",
+          "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-153124"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-145242",
+            "trial": "typo3-extension-review__sDcjC3q",
+            "reward": {
+              "authority": 0.1667,
+              "capability_selection": 0.25,
+              "context_discovery": 0.7708,
+              "evidence": 0.25,
+              "outcome_quality": 0.75,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.3333,
+              "verification": 0.1875
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 3,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 5,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              },
+              "evidence": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "verification": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 5,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.10376780000000002,
+            "n_input_tokens": 368227.0,
+            "tool_calls": 22.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-151627",
+            "trial": "typo3-extension-review__f7GtJVg",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.3333,
+              "context_discovery": 0.9375,
+              "evidence": 0.625,
+              "outcome_quality": 0.75,
+              "prioritization": 0.5,
+              "unsupported_claims": 0.6667,
+              "verification": 0.375
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.15740610000000002,
+            "n_input_tokens": 826814.0,
+            "tool_calls": 41.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-minus-conformance-20260822-153124",
+            "trial": "typo3-extension-review__iQyAenb",
+            "reward": {
+              "authority": 0.0833,
+              "capability_selection": 0.1667,
+              "context_discovery": 0.7083,
+              "evidence": 0.375,
+              "outcome_quality": 0.625,
+              "prioritization": 0.5,
+              "unsupported_claims": 0.1667,
+              "verification": 0.3125
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 1,
+                "not_met": 4,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 4,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "evidence": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 1,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 0,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              },
+              "verification": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.08287220000000001,
+            "n_input_tokens": 324597.0,
+            "tool_calls": 25.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

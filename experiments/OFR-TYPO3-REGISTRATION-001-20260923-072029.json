@@ -123,5 +123,388 @@
   "valid_trials": {
     "control": 6,
     "nr": 6
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": "OFR-TYPO3-REGISTRATION-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "10.7.0",
+          "case_id": "OFR-TYPO3-REGISTRATION-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "control",
+          "fleet_requested": [],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {},
+          "comparison": {
+            "task_digest": "sha256:1d0755c4e8b20d151730fd953a6d9057b6009a993884cd4f7174e09e94de9131",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "ef1f673594fd388e",
+          "provision": {
+            "skills": [],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "3f9ba13aeb756ce1",
+          "grade": {
+            "rubric_digest": "f071d90cf631d95d",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-09-23T07:27:00+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260923-072029",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-072029",
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-072731",
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-073303",
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-073927",
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-074501",
+          "OFR-TYPO3-REGISTRATION-001-control-20260923-075205"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-072029",
+            "trial": "typo3-registration-checkbox__etUa6fQ",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.3805122,
+            "n_input_tokens": 2169324.0,
+            "tool_calls": 51.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-072731",
+            "trial": "typo3-registration-checkbox__o6K4t2X",
+            "reward": {
+              "outcome_quality": 0.0
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 0,
+                "partial": 0,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.2733478,
+            "n_input_tokens": 1430873.0,
+            "tool_calls": 38.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-073303",
+            "trial": "typo3-registration-checkbox__HswqGMq",
+            "reward": {
+              "outcome_quality": 0.75
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.33140839999999994,
+            "n_input_tokens": 1922554.0,
+            "tool_calls": 51.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-073927",
+            "trial": "typo3-registration-checkbox__FcgUf4n",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.2448983,
+            "n_input_tokens": 1461091.0,
+            "tool_calls": 39.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-074501",
+            "trial": "typo3-registration-checkbox__mJJYc8Y",
+            "reward": {
+              "outcome_quality": 0.75
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.09968590000000001,
+            "n_input_tokens": 497099.0,
+            "tool_calls": 17.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-control-20260923-075205",
+            "trial": "typo3-registration-checkbox__YbzdXNW",
+            "reward": {
+              "outcome_quality": 0.0
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 0,
+                "partial": 0,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.2713078000000001,
+            "n_input_tokens": 1304297.0,
+            "tool_calls": 34.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          }
+        ],
+        "excluded": []
+      },
+      "nr": {
+        "case_id": "OFR-TYPO3-REGISTRATION-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "10.7.0",
+          "case_id": "OFR-TYPO3-REGISTRATION-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/typo3-conformance-skill@v2.19.4",
+            "netresearch/typo3-testing-skill@v5.20.3",
+            "netresearch/typo3-docs-skill@v2.16.0",
+            "netresearch/typo3-extension-upgrade-skill@v3.12.5",
+            "netresearch/php-modernization-skill@v1.22.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/typo3-conformance-skill@v2.19.4",
+              "netresearch/typo3-testing-skill@v5.20.3",
+              "netresearch/typo3-docs-skill@v2.16.0",
+              "netresearch/typo3-extension-upgrade-skill@v3.12.5",
+              "netresearch/php-modernization-skill@v1.22.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:1d0755c4e8b20d151730fd953a6d9057b6009a993884cd4f7174e09e94de9131",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "ef1f673594fd388e",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "php-modernization@/home/sme/.cache/harbor/skills/github.com/netresearch/php-modernization-skill/7474a1396e033b92d2797e0b46bf34afb2bcf579/skills/php-modernization",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit",
+              "typo3-conformance@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-conformance-skill/9aa6ff51e46f4b0eed0fc45fa73bb63bec2042c1/skills/typo3-conformance",
+              "typo3-docs@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-docs-skill/688bc252cbdf047be3e1fa9c81debfd68285aee8/skills/typo3-docs",
+              "typo3-extension-upgrade@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-extension-upgrade-skill/4d9af1690b2a5bad18a2121016fd4b357ccce0f2/skills/typo3-extension-upgrade",
+              "typo3-testing@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-testing-skill/466819b8db080d051ec978c92f8403b59b35762f/skills/typo3-testing"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "ccb80555dedc0a21",
+          "grade": {
+            "rubric_digest": "f071d90cf631d95d",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-09-23T07:27:31+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260923-072029",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-072029",
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-072731",
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-073303",
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-073927",
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-074501",
+          "OFR-TYPO3-REGISTRATION-001-nr-20260923-075205"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-072029",
+            "trial": "typo3-registration-checkbox__AgMqEjj",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.4398541,
+            "n_input_tokens": 2550535.0,
+            "tool_calls": 52.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-072731",
+            "trial": "typo3-registration-checkbox__voA5Stb",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.15281180000000008,
+            "n_input_tokens": 755056.0,
+            "tool_calls": 23.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-073303",
+            "trial": "typo3-registration-checkbox__GzVEYJ5",
+            "reward": {
+              "outcome_quality": 0.75
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.31409845000000003,
+            "n_input_tokens": 1480672.0,
+            "tool_calls": 52.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-073927",
+            "trial": "typo3-registration-checkbox__NDRJAG3",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.20921990000000004,
+            "n_input_tokens": 1111564.0,
+            "tool_calls": 32.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-074501",
+            "trial": "typo3-registration-checkbox__vxmiumQ",
+            "reward": {
+              "outcome_quality": 0.5
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 2,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.4407396999999999,
+            "n_input_tokens": 2540487.0,
+            "tool_calls": 57.0,
+            "skill_invoked": 0.0,
+            "mechanical": 1.0
+          },
+          {
+            "job": "OFR-TYPO3-REGISTRATION-001-nr-20260923-075205",
+            "trial": "typo3-registration-checkbox__Sf5Bidp",
+            "reward": {
+              "outcome_quality": 0.75
+            },
+            "categories": {
+              "outcome_quality": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.41769210000000007,
+            "n_input_tokens": 2302999.0,
+            "tool_calls": 48.0,
+            "skill_invoked": 0.0,
+            "mechanical": 0.0
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

@@ -130,5 +130,976 @@
   "valid_trials": {
     "control": 6,
     "nr": 6
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": "OFR-TYPO3-EXT-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "10.3.0",
+          "case_id": "OFR-TYPO3-EXT-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "control",
+          "fleet_requested": [],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {},
+          "comparison": {
+            "task_digest": "sha256:32ab9366f9ccde6ab298f2182e84588ab893577226ac1a0c30c37d9753f3cfd1",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "6153f93c00c138ec",
+          "provision": {
+            "skills": [],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "3f9ba13aeb756ce1",
+          "grade": {
+            "rubric_digest": "3c5a496df8de1d24",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-09-18T20:53:09+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260918-204559",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-EXT-001-control-20260918-204559",
+          "OFR-TYPO3-EXT-001-control-20260918-205317",
+          "OFR-TYPO3-EXT-001-control-20260918-210034",
+          "OFR-TYPO3-EXT-001-control-20260918-210812",
+          "OFR-TYPO3-EXT-001-control-20260918-211659",
+          "OFR-TYPO3-EXT-001-control-20260918-212411"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-204559",
+            "trial": "typo3-extension-review__d4uou6w",
+            "reward": {
+              "authority": 0.1667,
+              "capability_selection": 0.25,
+              "context_discovery": 0.9375,
+              "evidence": 0.625,
+              "outcome_quality": 0.875,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.5,
+              "verification": 0.4375
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 3,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 1,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 4,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.20176719999999998,
+            "n_input_tokens": 891743.0,
+            "tool_calls": 47.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-205317",
+            "trial": "typo3-extension-review__NSSfifP",
+            "reward": {
+              "authority": 0.5,
+              "capability_selection": 0.4167,
+              "context_discovery": 1.0,
+              "evidence": 0.625,
+              "outcome_quality": 0.75,
+              "prioritization": 0.5,
+              "unsupported_claims": 0.8333,
+              "verification": 0.9375
+            },
+            "categories": {
+              "authority": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 7,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1839793,
+            "n_input_tokens": 861893.0,
+            "tool_calls": 46.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-210034",
+            "trial": "typo3-extension-review__RXZxSBE",
+            "reward": {
+              "authority": 0.4167,
+              "capability_selection": 0.4167,
+              "context_discovery": 1.0,
+              "evidence": 0.75,
+              "outcome_quality": 0.875,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.5,
+              "verification": 0.875
+            },
+            "categories": {
+              "authority": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1791701,
+            "n_input_tokens": 773590.0,
+            "tool_calls": 31.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-210812",
+            "trial": "typo3-extension-review__8sttbYA",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.3333,
+              "context_discovery": 0.9375,
+              "evidence": 0.625,
+              "outcome_quality": 0.75,
+              "prioritization": 0.8333,
+              "unsupported_claims": 1.0,
+              "verification": 0.625
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 5,
+                "partial": 0,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.10393720000000001,
+            "n_input_tokens": 424744.0,
+            "tool_calls": 35.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-211659",
+            "trial": "typo3-extension-review__LJBShAP",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.1667,
+              "context_discovery": 0.875,
+              "evidence": 0.5,
+              "outcome_quality": 0.875,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.6667,
+              "verification": 0.5625
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 0,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 5,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 1,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 3,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1822936,
+            "n_input_tokens": 837222.0,
+            "tool_calls": 45.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-control-20260918-212411",
+            "trial": "typo3-extension-review__GBEEiiy",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.25,
+              "context_discovery": 0.8333,
+              "evidence": 0.75,
+              "outcome_quality": 0.875,
+              "prioritization": 0.6667,
+              "unsupported_claims": 1.0,
+              "verification": 0.5
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 1,
+                "partial": 1,
+                "not_met": 2,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 0,
+                "not_met": 1,
+                "other": 0
+              },
+              "evidence": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 3,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 3,
+                "partial": 2,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1069969,
+            "n_input_tokens": 423907.0,
+            "tool_calls": 33.0,
+            "skill_invoked": 0.0,
+            "mechanical": null
+          }
+        ],
+        "excluded": []
+      },
+      "nr": {
+        "case_id": "OFR-TYPO3-EXT-001",
+        "snapshot": {
+          "schema_version": 1,
+          "benchmark_version": "10.3.0",
+          "case_id": "OFR-TYPO3-EXT-001",
+          "variant_of": null,
+          "variant": null,
+          "fleet": "nr",
+          "fleet_requested": [
+            "netresearch/automated-assessment-skill@v2.15.1",
+            "netresearch/agent-harness-skill@v1.7.1",
+            "netresearch/typo3-conformance-skill@v2.19.4",
+            "netresearch/typo3-testing-skill@v5.20.3",
+            "netresearch/typo3-docs-skill@v2.16.0",
+            "netresearch/typo3-extension-upgrade-skill@v3.12.5",
+            "netresearch/php-modernization-skill@v1.22.1",
+            "netresearch/security-audit-skill@v2.11.1"
+          ],
+          "companion": null,
+          "mcp_server": null,
+          "fleet_declares": {
+            "skills": [
+              "netresearch/automated-assessment-skill@v2.15.1",
+              "netresearch/agent-harness-skill@v1.7.1",
+              "netresearch/typo3-conformance-skill@v2.19.4",
+              "netresearch/typo3-testing-skill@v5.20.3",
+              "netresearch/typo3-docs-skill@v2.16.0",
+              "netresearch/typo3-extension-upgrade-skill@v3.12.5",
+              "netresearch/php-modernization-skill@v1.22.1",
+              "netresearch/security-audit-skill@v2.11.1"
+            ]
+          },
+          "comparison": {
+            "task_digest": "sha256:32ab9366f9ccde6ab298f2182e84588ab893577226ac1a0c30c37d9753f3cfd1",
+            "agent": "claude-code",
+            "model": "claude-haiku-4-5-20251001",
+            "environment_type": "docker",
+            "timeout_multiplier": 1.0,
+            "harbor_schema": 2
+          },
+          "comparison_digest": "6153f93c00c138ec",
+          "provision": {
+            "skills": [
+              "add-checkpoints@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/add-checkpoints",
+              "agent-harness@/home/sme/.cache/harbor/skills/github.com/netresearch/agent-harness-skill/ad853d7cbd3a3ef9e4b2bdba934d530b36c67a5d/skills/agent-harness",
+              "automated-assessment@/home/sme/.cache/harbor/skills/github.com/netresearch/automated-assessment-skill/71bfb621f45c38e3168e4b17c039a6f82c9fead1/skills/automated-assessment",
+              "php-modernization@/home/sme/.cache/harbor/skills/github.com/netresearch/php-modernization-skill/7474a1396e033b92d2797e0b46bf34afb2bcf579/skills/php-modernization",
+              "security-audit@/home/sme/.cache/harbor/skills/github.com/netresearch/security-audit-skill/63dcb2ffe590751b133d813f0f211d5c80618e8b/skills/security-audit",
+              "typo3-conformance@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-conformance-skill/9aa6ff51e46f4b0eed0fc45fa73bb63bec2042c1/skills/typo3-conformance",
+              "typo3-docs@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-docs-skill/688bc252cbdf047be3e1fa9c81debfd68285aee8/skills/typo3-docs",
+              "typo3-extension-upgrade@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-extension-upgrade-skill/4d9af1690b2a5bad18a2121016fd4b357ccce0f2/skills/typo3-extension-upgrade",
+              "typo3-testing@/home/sme/.cache/harbor/skills/github.com/netresearch/typo3-testing-skill/466819b8db080d051ec978c92f8403b59b35762f/skills/typo3-testing"
+            ],
+            "mcp_servers": [],
+            "agent_env": {}
+          },
+          "provision_digest": "ccb80555dedc0a21",
+          "grade": {
+            "rubric_digest": "3c5a496df8de1d24",
+            "judge": "claude-code",
+            "rewardkit": "0.1.7",
+            "graded_at": "2026-09-18T20:53:17+00:00"
+          },
+          "agent_env": [],
+          "agent": "claude-code",
+          "model": "claude-haiku-4-5-20251001",
+          "judge": "claude-code",
+          "trials": 1,
+          "recorded_at": "20260918-204559",
+          "provenance_source": "harbor job lock"
+        },
+        "jobs": [
+          "OFR-TYPO3-EXT-001-nr-20260918-204559",
+          "OFR-TYPO3-EXT-001-nr-20260918-205317",
+          "OFR-TYPO3-EXT-001-nr-20260918-210034",
+          "OFR-TYPO3-EXT-001-nr-20260918-210812",
+          "OFR-TYPO3-EXT-001-nr-20260918-211659",
+          "OFR-TYPO3-EXT-001-nr-20260918-212411"
+        ],
+        "trials": [
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-204559",
+            "trial": "typo3-extension-review__UyE6w2V",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.5,
+              "context_discovery": 1.0,
+              "evidence": 0.625,
+              "outcome_quality": 0.875,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.6667,
+              "verification": 0.5625
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 4,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.17242300000000002,
+            "n_input_tokens": 952470.0,
+            "tool_calls": 48.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-205317",
+            "trial": "typo3-extension-review__9g9VJHW",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.5,
+              "context_discovery": 1.0,
+              "evidence": 0.625,
+              "outcome_quality": 1.0,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.6667,
+              "verification": 0.8125
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1566461,
+            "n_input_tokens": 908470.0,
+            "tool_calls": 35.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-210034",
+            "trial": "typo3-extension-review__872KdF6",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.5,
+              "context_discovery": 1.0,
+              "evidence": 0.625,
+              "outcome_quality": 0.875,
+              "prioritization": 0.5,
+              "unsupported_claims": 0.6667,
+              "verification": 0.625
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 4,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1317868,
+            "n_input_tokens": 580466.0,
+            "tool_calls": 46.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-210812",
+            "trial": "typo3-extension-review__foQfvAY",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.5,
+              "context_discovery": 1.0,
+              "evidence": 0.625,
+              "outcome_quality": 1.0,
+              "prioritization": 0.6667,
+              "unsupported_claims": 0.6667,
+              "verification": 0.75
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 7,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 6,
+                "partial": 0,
+                "not_met": 2,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.1761871,
+            "n_input_tokens": 784656.0,
+            "tool_calls": 60.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-211659",
+            "trial": "typo3-extension-review__meAqJKm",
+            "reward": {
+              "authority": 0.3333,
+              "capability_selection": 0.5,
+              "context_discovery": 0.9375,
+              "evidence": 0.625,
+              "outcome_quality": 0.875,
+              "prioritization": 0.8333,
+              "unsupported_claims": 0.6667,
+              "verification": 0.8125
+            },
+            "categories": {
+              "authority": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 1,
+                "partial": 3,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 1,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.10353989999999999,
+            "n_input_tokens": 405651.0,
+            "tool_calls": 38.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          },
+          {
+            "job": "OFR-TYPO3-EXT-001-nr-20260918-212411",
+            "trial": "typo3-extension-review__eaQ3rtg",
+            "reward": {
+              "authority": 0.25,
+              "capability_selection": 0.5,
+              "context_discovery": 0.9375,
+              "evidence": 0.75,
+              "outcome_quality": 0.875,
+              "prioritization": 0.8333,
+              "unsupported_claims": 0.6667,
+              "verification": 0.5625
+            },
+            "categories": {
+              "authority": {
+                "met": 0,
+                "partial": 3,
+                "not_met": 2,
+                "other": 0
+              },
+              "capability_selection": {
+                "met": 4,
+                "partial": 0,
+                "not_met": 0,
+                "other": 0
+              },
+              "context_discovery": {
+                "met": 6,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "evidence": {
+                "met": 2,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "outcome_quality": {
+                "met": 3,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "prioritization": {
+                "met": 2,
+                "partial": 1,
+                "not_met": 0,
+                "other": 0
+              },
+              "unsupported_claims": {
+                "met": 1,
+                "partial": 2,
+                "not_met": 0,
+                "other": 0
+              },
+              "verification": {
+                "met": 4,
+                "partial": 1,
+                "not_met": 3,
+                "other": 0
+              }
+            },
+            "cost_usd": 0.10165350000000001,
+            "n_input_tokens": 385881.0,
+            "tool_calls": 38.0,
+            "skill_invoked": 1.0,
+            "mechanical": null
+          }
+        ],
+        "excluded": []
+      }
+    }
   }
 }

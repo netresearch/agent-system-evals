@@ -28,5 +28,24 @@
   "jobs": {
     "control": [],
     "nr": []
+  },
+  "inline": {
+    "version": 1,
+    "arms": {
+      "control": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      },
+      "nr": {
+        "case_id": null,
+        "snapshot": {},
+        "jobs": [],
+        "trials": [],
+        "excluded": []
+      }
+    }
   }
 }
