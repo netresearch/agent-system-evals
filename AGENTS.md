@@ -102,6 +102,46 @@ two decimal places.
 **Only the fleet may differ in an A/B.** `scripts/compare` refuses runs that
 differ in case, agent, model, judge or trial count.
 
+**A split the agent chose cannot refute a lever.** Dividing one arm's trials
+by what the agent did — read the table or not, ran the block or not — compares
+groups the agent sorted itself into, and a struggling trial tries more of
+everything. Such a split suggests a direction; only a round that assigns the
+treatment at random can confirm or refute it. #113 read such a split as a
+refutation and was closed for it.
+
+**A pre-registered floor rule names its tolerance.** "The candidate's rate at
+or above `nr`'s" cannot tell one trial from a real drop. The Composer-output
+change on UPGRADE-001 read 3/6 against 4/6, then 5/9 against 6/9, then 9/15
+against 11/15 (Fisher p 0.70), and was withdrawn only after two further rounds
+spent on a gap the rule could never close. Write the rule as non-inferiority
+with a stated margin, for example "at most one trial in six below `nr`", before
+the round runs.
+
+**When a number changes, recompute every sentence that restates it.** Prose
+comparisons ("one more", "twice as many", a p-value) are derived from the
+table, and they drift when the table is edited. Recompute each from the table,
+never from rounded values, and grep every file that repeats the number —
+RESULTS, instrument failures, pull request bodies. Restatement errors are a
+recurring class of review findings on this repository.
+
+## Running a round on this machine
+
+**Check `docker info` before starting.** Without Docker the first block fails
+at once, `run-comparison` stops with "arm control failed in round 1 block 1",
+and an empty record is left in `experiments/` that has to be deleted by hand.
+
+**Run from the `main` worktree.** `jobs/` is ignored by git and
+`git worktree remove` deletes ignored files, so a round run from a branch
+worktree loses its trial directories on cleanup (instrument failure 35). If a
+round must run elsewhere, link that worktree's `jobs` to `main/jobs` with
+`ln -s`, and remove the link before `git worktree remove`.
+
+**Watch a round by its job directories, not its output.** The runner's stdout
+is buffered and arrives only when the run ends. Count
+`jobs/OFR-<case>-<date>*` while the `uv` process id is alive (`kill -0`), from
+a monitor that is re-armed every thirty minutes; a shell waiter such as
+`tail --pid` has been killed for low memory during long rounds.
+
 ## Harbor facts that cost time to find
 
 Measured against Harbor 0.21.0; all four contradict what the surrounding
