@@ -21,7 +21,7 @@ jobs:
       # Third-party actions pinned to a full commit SHA. Netresearch-owned
       # reusable workflows stay on @main so upstream fixes propagate.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
       - name: Verifier library is in sync across cases
         run: ./scripts/sync-verifier-lib --check
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
 
       # Separate job: this one reaches the network to fetch each pinned skill,
       # so it fails for reasons unrelated to the change under review. Keeping
