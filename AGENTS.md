@@ -57,7 +57,7 @@ the cases and the rubric. The question is docs/open-forward-review.md §1.
 | `./scripts/routing-overlap` | Whether a fleet skill's opening clause shares words with the request |
 | `./scripts/mechanical-ledger [--case <id>]` | Every recorded trial against its case's ground-truth check |
 | `./scripts/mine-cases` | Candidate cases from real pull requests and commits |
-| `uv run --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
+| `uv run --no-build --with pytest python -m pytest tests verifier/tests -q` | Unit tests: analysis core and verifier |
 
 `run-smoke` and `run-evaluation` need one credential, used by both the agent
 and the verifier's judge:
@@ -171,7 +171,7 @@ material suggested.
 ./scripts/validate-rubric
 ./scripts/sync-verifier-lib --check
 ./scripts/verifier-selftest
-uv run --with pytest python -m pytest verifier/tests -q
+uv run --no-build --with pytest python -m pytest verifier/tests -q
 ./scripts/contamination-check --fleet nr
 ```
 

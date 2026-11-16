@@ -65,7 +65,7 @@ every case that shares the rubric.
 ./scripts/validate-rubric
 ./scripts/sync-verifier-lib --check
 ./scripts/verifier-selftest
-uv run --with pytest python -m pytest verifier/tests -q
+uv run --no-build --with pytest python -m pytest verifier/tests -q
 ./scripts/contamination-check --fleet nr
 ```
 
