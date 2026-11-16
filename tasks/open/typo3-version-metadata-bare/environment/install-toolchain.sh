@@ -42,15 +42,15 @@ rm -rf /var/lib/apt/lists/*
 # HTTPS only, redirects included: these binaries carry no checksum, so the
 # transport is all that vouches for them.
 fetch() {
-    # $1 url, $2 output path (`-` for stdout)
-    curl --proto '=https' --tlsv1.2 -fsSL "$1" -o "$2"
+    local url=$1 out=$2  # out: a path, or `-` for stdout
+    curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$out"
 }
 
 fetch_tar() {
-    # $1 url, $2 path of the wanted file inside the archive
-    fetch "$1" /tmp/tool.tar.gz
+    local url=$1 member=$2  # member: path of the wanted file inside the archive
+    fetch "$url" /tmp/tool.tar.gz
     tar -xzf /tmp/tool.tar.gz -C /tmp
-    mv "/tmp/$2" "$BIN/"
+    mv "/tmp/$member" "$BIN/"
     rm -f /tmp/tool.tar.gz
 }
 
