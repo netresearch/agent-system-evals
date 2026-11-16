@@ -39,9 +39,16 @@ apt-get update
 apt-get install -y --no-install-recommends unzip
 rm -rf /var/lib/apt/lists/*
 
+# HTTPS only, redirects included: these binaries carry no checksum, so the
+# transport is all that vouches for them.
+fetch() {
+    # $1 url, $2 output path (`-` for stdout)
+    curl --proto '=https' --tlsv1.2 -fsSL "$1" -o "$2"
+}
+
 fetch_tar() {
     # $1 url, $2 path of the wanted file inside the archive
-    curl --proto '=https' --tlsv1.2 -fsSL "$1" -o /tmp/tool.tar.gz
+    fetch "$1" /tmp/tool.tar.gz
     tar -xzf /tmp/tool.tar.gz -C /tmp
     mv "/tmp/$2" "$BIN/"
     rm -f /tmp/tool.tar.gz
@@ -54,18 +61,18 @@ fetch_tar "https://github.com/sharkdp/fd/releases/download/${FD_VERSION}/fd-${FD
 fetch_tar "https://github.com/sharkdp/bat/releases/download/${BAT_VERSION}/bat-${BAT_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
     "bat-${BAT_VERSION}-x86_64-unknown-linux-musl/bat"
 
-curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/jqlang/jq/releases/download/${JQ_VERSION}/jq-linux-amd64" -o "$BIN/jq"
-curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" -o "$BIN/yq"
-curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/TomWright/dasel/releases/download/${DASEL_VERSION}/dasel_linux_amd64" -o "$BIN/dasel"
+fetch "https://github.com/jqlang/jq/releases/download/${JQ_VERSION}/jq-linux-amd64" "$BIN/jq"
+fetch "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" "$BIN/yq"
+fetch "https://github.com/TomWright/dasel/releases/download/${DASEL_VERSION}/dasel_linux_amd64" "$BIN/dasel"
 chmod +x "$BIN/jq" "$BIN/yq" "$BIN/dasel"
 
-curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/ast-grep/ast-grep/releases/download/${AST_GREP_VERSION}/app-x86_64-unknown-linux-gnu.zip" \
-    -o /tmp/ast-grep.zip
+fetch "https://github.com/ast-grep/ast-grep/releases/download/${AST_GREP_VERSION}/app-x86_64-unknown-linux-gnu.zip" \
+    /tmp/ast-grep.zip
 unzip -q -o /tmp/ast-grep.zip -d "$BIN"
 rm /tmp/ast-grep.zip
 chmod +x "$BIN"/ast-grep "$BIN"/sg 2>/dev/null || true
 
-curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/boyter/scc/releases/download/${SCC_VERSION}/scc_Linux_x86_64.tar.gz" \
+fetch "https://github.com/boyter/scc/releases/download/${SCC_VERSION}/scc_Linux_x86_64.tar.gz" - \
     | tar -xz -C "$BIN" scc
 chmod +x "$BIN"/rg "$BIN"/fd "$BIN"/bat "$BIN/scc"
 
